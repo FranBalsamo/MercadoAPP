@@ -1,4 +1,4 @@
-package com.franbalsamo.mercadoapp.model;
+package com.franbalsamo.mercadoapp.domain;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,9 +10,13 @@ import lombok.Setter;
 public class Cliente {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id_cliente;
+
+    @Column(unique = true)
     private String documento;
 
-    @Column(nullable = false)
+    @Column(unique = true, nullable = false)
     private String nombre;
 
     public Cliente(){

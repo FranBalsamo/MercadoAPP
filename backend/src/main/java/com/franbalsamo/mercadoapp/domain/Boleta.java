@@ -1,20 +1,25 @@
-package com.franbalsamo.mercadoapp.model;
+package com.franbalsamo.mercadoapp.domain;
 import jakarta.persistence.*;
-import com.franbalsamo.mercadoapp.model.Cliente;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
+@Entity
 @Table(name = "boletas")
 public class Boleta {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private long id_boleta;
 
-    @Column(nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "id_cliente" )
     private Cliente cliente;
+
+    @ManyToOne
+    @JoinColumn(name = "id_planilla")
+    private Planilla planilla;
 
     @Column(nullable = false)
     private float total;
@@ -23,8 +28,10 @@ public class Boleta {
     private float deuda;
 
     public Boleta(){}
-    public Boleta(Cliente cliente){
+    public Boleta(Cliente cliente, Planilla planilla){
         this.cliente = cliente;
+        this.planilla = planilla;
         this.total = 0; // Terminar logica del total
+        this.deuda = 0; // Terminar logica de deuda
     }
 }

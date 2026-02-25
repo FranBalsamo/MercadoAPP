@@ -1,20 +1,19 @@
-package com.franbalsamo.mercadoapp.model;
-import com.franbalsamo.mercadoapp.model.Boleta;
+package com.franbalsamo.mercadoapp.domain;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 
 @Getter
 @Setter
+@Entity
 @Table(name = "planillas")
 public class Planilla {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private int id_planilla;
 
     @Column(nullable = false)
     private LocalDate fecha;
@@ -25,14 +24,9 @@ public class Planilla {
     @Column
     private float deudaTotal;
 
-    private ArrayList<Boleta> boletas;
-    private ArrayList<StockDiario> stockDiario;
-
-    public Planilla(ArrayList<StockDiario> stockDiario){
+    public Planilla(){
         this.fecha=LocalDate.now();
         this.gananciasTotal = 0;
         this.deudaTotal = 0;
-        this.boletas = {};
-        this.stockDiario = stockDiario;
     }
 }

@@ -8,13 +8,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
 public class ClienteService {
     @Autowired
     private ClienteRepository clienteRepository;
-
     public Cliente saveCliente(ClienteDTO dto){
         Cliente nuevoCliente = new Cliente(dto.getDocumento(),dto.getNombre());
         return clienteRepository.save(nuevoCliente);
@@ -31,5 +31,17 @@ public class ClienteService {
             return clienteRepository.save(cliente);
         }
         return null;
+    }
+
+    public List<Cliente> findAll(){
+        return clienteRepository.findAll();
+    }
+
+    public Cliente findByDocumento(String documento){
+        return clienteRepository.findByDocumento(documento).orElse(null);
+    }
+
+    public Cliente findByNombre(String nombre){
+        return clienteRepository.findByNombre(nombre).orElse(null);
     }
 }

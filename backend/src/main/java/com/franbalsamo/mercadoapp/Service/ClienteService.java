@@ -37,11 +37,15 @@ public class ClienteService {
         return clienteRepository.findAll();
     }
 
-    public Cliente findByDocumento(String documento){
-        return clienteRepository.findByDocumento(documento).orElse(null);
+    public Optional<Cliente> findById(long id){
+        return clienteRepository.findById(id);
     }
 
-    public Cliente findByNombre(String nombre){
-        return clienteRepository.findByNombre(nombre).orElse(null);
+    public Optional<Cliente> findByDocumento(String documento){
+        return clienteRepository.findByDocumento(documento);
+    }
+
+    public Optional<Cliente> findByNombre(String nombre){
+        return clienteRepository.findByNombre(nombre);
     }
 }

@@ -38,28 +38,24 @@ public class ClienteController {
         return new ResponseEntity<>(listaClientes,HttpStatus.OK);
     }
 
-    @GetMapping("/documento/{documento}") // La URL será: GET http://localhost:8080/api/clientes/documento/30123456
+    @GetMapping("/documento/{documento}")
     public ResponseEntity<Cliente> findByDocumento(@PathVariable String documento) {
-        Cliente clienteEncontrado = clienteService.findByDocumento(documento);
+        Cliente clienteEncontrado = clienteService.findByDocumento(documento).orElse(null);
 
         if (clienteEncontrado != null) {
-            // Si lo encontró, devuelve el cliente y un código 200 (OK)
             return new ResponseEntity<>(clienteEncontrado, HttpStatus.OK);
         } else {
-            // Si devolvió null, significa que ese DNI no está registrado. Devolvemos 404 (Not Found)
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
-    @GetMapping("/documento/{nombre}") // La URL será: GET http://localhost:8080/api/clientes/documento/30123456
+    @GetMapping("/documento/{nombre}")
     public ResponseEntity<Cliente> findByNombre(@PathVariable String nombre) {
-        Cliente clienteEncontrado = clienteService.findByNombre(nombre);
+        Cliente clienteEncontrado = clienteService.findByNombre(nombre).orElse(null);
 
         if (clienteEncontrado != null) {
-            // Si lo encontró, devuelve el cliente y un código 200 (OK)
             return new ResponseEntity<>(clienteEncontrado, HttpStatus.OK);
         } else {
-            // Si devolvió null, significa que ese DNI no está registrado. Devolvemos 404 (Not Found)
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }

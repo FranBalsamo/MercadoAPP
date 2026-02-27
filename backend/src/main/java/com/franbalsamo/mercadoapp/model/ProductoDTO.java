@@ -7,4 +7,9 @@ import lombok.Setter;
 @Setter
 public class ProductoDTO {
     private String nombre;
+
+    public ProductoDTO(){}
+    public ProductoDTO(String nombre){
+        this.nombre = nombre;
+    }
 }

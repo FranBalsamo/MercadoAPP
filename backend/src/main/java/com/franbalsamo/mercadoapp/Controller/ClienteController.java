@@ -18,7 +18,7 @@ public class ClienteController {
     private ClienteService clienteService;
 
     @PostMapping
-    public ResponseEntity<Cliente> crearCliente(@RequestBody ClienteDTO clienteDTO){
+    public ResponseEntity<Cliente> newCliente(@RequestBody ClienteDTO clienteDTO){
         Cliente clienteNuevo = clienteService.saveCliente(clienteDTO);
         return new ResponseEntity<>(clienteNuevo, HttpStatus.CREATED); //Codigo de created: 201
     }

@@ -8,5 +8,11 @@ import lombok.Setter;
 public class ClienteDTO {
     private String documento;
     private String nombre;
+
+    public ClienteDTO(){}
+    public ClienteDTO(String documento, String nombre){
+        this.documento = documento;
+        this.nombre = nombre;
+    }
 }
 

@@ -2,6 +2,7 @@ package com.franbalsamo.mercadoapp.Controller;
 
 import com.franbalsamo.mercadoapp.Service.PlanillaService;
 import com.franbalsamo.mercadoapp.domain.Planilla;
+import com.franbalsamo.mercadoapp.model.PlanillaDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,8 +20,8 @@ public class PlanillaController {
     public PlanillaService planillaService;
 
     @PostMapping("/new")
-    public ResponseEntity<Planilla> newPlanilla(){
-       Planilla planillaNueva = planillaService.newPlanilla();
-       return new ResponseEntity<>(planillaNueva, HttpStatus.CREATED);
+    public ResponseEntity<PlanillaDTO> newPlanilla(){
+       PlanillaDTO planillaDTONueva = planillaService.newPlanilla();
+       return new ResponseEntity<>(planillaDTONueva, HttpStatus.CREATED);
     }
 }

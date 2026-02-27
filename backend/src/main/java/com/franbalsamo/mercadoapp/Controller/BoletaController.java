@@ -16,8 +16,8 @@ public class BoletaController {
     private BoletaService boletaService;
 
     @PostMapping("/new")
-    public ResponseEntity<Boleta> newBoleta (@RequestBody BoletaDTO boletaDTO){
-        Boleta boletaNueva = boletaService.newBoleta(boletaDTO);
+    public ResponseEntity<BoletaDTO> newBoleta (@RequestBody BoletaDTO boletaDTO){
+        BoletaDTO boletaNueva = boletaService.newBoleta(boletaDTO);
         return new ResponseEntity<>(boletaNueva, HttpStatus.CREATED);
     }
 }

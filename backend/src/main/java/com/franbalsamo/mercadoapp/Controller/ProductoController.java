@@ -23,24 +23,20 @@ public class ProductoController {
 
 
     @PostMapping
-    public ResponseEntity<Producto> newProducto(@RequestBody ProductoDTO productoDTO){
-        Producto productoNuevo = productoService.saveProducto(productoDTO);
+    public ResponseEntity<ProductoDTO> newProducto(@RequestBody ProductoDTO productoDTO){
+        ProductoDTO productoNuevo = productoService.saveProducto(productoDTO);
         return new ResponseEntity<>(productoNuevo, HttpStatus.CREATED);
     }
 
     @GetMapping
-    public ResponseEntity<List<Producto>> findAll(){
-        List<Producto> listaPorductos = productoService.findAll();
+    public ResponseEntity<List<ProductoDTO>> findAll(){
+        List<ProductoDTO> listaPorductos = productoService.findAll();
         return new ResponseEntity<>(listaPorductos,HttpStatus.OK);
     }
 
     @GetMapping("/nombre/{nombre}")
-    public ResponseEntity<Producto> findByNombre(@PathVariable String nombre) {
-        Producto productoEncontrado = productoService.findByNombre(nombre).orElse(null);
-        if (productoEncontrado != null) {
-            return new ResponseEntity<>(productoEncontrado, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<ProductoDTO> findByNombre(@PathVariable String nombre) {
+        ProductoDTO productoEncontrado = productoService.findByNombre(nombre);
+        return new ResponseEntity<>(productoEncontrado, HttpStatus.OK);
     }
 }

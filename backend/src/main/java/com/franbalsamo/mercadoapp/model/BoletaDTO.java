@@ -8,6 +8,7 @@ import java.util.List;
 @Getter
 @Setter
 public class BoletaDTO {
+    private long id_Boleta;
     private long id_Planilla;
     private long id_Cliente;
     private List<VentaDTO> ventasDTO;

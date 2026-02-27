@@ -1,0 +1,33 @@
+////////////////////////////////////////////////////////////
+1-Clientes:
+ 1.1 Guardar un cliente. *
+ 1.2 Editar un cliente. *
+ 1.3 Buscar cliente/s. *
+
+2-Productos:
+ 2.1 Guardar un producto. *
+ 2.2 Buscar producto/s. *
+ 2.3 Controlar Stock por Planilla (Por Dia)
+
+3-Boletas:
+ 3.1 Cargar Boletas *
+ 3.2 Editar Boletas
+ 3.3 Buscar Boletas
+  3.3.1 Por cliente
+  3.3.2 Por fecha
+  3.3.3 Por estado de pago
+  3.3.4 Por estado de entrega 
+ 3.4 Eliminar una boleta
+
+4-Planilla:
+ 3.1 Abrir nueva Planilla *
+ 3.2 Editar/Actualizar Planilla
+ 3.3 Buscar Planilla
+ 
+
+//////////////////////////////////////////////////////////////////
+1- Poder cargar boletas y editarlas.
+2- Poder guardar Planillas, recuperarlas y actualizarlas.
+3- Poder armar un resumen de deudas de un cliente.
+4- Poder controlar el stock de los productos, modificar en caso de que aumente o disminuya el stock. (notificar la cantidad restante de stock de forma dinamica al cargar boletas).
+5- Poder hacer un resumen de ventas de la semana, mes o año.

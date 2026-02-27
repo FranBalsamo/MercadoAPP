@@ -6,6 +6,7 @@ import com.franbalsamo.mercadoapp.domain.*;
 import com.franbalsamo.mercadoapp.model.BoletaDTO;
 import com.franbalsamo.mercadoapp.model.VentaDTO;
 import jakarta.transaction.Transactional;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,14 +25,15 @@ public class BoletaService {
     @Autowired
     public PlanillaService planillaService;
 
+    @Autowired
+    private ModelMapper modelMapper;
+
     @Transactional
-    public Boleta newBoleta(BoletaDTO boletaDTO) {
+    public BoletaDTO newBoleta(BoletaDTO boletaDTO) {
 
-        Cliente cliente = clienteService.findById(boletaDTO.getId_Cliente())
-                .orElseThrow(() -> new RuntimeException("Cliente no encontrado con id: " + boletaDTO.getId_Cliente()));
+        Cliente cliente = clienteService.findById(boletaDTO.getId_Cliente());
 
-        Planilla planilla = planillaService.findById(boletaDTO.getId_Planilla())
-                .orElseThrow(() -> new RuntimeException("Planilla no encontrada con id: " + boletaDTO.getId_Planilla()));
+        Planilla planilla = planillaService.findById(boletaDTO.getId_Planilla());
 
         Boleta nuevaBoleta = new Boleta();
         nuevaBoleta.setCliente(cliente);
@@ -41,8 +43,7 @@ public class BoletaService {
         float totalDeuda = 0;
 
         for (VentaDTO vDto : boletaDTO.getVentasDTO()) {
-            Producto producto = productoService.findById(vDto.getId_producto())
-                    .orElseThrow(() -> new RuntimeException("Producto no encontrado con id: " + vDto.getId_producto()));
+            Producto producto = productoService.findById(vDto.getId_producto());
 
             Venta nuevaVenta = new Venta();
             nuevaVenta.setProducto(producto);
@@ -60,7 +61,7 @@ public class BoletaService {
         }
         nuevaBoleta.setTotal(totalCalculado);
         nuevaBoleta.setDeuda(totalDeuda);
-        return boletaRepository.save(nuevaBoleta);
+        return modelMapper.map(boletaRepository.save(nuevaBoleta), BoletaDTO.class);
     }
 
 }

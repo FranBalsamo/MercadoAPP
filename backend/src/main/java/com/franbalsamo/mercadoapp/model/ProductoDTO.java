@@ -6,10 +6,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ProductoDTO {
+    private long id_producto;
     private String nombre;
 
     public ProductoDTO(){}
-    public ProductoDTO(String nombre){
-        this.nombre = nombre;
-    }
 }

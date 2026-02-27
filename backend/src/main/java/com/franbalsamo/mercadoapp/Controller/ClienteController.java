@@ -18,45 +18,32 @@ public class ClienteController {
     private ClienteService clienteService;
 
     @PostMapping
-    public ResponseEntity<Cliente> newCliente(@RequestBody ClienteDTO clienteDTO){
-        Cliente clienteNuevo = clienteService.saveCliente(clienteDTO);
+    public ResponseEntity<ClienteDTO> newCliente(@RequestBody ClienteDTO clienteDTO){
+        ClienteDTO clienteNuevo = clienteService.saveCliente(clienteDTO);
         return new ResponseEntity<>(clienteNuevo, HttpStatus.CREATED); //Codigo de created: 201
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Cliente> modificarCliente(@PathVariable Long id, @RequestBody ClienteDTO clienteDTO){
-        Cliente clienteActualizado = clienteService.modificarCliente(id, clienteDTO);
-        if(clienteActualizado != null){
-            return new ResponseEntity<>(clienteActualizado, HttpStatus.OK);
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    public ResponseEntity<ClienteDTO> modificarCliente(@PathVariable Long id, @RequestBody ClienteDTO clienteDTO){
+        ClienteDTO clienteActualizado = clienteService.modificarCliente(id, clienteDTO);
+        return new ResponseEntity<>(clienteActualizado, HttpStatus.OK);
     }
 
     @GetMapping
-    public ResponseEntity<List<Cliente>> findAll(){
-        List<Cliente> listaClientes = clienteService.findAll();
+    public ResponseEntity<List<ClienteDTO>> findAll(){
+        List<ClienteDTO> listaClientes = clienteService.findAll();
         return new ResponseEntity<>(listaClientes,HttpStatus.OK);
     }
 
     @GetMapping("/documento/{documento}")
-    public ResponseEntity<Cliente> findByDocumento(@PathVariable String documento) {
-        Cliente clienteEncontrado = clienteService.findByDocumento(documento).orElse(null);
-
-        if (clienteEncontrado != null) {
-            return new ResponseEntity<>(clienteEncontrado, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<ClienteDTO> findByDocumento(@PathVariable String documento) {
+        ClienteDTO clienteEncontrado = clienteService.findByDocumento(documento);
+        return new ResponseEntity<>(clienteEncontrado, HttpStatus.OK);
     }
 
-    @GetMapping("/documento/{nombre}")
-    public ResponseEntity<Cliente> findByNombre(@PathVariable String nombre) {
-        Cliente clienteEncontrado = clienteService.findByNombre(nombre).orElse(null);
-
-        if (clienteEncontrado != null) {
-            return new ResponseEntity<>(clienteEncontrado, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    @GetMapping("/nombre/{nombre}")
+    public ResponseEntity<ClienteDTO> findByNombre(@PathVariable String nombre) {
+        ClienteDTO clienteEncontrado = clienteService.findByNombre(nombre);
+        return new ResponseEntity<>(clienteEncontrado, HttpStatus.OK);
     }
 }

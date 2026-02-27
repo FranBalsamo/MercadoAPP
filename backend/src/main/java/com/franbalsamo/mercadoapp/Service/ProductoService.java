@@ -2,9 +2,12 @@ package com.franbalsamo.mercadoapp.Service;
 
 import com.franbalsamo.mercadoapp.Repository.ProductoRepository;
 import com.franbalsamo.mercadoapp.domain.Producto;
+import com.franbalsamo.mercadoapp.exception.RecursoNoEncontradoException;
 import com.franbalsamo.mercadoapp.model.ProductoDTO;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.cfg.MapperBuilder;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,19 +17,28 @@ public class ProductoService {
 
     @Autowired
     private ProductoRepository productoRepository;
+    @Autowired
+    private ModelMapper modelMapper;
 
-    public Producto saveProducto(ProductoDTO productoDTO){
-        Producto productoNuevo = new Producto(productoDTO.getNombre());
-        return productoRepository.save(productoNuevo);
+    public ProductoDTO saveProducto(ProductoDTO productoDTO){
+        Producto productoNuevo = modelMapper.map(productoDTO, Producto.class);
+        return modelMapper.map(productoRepository.save(productoNuevo), ProductoDTO.class);
     }
 
-    public List<Producto> findAll(){ return productoRepository.findAll(); }
-
-    public Optional<Producto> findById(long id){
-        return productoRepository.findById(id);
+    public List<ProductoDTO> findAll(){
+        return productoRepository.findAll().stream()
+                .map(producto -> modelMapper.map(producto, ProductoDTO.class))
+                .toList();
     }
-    public Optional<Producto> findByNombre(String nombre){
-        return productoRepository.findByNombre(nombre);
+
+    public Producto findById(long id){
+        return productoRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Producto no encontrado con id: " + id));
+    }
+    public ProductoDTO findByNombre(String nombre){
+        Producto producto = productoRepository.findByNombre(nombre)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Producto no encontrado con nombre: " + nombre));
+        return modelMapper.map(producto, ProductoDTO.class);
     }
 
 

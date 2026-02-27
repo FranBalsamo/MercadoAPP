@@ -3,9 +3,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Getter
 @Setter
 @Entity
@@ -16,16 +13,13 @@ public class Boleta {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id_boleta;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_cliente" ,nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "id_cliente" )
     private Cliente cliente;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_planilla",nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "id_planilla")
     private Planilla planilla;
-
-    @OneToMany(mappedBy = "boleta", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Venta> ventas = new ArrayList<>();
 
     @Column(nullable = false)
     private float total;
@@ -34,14 +28,10 @@ public class Boleta {
     private float deuda;
 
     public Boleta(){}
-
-    public void addVenta(Venta venta){
-        this.ventas.add(venta);
-        venta.setBoleta(this);
+    public Boleta(Cliente cliente, Planilla planilla){
+        this.cliente = cliente;
+        this.planilla = planilla;
+        this.total = 0; // Terminar logica del total
+        this.deuda = 0; // Terminar logica de deuda
     }
-    public void removeVenta(Venta venta){
-        this.ventas.remove(venta);
-        venta.setBoleta(null);
-    }
-
 }

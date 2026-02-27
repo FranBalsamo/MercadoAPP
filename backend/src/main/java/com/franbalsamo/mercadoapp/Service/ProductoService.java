@@ -22,11 +22,8 @@ public class ProductoService {
 
     public List<Producto> findAll(){ return productoRepository.findAll(); }
 
-    public Optional<Producto> findById(long id){
-        return productoRepository.findById(id);
-    }
-    public Optional<Producto> findByNombre(String nombre){
-        return productoRepository.findByNombre(nombre);
+    public Producto findByNombre(String nombre){
+        return productoRepository.findByNombre(nombre).orElse(null);
     }
 
 

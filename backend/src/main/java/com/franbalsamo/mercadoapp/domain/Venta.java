@@ -1,9 +1,8 @@
 package com.franbalsamo.mercadoapp.domain;
-import com.franbalsamo.mercadoapp.Enum.EstadoEntrega;
-import com.franbalsamo.mercadoapp.Enum.EstadoPago;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
 
 @Getter
 @Setter
@@ -15,31 +14,17 @@ public class Venta {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id_venta;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_boleta", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "id_boleta")
     private Boleta boleta;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_producto", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "id_producto")
     private Producto producto;
 
     @Column(nullable = false)
     private int cantidad;
 
     @Column(nullable = false)
-    private float precio_unitario;
-
-    @Column
-    private float subtotal;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private EstadoPago estadoPago;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private EstadoEntrega estadoEntrega;
-
-    public Venta(){}
-
+    private int precio_unitario;
 }

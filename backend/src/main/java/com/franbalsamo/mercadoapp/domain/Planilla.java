@@ -1,5 +1,4 @@
 package com.franbalsamo.mercadoapp.domain;
-import com.franbalsamo.mercadoapp.Enum.EstadoPlanilla;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,20 +18,15 @@ public class Planilla {
     @Column(nullable = false)
     private LocalDate fecha;
 
-    @Column(nullable = false)
-    private float gananciasTotal = 0;
+    @Column
+    private float gananciasTotal;
 
-    @Column(nullable = false)
-    private float deudaTotal = 0;
+    @Column
+    private float deudaTotal;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private EstadoPlanilla estadoPlanilla;
-
-    public Planilla(){};
-
-    public Planilla(LocalDate fecha, EstadoPlanilla estadoPlanilla){
-        this.fecha = fecha;
-        this.estadoPlanilla = estadoPlanilla;
+    public Planilla(){
+        this.fecha=LocalDate.now();
+        this.gananciasTotal = 0;
+        this.deudaTotal = 0;
     }
 }

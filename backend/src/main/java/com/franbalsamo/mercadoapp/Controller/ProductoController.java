@@ -36,7 +36,7 @@ public class ProductoController {
 
     @GetMapping("/nombre/{nombre}")
     public ResponseEntity<Producto> findByNombre(@PathVariable String nombre) {
-        Producto productoEncontrado = productoService.findByNombre(nombre).orElse(null);
+        Producto productoEncontrado = productoService.findByNombre(nombre);
         if (productoEncontrado != null) {
             return new ResponseEntity<>(productoEncontrado, HttpStatus.OK);
         } else {

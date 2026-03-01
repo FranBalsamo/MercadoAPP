@@ -95,16 +95,14 @@ public class BoletaService {
 
     public List<BoletaDTO> findByPlanilla(long id_planilla){
         Planilla planilla = planillaService.findById(id_planilla);
-        return boletaRepository.findByPlanilla(planilla).stream()
-                .map(boleta -> modelMapper.map(boleta, BoletaDTO.class))
-                .toList();
+        List<Boleta> listaBoleta = boletaRepository.findAllByPlanilla(planilla);
+        return listaBoleta.stream().map(boleta -> modelMapper.map(boleta, BoletaDTO.class)).toList();
     }
 
     public List<BoletaDTO> findByCliente(long id_cliente){
         Cliente cliente = clienteService.findById(id_cliente);
-        return boletaRepository.findByCliente(cliente).stream()
-                .map(boleta -> modelMapper.map(boleta, BoletaDTO.class))
-                .toList();
+        List<Boleta> listaBoleta = boletaRepository.findAllByCliente(cliente);
+        return listaBoleta.stream().map(boleta -> modelMapper.map(boleta, BoletaDTO.class)).toList();
     }
 
 }

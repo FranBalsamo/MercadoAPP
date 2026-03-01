@@ -16,6 +16,9 @@ public class Producto {
     @Column(nullable = false)
     private String nombre;
 
+    @Column(length = 255)
+    private String descripcion;
+
     public Producto(){}
     public Producto(String nombre){
         this.nombre= nombre;

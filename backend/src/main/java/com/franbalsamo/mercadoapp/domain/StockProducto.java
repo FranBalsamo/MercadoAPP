@@ -24,12 +24,8 @@ public class StockProducto {
     @Column(nullable = false)
     private int stock;
 
-
-    public StockProducto(int stock, Producto producto, Planilla planilla){
-        this.producto = producto;
-        this.planilla = planilla;
-        this.stock = stock;
-    }
+    @Column(nullable = false)
+    private int stock_vendido = 0;
 
     public StockProducto(){}
 }

@@ -19,11 +19,15 @@ public class Cliente {
     @Column(unique = true, nullable = false)
     private String nombre;
 
-    public Cliente(){
-    }
+    @Column()
+    private String direccion;
 
-    public Cliente(String documento, String nombre){
-        this.documento = documento;
-        this.nombre = nombre;
+    @Column()
+    private String telefono;
+
+    @Column(nullable = false)
+    private float saldo_a_favor = 0;
+
+    public Cliente(){
     }
 }

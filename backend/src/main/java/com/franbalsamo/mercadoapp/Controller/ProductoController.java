@@ -28,6 +28,12 @@ public class ProductoController {
         return new ResponseEntity<>(productoNuevo, HttpStatus.CREATED);
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<ProductoDTO> modificarProducto(@PathVariable Long id, @RequestBody ProductoDTO productoDTO){
+        ProductoDTO productoActualizado = productoService.modificarProducto(id, productoDTO);
+        return new ResponseEntity<>(productoActualizado, HttpStatus.OK);
+    }
+
     @GetMapping
     public ResponseEntity<List<ProductoDTO>> findAll(){
         List<ProductoDTO> listaPorductos = productoService.findAll();

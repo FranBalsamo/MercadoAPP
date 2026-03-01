@@ -24,16 +24,15 @@ public class ClienteService {
     }
 
     public ClienteDTO modificarCliente(long id, ClienteDTO dto){
-        Optional<Cliente> clienteOptional = clienteRepository.findById(id);
+        Cliente cliente = clienteRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Cliente no encontrado con id: " + id));
 
-        if(clienteOptional.isPresent()){
-            Cliente cliente = clienteOptional.get();
-            cliente.setDocumento(dto.getDocumento());
-            cliente.setNombre(dto.getNombre());
+        cliente.setNombre(dto.getNombre());
+        cliente.setDocumento(dto.getDocumento());
+        cliente.setTelefono(dto.getTelefono());
+        cliente.setDireccion(dto.getDireccion());
 
-            return modelMapper.map(clienteRepository.save(cliente),ClienteDTO.class);
-        }
-        return null;
+        return modelMapper.map(clienteRepository.save(cliente),ClienteDTO.class);
     }
 
     public List<ClienteDTO> findAll(){

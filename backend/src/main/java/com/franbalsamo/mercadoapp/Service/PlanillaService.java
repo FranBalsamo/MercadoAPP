@@ -25,6 +25,8 @@ public class PlanillaService {
         return modelMapper.map(planillaNueva, PlanillaDTO.class);
     }
 
+
+
     public Planilla findById(long id){
         return planillaRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontro la planilla con id: "+ id));

@@ -1,18 +1,18 @@
 ////////////////////////////////////////////////////////////
 1-Clientes:
- 1.1 Guardar un cliente. *
- 1.2 Editar un cliente. *
- 1.3 Buscar cliente/s. *
-
+ 1.1 Guardar un cliente. *: Se debera poder guardar del cliente el nombre, apellido, direccion y cuit.
+ 1.2 Editar un cliente. *: Se debera poder editar un cliente cargado su nombre, apellido, direccion y cuit.
+ 1.3 Buscar cliente/s. *: Se debera poder buscar clientes por su nombre o apellido o cuit.
+Un cliente puede tener dinero a favor, si el cliete tiene dinero a favor puede usarlo para pagar deudas o comprar mercaderia o perdio la devolicion de su dinero.
 2-Productos:
- 2.1 Guardar un producto. *
- 2.2 Buscar producto/s. *
- 2.3 Controlar Stock por Planilla (Por Dia)
+ 2.1 Guardar un producto. *: Se debera poder guardar un producto su nombre y descripcion.
+ 2.2 Buscar producto/s. *: Se debera poder buscar productos por su nombre.
+ 2.3 Controlar Stock por Planilla (Por Dia): Se debera controlar el stock de un producto continuamente por venta de planilla. Si se supera el stock maximo no se debera permitir carga la boleta. Se debera permitir modificar el sotck, es decir aumentarlo o disminuirlo.
 
 3-Boletas:
- 3.1 Cargar Boletas *
- 3.2 Editar Boletas
- 3.3 Buscar Boletas
+ 3.1 Cargar Boletas *: Se debera poder cargar de las boletas los articulos con su cantidad vendidos y precio unitario. Ademas se debera poder anotar que la boleta fue pagada y/o retirado.
+ 3.2 Editar Boletas : Se debera poder editar la cantidad de articulos vendidos, el precio unitario 
+ 3.3 Buscar Boletas : Se debera poder buscar boletas por los siguientes atributos.
   3.3.1 Por cliente
   3.3.2 Por fecha
   3.3.3 Por estado de pago
@@ -24,10 +24,9 @@
  3.2 Editar/Actualizar Planilla
  3.3 Buscar Planilla
  
+Funcionalidad de fiado: El fiado son todas las boletas de un cliente o en general que no esten pagas por completo (es decir existe deuda!).
+Funcionalidad de cobro de fiado: Un cliente puede pagar el fiado pagando las boletas que debe, pero el cliente puede entregar plata a cuenta (es decir entrega dinero sin decir que boleta con deuda paga).
+{Para hacer esta funcionalidad lo que pense es que la plata a cuenta pueda utilizarce para pagar de deuda de una boleta o mas siempre y cuendo alcance el dinero que se entrego, si el dinero que se entrego no alcanza para pagar la deuda de alguna boleta ese monto pasara a favor del cliente correspondiente}
 
 //////////////////////////////////////////////////////////////////
-1- Poder cargar boletas y editarlas.
-2- Poder guardar Planillas, recuperarlas y actualizarlas.
-3- Poder armar un resumen de deudas de un cliente.
-4- Poder controlar el stock de los productos, modificar en caso de que aumente o disminuya el stock. (notificar la cantidad restante de stock de forma dinamica al cargar boletas).
-5- Poder hacer un resumen de ventas de la semana, mes o año.
+

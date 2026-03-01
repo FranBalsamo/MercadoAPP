@@ -20,4 +20,10 @@ public class BoletaController {
         BoletaDTO boletaNueva = boletaService.newBoleta(boletaDTO);
         return new ResponseEntity<>(boletaNueva, HttpStatus.CREATED);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<BoletaDTO> modificarBoleta (@PathVariable long id, @RequestBody BoletaDTO boletaDTO){
+        boletaDTO.setId_Boleta(id);
+        return new ResponseEntity<>(boletaService.modificarBoleta(boletaDTO), HttpStatus.OK);
+    }
 }

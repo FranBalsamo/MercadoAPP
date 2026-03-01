@@ -25,7 +25,8 @@ public class ClienteController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ClienteDTO> modificarCliente(@PathVariable Long id, @RequestBody ClienteDTO clienteDTO){
-        ClienteDTO clienteActualizado = clienteService.modificarCliente(id, clienteDTO);
+        clienteDTO.setId_cliente(id);
+        ClienteDTO clienteActualizado = clienteService.modificarCliente(clienteDTO);
         return new ResponseEntity<>(clienteActualizado, HttpStatus.OK);
     }
 

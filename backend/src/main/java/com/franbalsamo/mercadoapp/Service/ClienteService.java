@@ -23,9 +23,9 @@ public class ClienteService {
         return modelMapper.map(clienteRepository.save(nuevoCliente), ClienteDTO.class);
     }
 
-    public ClienteDTO modificarCliente(long id, ClienteDTO dto){
-        Cliente cliente = clienteRepository.findById(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Cliente no encontrado con id: " + id));
+    public ClienteDTO modificarCliente(ClienteDTO dto){
+        Cliente cliente = clienteRepository.findById(dto.getId_cliente())
+                .orElseThrow(() -> new RecursoNoEncontradoException("Cliente no encontrado con id: " + dto.getId_cliente()));
 
         cliente.setNombre(dto.getNombre());
         cliente.setDocumento(dto.getDocumento());

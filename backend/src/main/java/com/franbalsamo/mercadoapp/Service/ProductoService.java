@@ -25,9 +25,9 @@ public class ProductoService {
         return modelMapper.map(productoRepository.save(productoNuevo), ProductoDTO.class);
     }
 
-    public ProductoDTO modificarProducto(long id, ProductoDTO productoDTO){
-        Producto producto = productoRepository.findById(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Producto no encontrado con id: " + id));
+    public ProductoDTO modificarProducto(ProductoDTO productoDTO){
+        Producto producto = productoRepository.findById(productoDTO.getId_producto())
+                .orElseThrow(() -> new RecursoNoEncontradoException("Producto no encontrado con id: " + productoDTO.getId_producto()));
 
         producto.setNombre(productoDTO.getNombre());
         producto.setDescripcion(productoDTO.getDescripcion());

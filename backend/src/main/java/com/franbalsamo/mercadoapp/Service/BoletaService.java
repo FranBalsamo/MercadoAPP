@@ -29,14 +29,26 @@ public class BoletaService {
     public PlanillaService planillaService;
 
     @Autowired
+    public StockProductoService stockProductoService;
+
+    @Autowired
     private ModelMapper modelMapper;
 
     private void cargarVentas(BoletaDTO boletaDTO, Boleta nuevaBoleta){
         float totalCalculado = 0;
         float totalDeuda = 0;
+        Planilla planilla = nuevaBoleta.getPlanilla();
 
         for (VentaDTO vDto : boletaDTO.getVentasDTO()) {
             Producto producto = productoService.findById(vDto.getId_producto());
+
+            StockProducto stockProducto = stockProductoService.findByProductoAndPlanilla(producto, planilla);
+            if(stockProducto.getStock() < vDto.getCantidad()){
+                throw new RecursoNoEncontradoException("No hay suficiente stock para el producto: " + producto.getNombre());
+            }
+
+            stockProducto.setStock(stockProducto.getStock() - vDto.getCantidad());
+            stockProducto.setStock_vendido(stockProducto.getStock_vendido() + vDto.getCantidad());
 
             Venta nuevaVenta = new Venta();
             nuevaVenta.setProducto(producto);
@@ -56,6 +68,16 @@ public class BoletaService {
         nuevaBoleta.setDeuda(totalDeuda);
     }
 
+    private void recuperarStock(Boleta boleta){
+        Planilla planilla = boleta.getPlanilla();
+        for (Venta venta : boleta.getVentas()) {
+            Producto producto = venta.getProducto();
+            StockProducto stockProducto = stockProductoService.findByProductoAndPlanilla(producto, planilla);
+            stockProducto.setStock(stockProducto.getStock() + venta.getCantidad()); //Restaurar el stock sin la venta
+            stockProducto.setStock_vendido(stockProducto.getStock_vendido() - venta.getCantidad()); //Restaurar el stock vendido sin la venta
+        }
+    }
+
     @Transactional
     public BoletaDTO newBoleta(BoletaDTO boletaDTO) {
 
@@ -73,18 +95,27 @@ public class BoletaService {
 
     @Transactional
     public BoletaDTO modificarBoleta(BoletaDTO boletaDTO){
-        Boleta boleta = boletaRepository.findById(boletaDTO.getId_Boleta())
+        Boleta boleta = boletaRepository.findById(boletaDTO.getId_Boleta()) //la boleta que obtenemos es la antigua (la que ya estaba cargada).
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontro la boleta con id: "+ boletaDTO.getId_Boleta()));
 
-        boleta.getVentas().clear();
-        cargarVentas(boletaDTO, boleta);
+        //Ante de modificar la boleta debemos limpiar el stock de producto para remplazarlo con el nuevo.
+        recuperarStock(boleta);
+        //En la funcion cargarVenta() se carga el nuevo stock de producto utilizado.
 
-        return modelMapper.map(boletaRepository.save(boleta), BoletaDTO.class);
+        boleta.getVentas().clear();//Limpiar las ventas viejas.
+        cargarVentas(boletaDTO, boleta);//Cargar las nuevas ventas con su nuevo stock.
+
+        return modelMapper.map(boletaRepository.save(boleta), BoletaDTO.class); //Guardar la boleta modificada.
     }
 
+    @Transactional
     public void removeBoleta(long id_boleta){
         Boleta boleta = boletaRepository.findById(id_boleta)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontro la boleta con id: "+ id_boleta));
+
+        //Antes de eliminar la boleta debemos recuperar el stock del producto.
+        recuperarStock(boleta);
+
         boletaRepository.delete(boleta);
     }
 

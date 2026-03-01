@@ -39,4 +39,10 @@ public class BoletaController {
     public ResponseEntity<List<BoletaDTO>> findAllByCliente(@PathVariable long id){
         return new ResponseEntity<>(boletaService.findByCliente(id), HttpStatus.OK);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> removeBoleta(@PathVariable long id){
+        boletaService.removeBoleta(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT); // 204 No Content (no tiene contenido de retorno)
+    }
 }

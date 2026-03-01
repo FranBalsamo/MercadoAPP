@@ -82,6 +82,12 @@ public class BoletaService {
         return modelMapper.map(boletaRepository.save(boleta), BoletaDTO.class);
     }
 
+    public void removeBoleta(long id_boleta){
+        Boleta boleta = boletaRepository.findById(id_boleta)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontro la boleta con id: "+ id_boleta));
+        boletaRepository.delete(boleta);
+    }
+
     public List<BoletaDTO> findAll(){
         return boletaRepository.findAll().stream()
                 .map(boleta -> modelMapper.map(boleta, BoletaDTO.class))

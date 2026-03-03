@@ -14,6 +14,12 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(ReglaNegocioException.class)
+    public ResponseEntity<String> manejarReglaNegocio(ReglaNegocioException ex){
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+
     // Aquí el día de mañana puedes agregar más métodos para atrapar otras excepciones
     // (ej: si el usuario manda un JSON mal armado, devuelves un 400 BAD_REQUEST)
 }

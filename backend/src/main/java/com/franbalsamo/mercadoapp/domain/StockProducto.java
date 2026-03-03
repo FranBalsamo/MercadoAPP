@@ -25,7 +25,9 @@ public class StockProducto {
     private int stock;
 
     @Column(nullable = false)
-    private int stock_vendido = 0;
+    private int stock_vendido;
 
-    public StockProducto(){}
+    public StockProducto(){
+        this.stock_vendido = 0;
+    }
 }

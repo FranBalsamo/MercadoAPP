@@ -6,10 +6,7 @@ import com.franbalsamo.mercadoapp.model.PlanillaDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/planilla")
@@ -20,8 +17,8 @@ public class PlanillaController {
     public PlanillaService planillaService;
 
     @PostMapping("/new")
-    public ResponseEntity<PlanillaDTO> newPlanilla(){
-       PlanillaDTO planillaDTONueva = planillaService.newPlanilla();
+    public ResponseEntity<PlanillaDTO> newPlanilla(@RequestBody PlanillaDTO planillaDTO){
+       PlanillaDTO planillaDTONueva = planillaService.newPlanilla(planillaDTO);
        return new ResponseEntity<>(planillaDTONueva, HttpStatus.CREATED);
     }
 }

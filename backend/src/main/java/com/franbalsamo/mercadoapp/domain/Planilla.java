@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -16,23 +18,36 @@ public class Planilla {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id_planilla;
 
+    @OneToMany(mappedBy = "planilla", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<StockProducto> stockProductos = new ArrayList<>();
+
     @Column(nullable = false)
     private LocalDate fecha;
 
     @Column(nullable = false)
-    private float gananciasTotal = 0;
+    private float gananciasTotal;
 
     @Column(nullable = false)
-    private float deudaTotal = 0;
+    private float deudaTotal;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private EstadoPlanilla estadoPlanilla;
 
-    public Planilla(){};
+    public Planilla(){
+        this.fecha = LocalDate.now();
+        this.gananciasTotal = 0;
+        this.deudaTotal = 0;
+        this.estadoPlanilla = EstadoPlanilla.ABIERTA;
+    }
 
-    public Planilla(LocalDate fecha, EstadoPlanilla estadoPlanilla){
-        this.fecha = fecha;
-        this.estadoPlanilla = estadoPlanilla;
+    public void addStockProducto(StockProducto stockProducto){
+        this.stockProductos.add(stockProducto);
+        stockProducto.setPlanilla(this);
+    }
+
+    public void removeStockProducto(StockProducto stockProducto){
+        this.stockProductos.remove(stockProducto);
+        stockProducto.setPlanilla(null);
     }
 }

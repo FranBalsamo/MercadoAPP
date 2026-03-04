@@ -26,9 +26,6 @@ public class PlanillaService {
     public ProductoService productoService;
 
     @Autowired
-    public StockProductoService stockProductoService;
-
-    @Autowired
     private ModelMapper modelMapper;
 
     @Transactional

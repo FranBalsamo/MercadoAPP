@@ -8,9 +8,9 @@ import java.util.List;
 @Getter
 @Setter
 public class BoletaDTO {
-    private long id_Boleta;
-    private long id_Planilla;
-    private long id_Cliente;
+    private long id_boleta;
+    private long id_planilla;
+    private long id_cliente;
     private List<VentaDTO> ventasDTO;
     private float total;
     private float deuda;

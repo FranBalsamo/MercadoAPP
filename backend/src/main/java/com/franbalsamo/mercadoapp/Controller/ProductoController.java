@@ -22,7 +22,7 @@ public class ProductoController {
     private ProductoService productoService;
 
 
-    @PostMapping
+    @PostMapping("/new")
     public ResponseEntity<ProductoDTO> newProducto(@RequestBody ProductoDTO productoDTO){
         ProductoDTO productoNuevo = productoService.saveProducto(productoDTO);
         return new ResponseEntity<>(productoNuevo, HttpStatus.CREATED);
@@ -35,7 +35,7 @@ public class ProductoController {
         return new ResponseEntity<>(productoActualizado, HttpStatus.OK);
     }
 
-    @GetMapping
+    @GetMapping("/All")
     public ResponseEntity<List<ProductoDTO>> findAll(){
         List<ProductoDTO> listaPorductos = productoService.findAll();
         return new ResponseEntity<>(listaPorductos,HttpStatus.OK);

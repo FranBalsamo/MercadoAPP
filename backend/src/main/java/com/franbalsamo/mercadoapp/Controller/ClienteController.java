@@ -17,7 +17,7 @@ public class ClienteController {
     @Autowired
     private ClienteService clienteService;
 
-    @PostMapping
+    @PostMapping("/new")
     public ResponseEntity<ClienteDTO> newCliente(@RequestBody ClienteDTO clienteDTO){
         ClienteDTO clienteNuevo = clienteService.saveCliente(clienteDTO);
         return new ResponseEntity<>(clienteNuevo, HttpStatus.CREATED); //Codigo de created: 201
@@ -30,7 +30,7 @@ public class ClienteController {
         return new ResponseEntity<>(clienteActualizado, HttpStatus.OK);
     }
 
-    @GetMapping
+    @GetMapping("/All")
     public ResponseEntity<List<ClienteDTO>> findAll(){
         List<ClienteDTO> listaClientes = clienteService.findAll();
         return new ResponseEntity<>(listaClientes,HttpStatus.OK);

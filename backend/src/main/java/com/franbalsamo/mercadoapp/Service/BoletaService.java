@@ -60,7 +60,7 @@ public class BoletaService {
 
             nuevaBoleta.addVenta(nuevaVenta);
 
-            if(nuevaVenta.getEstadoPago() == EstadoPago.NO_PAGADA)
+            if(nuevaVenta.getEstadoPago() == EstadoPago.NO_PAGADO)
                 totalDeuda += nuevaVenta.getSubtotal();
             totalCalculado += nuevaVenta.getSubtotal();
         }
@@ -81,9 +81,9 @@ public class BoletaService {
     @Transactional
     public BoletaDTO newBoleta(BoletaDTO boletaDTO) {
 
-        Cliente cliente = clienteService.findById(boletaDTO.getId_Cliente());
+        Cliente cliente = clienteService.findById(boletaDTO.getId_cliente());
 
-        Planilla planilla = planillaService.findById(boletaDTO.getId_Planilla());
+        Planilla planilla = planillaService.findById(boletaDTO.getId_planilla());
 
         Boleta nuevaBoleta = new Boleta();
         nuevaBoleta.setCliente(cliente);
@@ -95,8 +95,8 @@ public class BoletaService {
 
     @Transactional
     public BoletaDTO modificarBoleta(BoletaDTO boletaDTO){
-        Boleta boleta = boletaRepository.findById(boletaDTO.getId_Boleta()) //la boleta que obtenemos es la antigua (la que ya estaba cargada).
-                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontro la boleta con id: "+ boletaDTO.getId_Boleta()));
+        Boleta boleta = boletaRepository.findById(boletaDTO.getId_boleta()) //la boleta que obtenemos es la antigua (la que ya estaba cargada).
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontro la boleta con id: "+ boletaDTO.getId_boleta()));
 
         //Ante de modificar la boleta debemos limpiar el stock de producto para remplazarlo con el nuevo.
         recuperarStock(boleta);

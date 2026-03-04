@@ -11,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -68,6 +69,67 @@ public class BoletaService {
         nuevaBoleta.setDeuda(totalDeuda);
     }
 
+    private void modificarVentas(Boleta boleta, BoletaDTO boletaDTO){
+        float totalCalculado = 0;
+        float totalDeuda = 0;
+        Planilla planilla = boleta.getPlanilla();
+
+        List<Venta> ventasActuales = new ArrayList<>(boleta.getVentas());
+
+        for(VentaDTO vDto : boletaDTO.getVentasDTO()){
+            Producto producto = productoService.findById(vDto.getId_producto());
+            StockProducto stockProducto = stockProductoService.findByProductoAndPlanilla(producto, planilla);
+
+            if(stockProducto.getStock() < vDto.getCantidad()){
+                throw new RecursoNoEncontradoException
+                        ("No hay suficiente stock para el producto: " + producto.getNombre());
+            }
+
+            stockProducto.setStock(stockProducto.getStock() - vDto.getCantidad());
+            stockProducto.setStock_vendido(stockProducto.getStock_vendido() + vDto.getCantidad());
+
+            Venta ventaEncontrada = ventasActuales.stream()
+                    .filter(v -> v.getId_venta() == vDto.getId_venta())
+                    .findFirst()
+                    .orElse(null);
+
+            if(ventaEncontrada!=null){
+                ventaEncontrada.setProducto(producto);
+                ventaEncontrada.setCantidad(vDto.getCantidad());
+                ventaEncontrada.setPrecio_unitario(vDto.getPrecio_unitario());
+                ventaEncontrada.setSubtotal(vDto.getCantidad()*vDto.getPrecio_unitario());
+                ventaEncontrada.setEstadoPago(vDto.getEstadoPago());
+                ventaEncontrada.setEstadoEntrega(vDto.getEstadoEntrega());
+
+                ventasActuales.remove(ventaEncontrada);
+
+                if(ventaEncontrada.getEstadoPago() == EstadoPago.NO_PAGADO) totalDeuda += ventaEncontrada.getSubtotal();
+                totalCalculado += ventaEncontrada.getSubtotal();
+            } else{
+                Venta nuevaVenta = new Venta();
+
+                nuevaVenta.setProducto(producto);
+                nuevaVenta.setCantidad(vDto.getCantidad());
+                nuevaVenta.setPrecio_unitario(vDto.getPrecio_unitario());
+                nuevaVenta.setSubtotal(vDto.getCantidad()* vDto.getPrecio_unitario());
+                nuevaVenta.setEstadoPago(vDto.getEstadoPago());
+                nuevaVenta.setEstadoEntrega(vDto.getEstadoEntrega());
+
+                boleta.addVenta(nuevaVenta);
+
+                if(nuevaVenta.getEstadoPago() == EstadoPago.NO_PAGADO) totalDeuda+= nuevaVenta.getSubtotal();
+                totalCalculado+= nuevaVenta.getSubtotal();
+            }
+        }
+
+        for(Venta ventaObsoleta : ventasActuales){
+            boleta.getVentas().remove(ventaObsoleta);
+        }
+
+        boleta.setTotal(totalCalculado);
+        boleta.setDeuda(totalDeuda);
+    }
+
     private void recuperarStock(Boleta boleta){
         Planilla planilla = boleta.getPlanilla();
         for (Venta venta : boleta.getVentas()) {
@@ -100,10 +162,8 @@ public class BoletaService {
 
         //Ante de modificar la boleta debemos limpiar el stock de producto para remplazarlo con el nuevo.
         recuperarStock(boleta);
-        //En la funcion cargarVenta() se carga el nuevo stock de producto utilizado.
 
-        boleta.getVentas().clear();//Limpiar las ventas viejas.
-        cargarVentas(boletaDTO, boleta);//Cargar las nuevas ventas con su nuevo stock.
+        modificarVentas(boleta,boletaDTO);
 
         return modelMapper.map(boletaRepository.save(boleta), BoletaDTO.class); //Guardar la boleta modificada.
     }

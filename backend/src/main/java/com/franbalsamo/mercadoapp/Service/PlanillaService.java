@@ -2,6 +2,7 @@ package com.franbalsamo.mercadoapp.Service;
 
 import com.franbalsamo.mercadoapp.Enum.EstadoPlanilla;
 import com.franbalsamo.mercadoapp.Repository.PlanillaRepository;
+import com.franbalsamo.mercadoapp.domain.Boleta;
 import com.franbalsamo.mercadoapp.domain.Planilla;
 import com.franbalsamo.mercadoapp.domain.Producto;
 import com.franbalsamo.mercadoapp.domain.StockProducto;
@@ -60,9 +61,20 @@ public class PlanillaService {
         return responseDTO;
     }
 
-    public Planilla findById(long id){
-        return planillaRepository.findById(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontro la planilla con id: "+ id));
+    @Transactional
+    public PlanillaDTO updatePlanilla(Planilla planilla){
+        Planilla planillaGuardada = planillaRepository.save(planilla);
+        PlanillaDTO responseDTO = modelMapper.map(planilla, PlanillaDTO.class);
+
+        for (int i = 0; i < planillaGuardada.getStockProductos().size(); i++) {
+            responseDTO.getStockProductos().get(i).setId_producto(planillaGuardada.getStockProductos().get(i).getProducto().getId_producto());
+            responseDTO.getStockProductos().get(i).setId_planilla(planillaGuardada.getId_planilla());
+        }
+        return responseDTO;
     }
 
+    public Planilla findById(long id){
+        return planillaRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontro la planilla con id: " + id));
+    }
 }

@@ -16,7 +16,7 @@ public class Planilla {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id_planilla;
+    private long id_planilla;
 
     @OneToMany(mappedBy = "planilla", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StockProducto> stockProductos = new ArrayList<>();
@@ -25,7 +25,7 @@ public class Planilla {
     private LocalDate fecha;
 
     @Column(nullable = false)
-    private float gananciasTotal;
+    private float ingresoTotal;
 
     @Column(nullable = false)
     private float deudaTotal;
@@ -36,7 +36,7 @@ public class Planilla {
 
     public Planilla(){
         this.fecha = LocalDate.now();
-        this.gananciasTotal = 0;
+        this.ingresoTotal = 0;
         this.deudaTotal = 0;
         this.estadoPlanilla = EstadoPlanilla.ABIERTA;
     }

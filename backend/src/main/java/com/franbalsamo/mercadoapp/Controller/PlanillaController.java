@@ -1,7 +1,7 @@
 package com.franbalsamo.mercadoapp.Controller;
 
+import com.franbalsamo.mercadoapp.Manager.CajaManager;
 import com.franbalsamo.mercadoapp.Service.PlanillaService;
-import com.franbalsamo.mercadoapp.domain.Planilla;
 import com.franbalsamo.mercadoapp.model.PlanillaDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,9 +16,18 @@ public class PlanillaController {
     @Autowired
     public PlanillaService planillaService;
 
+    @Autowired
+    public CajaManager cajaManager;
+
     @PostMapping("/new")
     public ResponseEntity<PlanillaDTO> newPlanilla(@RequestBody PlanillaDTO planillaDTO){
        PlanillaDTO planillaDTONueva = planillaService.newPlanilla(planillaDTO);
        return new ResponseEntity<>(planillaDTONueva, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/close/{id}")
+    public ResponseEntity<PlanillaDTO> closePlanilla(@PathVariable long id){
+        PlanillaDTO planillaCerrada = cajaManager.closePlanilla(id);
+        return new ResponseEntity<>(planillaCerrada, HttpStatus.OK);
     }
 }

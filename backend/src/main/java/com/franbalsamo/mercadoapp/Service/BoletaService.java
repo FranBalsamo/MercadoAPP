@@ -40,9 +40,8 @@ public class BoletaService {
         float totalDeuda = 0;
         Planilla planilla = nuevaBoleta.getPlanilla();
 
-        for (VentaDTO vDto : boletaDTO.getVentasDTO()) {
+        for (VentaDTO vDto : boletaDTO.getVentas()) {
             Producto producto = productoService.findById(vDto.getId_producto());
-
             StockProducto stockProducto = stockProductoService.findByProductoAndPlanilla(producto, planilla);
             if(stockProducto.getStock() < vDto.getCantidad()){
                 throw new RecursoNoEncontradoException("No hay suficiente stock para el producto: " + producto.getNombre());
@@ -52,10 +51,11 @@ public class BoletaService {
             stockProducto.setStock_vendido(stockProducto.getStock_vendido() + vDto.getCantidad());
 
             Venta nuevaVenta = new Venta();
-            nuevaVenta.setProducto(producto);
+            nuevaVenta.setProducto(producto);;
             nuevaVenta.setCantidad(vDto.getCantidad());
             nuevaVenta.setPrecio_unitario(vDto.getPrecio_unitario());
-            nuevaVenta.setSubtotal(vDto.getCantidad() * vDto.getPrecio_unitario());
+            nuevaVenta.setPrecio_vacio(vDto.getPrecio_vacio());
+            nuevaVenta.setSubtotal(vDto.getCantidad() * (vDto.getPrecio_unitario()+vDto.getPrecio_vacio()));
             nuevaVenta.setEstadoPago(vDto.getEstadoPago());
             nuevaVenta.setEstadoEntrega(vDto.getEstadoEntrega());
 
@@ -76,7 +76,7 @@ public class BoletaService {
 
         List<Venta> ventasActuales = new ArrayList<>(boleta.getVentas());
 
-        for(VentaDTO vDto : boletaDTO.getVentasDTO()){
+        for(VentaDTO vDto : boletaDTO.getVentas()){
             Producto producto = productoService.findById(vDto.getId_producto());
             StockProducto stockProducto = stockProductoService.findByProductoAndPlanilla(producto, planilla);
 
@@ -97,7 +97,8 @@ public class BoletaService {
                 ventaEncontrada.setProducto(producto);
                 ventaEncontrada.setCantidad(vDto.getCantidad());
                 ventaEncontrada.setPrecio_unitario(vDto.getPrecio_unitario());
-                ventaEncontrada.setSubtotal(vDto.getCantidad()*vDto.getPrecio_unitario());
+                ventaEncontrada.setPrecio_vacio(vDto.getPrecio_vacio());
+                ventaEncontrada.setSubtotal(vDto.getCantidad()*(vDto.getPrecio_unitario()+vDto.getPrecio_vacio()));
                 ventaEncontrada.setEstadoPago(vDto.getEstadoPago());
                 ventaEncontrada.setEstadoEntrega(vDto.getEstadoEntrega());
 
@@ -108,10 +109,11 @@ public class BoletaService {
             } else{
                 Venta nuevaVenta = new Venta();
 
-                nuevaVenta.setProducto(producto);
+                nuevaVenta.setProducto(producto);;
                 nuevaVenta.setCantidad(vDto.getCantidad());
                 nuevaVenta.setPrecio_unitario(vDto.getPrecio_unitario());
-                nuevaVenta.setSubtotal(vDto.getCantidad()* vDto.getPrecio_unitario());
+                nuevaVenta.setPrecio_vacio(vDto.getPrecio_vacio());
+                nuevaVenta.setSubtotal(vDto.getCantidad() * (vDto.getPrecio_unitario()+vDto.getPrecio_vacio()));
                 nuevaVenta.setEstadoPago(vDto.getEstadoPago());
                 nuevaVenta.setEstadoEntrega(vDto.getEstadoEntrega());
 
@@ -152,7 +154,10 @@ public class BoletaService {
         nuevaBoleta.setPlanilla(planilla);
         cargarVentas(boletaDTO, nuevaBoleta);
 
-        return modelMapper.map(boletaRepository.save(nuevaBoleta), BoletaDTO.class);
+        BoletaDTO responseDTO = modelMapper.map(boletaRepository.save(nuevaBoleta), BoletaDTO.class);
+        responseDTO.setId_cliente(cliente.getId_cliente());
+        responseDTO.setId_planilla(planilla.getId_planilla());
+        return responseDTO;
     }
 
     @Transactional

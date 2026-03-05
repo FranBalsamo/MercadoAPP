@@ -42,7 +42,22 @@ public class PlanillaService {
 
             planillaNueva.addStockProducto(stockProducto);
         }
-        return modelMapper.map(planillaRepository.save(planillaNueva), PlanillaDTO.class);
+
+        Planilla planillaGuardada = planillaRepository.save(planillaNueva);
+        PlanillaDTO responseDTO = modelMapper.map(planillaGuardada, PlanillaDTO.class);
+
+        List<StockProducto> entidadesStock = planillaGuardada.getStockProductos();
+        List<StockProductoDTO> dtosStock = responseDTO.getStockProductos();
+
+        for(int i = 0; i < entidadesStock.size(); i++){
+            StockProducto entidad = entidadesStock.get(i);
+            StockProductoDTO dto = dtosStock.get(i);
+
+            dto.setId_planilla(planillaNueva.getId_planilla());
+            dto.setId_producto(entidad.getProducto().getId_producto());
+        }
+
+        return responseDTO;
     }
 
     public Planilla findById(long id){

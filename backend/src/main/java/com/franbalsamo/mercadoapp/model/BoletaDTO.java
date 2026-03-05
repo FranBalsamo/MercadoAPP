@@ -11,7 +11,7 @@ public class BoletaDTO {
     private long id_boleta;
     private long id_planilla;
     private long id_cliente;
-    private List<VentaDTO> ventasDTO;
+    private List<VentaDTO> ventas;
     private float total;
     private float deuda;
 

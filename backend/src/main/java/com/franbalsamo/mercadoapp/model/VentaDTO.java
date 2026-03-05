@@ -13,6 +13,7 @@ public class VentaDTO {
     private long id_producto;
     private int cantidad;
     private float precio_unitario;
+    private float precio_vacio;
     private EstadoPago estadoPago;
     private EstadoEntrega estadoEntrega;
 

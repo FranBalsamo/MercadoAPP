@@ -29,6 +29,9 @@ public class Venta {
     @Column(nullable = false)
     private float precio_unitario;
 
+    @Column(nullable = false)
+    private float precio_vacio;
+
     @Column
     private float subtotal;
 

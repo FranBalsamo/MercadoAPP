@@ -195,10 +195,14 @@ public class BoletaService {
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontro la boleta con id: "+ id));
     }
 
-    public List<BoletaDTO> findByPlanilla(long id_planilla){
+    public List<BoletaDTO> findAllByPlanilla(long id_planilla){
         Planilla planilla = planillaService.findById(id_planilla);
         List<Boleta> listaBoleta = boletaRepository.findAllByPlanilla(planilla);
         return listaBoleta.stream().map(boleta -> modelMapper.map(boleta, BoletaDTO.class)).toList();
+    }
+
+    public List<Boleta> findAllByPlanilla(Planilla planilla){
+        return boletaRepository.findAllByPlanilla(planilla);
     }
 
     public List<BoletaDTO> findByCliente(long id_cliente){

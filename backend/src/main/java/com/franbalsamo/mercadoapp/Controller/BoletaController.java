@@ -32,7 +32,7 @@ public class BoletaController {
 
     @GetMapping("/planilla/{id}")
     public ResponseEntity<List<BoletaDTO>> findAllByPlanilla(@PathVariable long id){
-        return new ResponseEntity<>(boletaService.findByPlanilla(id), HttpStatus.OK);
+        return new ResponseEntity<>(boletaService.findAllByPlanilla(id), HttpStatus.OK);
     }
 
     @GetMapping("/cliente/{id}")

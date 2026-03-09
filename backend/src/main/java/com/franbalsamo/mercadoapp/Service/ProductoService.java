@@ -26,8 +26,8 @@ public class ProductoService {
     }
 
     public ProductoDTO modificarProducto(ProductoDTO productoDTO){
-        Producto producto = productoRepository.findById(productoDTO.getId_producto())
-                .orElseThrow(() -> new RecursoNoEncontradoException("Producto no encontrado con id: " + productoDTO.getId_producto()));
+        Producto producto = productoRepository.findById(productoDTO.getId())
+                .orElseThrow(() -> new RecursoNoEncontradoException("Producto no encontrado con id: " + productoDTO.getId()));
 
         producto.setNombre(productoDTO.getNombre());
         producto.setDescripcion(productoDTO.getDescripcion());
@@ -51,6 +51,9 @@ public class ProductoService {
         return modelMapper.map(producto, ProductoDTO.class);
     }
 
+    public boolean existsByNombre(String nombre){
+        return productoRepository.existsByNombre(nombre);
+    }
 
 
 }

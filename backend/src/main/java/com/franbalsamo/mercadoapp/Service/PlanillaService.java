@@ -54,8 +54,8 @@ public class PlanillaService {
             StockProducto entidad = entidadesStock.get(i);
             StockProductoDTO dto = dtosStock.get(i);
 
-            dto.setId_planilla(planillaNueva.getId_planilla());
-            dto.setId_producto(entidad.getProducto().getId_producto());
+            dto.setId_planilla(planillaNueva.getId());
+            dto.setId_producto(entidad.getProducto().getId());
         }
 
         return responseDTO;
@@ -67,8 +67,8 @@ public class PlanillaService {
         PlanillaDTO responseDTO = modelMapper.map(planilla, PlanillaDTO.class);
 
         for (int i = 0; i < planillaGuardada.getStockProductos().size(); i++) {
-            responseDTO.getStockProductos().get(i).setId_producto(planillaGuardada.getStockProductos().get(i).getProducto().getId_producto());
-            responseDTO.getStockProductos().get(i).setId_planilla(planillaGuardada.getId_planilla());
+            responseDTO.getStockProductos().get(i).setId_producto(planillaGuardada.getStockProductos().get(i).getProducto().getId());
+            responseDTO.getStockProductos().get(i).setId_planilla(planillaGuardada.getId());
         }
         return responseDTO;
     }

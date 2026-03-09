@@ -1,10 +1,54 @@
+import { useState } from 'react'
 import './Modal.css'
 
-function ModalProducto({cerrarModal}) {
+function ModalProducto({ cerrarModal }) {
+    
+    const [nombre, setNombre] = useState('');
+    const [descripcion, setDescripcion] = useState('');
 
-    const handleGuardar = () => {
-        console.log('Guardando producto...');    
-        cerrarModal();
+    const [error, setError] = useState('');
+
+    const nuevoProducto = {
+        nombre: nombre,
+        descripcion: descripcion
+    }
+
+    const handleGuardar = async () => {
+
+        if (nombre.trim() === '') {
+            setError('❌ El nombre del producto es obligatorio.');
+            return;
+        }
+        setError('');
+        
+        try {
+            console.log('Guardando producto...');
+            console.log('Enviando: ', nuevoProducto);
+            
+            const respuesta = await fetch('http://localhost:8080/api/productos/new', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(nuevoProducto)
+            });
+
+            if (respuesta.status === 409 || respuesta.status === 400) {
+                setError('❌ Ya existe un producto con este nombre.')
+                return;
+            }
+
+            if (!respuesta.ok) {
+                setError('❌ Error en el servidor al intentar guardar.')
+                return;
+            }
+            
+            console.log('Producto guardado con exito!');
+            cerrarModal();
+        } catch (err) {
+            console.log(err);
+            setError('❌ Error de conexion con el servidor');
+        }
     }
 
     return(
@@ -17,14 +61,33 @@ function ModalProducto({cerrarModal}) {
                 </div>
 
                 <div className="modal-body">
+                   
+                    {error && (
+                        <div style={{ color: 'red', fontSize: '0.8rem' }}>{error}</div>
+                    )}
                     <div className="form-group">
                         <label>Nombre del Producto:</label>
-                        <input type="text" placeholder="Producto" />
+                        <input
+                            type="text"
+                            placeholder="Producto"
+                            value={nombre}
+                            onChange={(e) => setNombre(e.target.value)}
+                            maxLength={50}
+                        />
                     </div>
-
                     <div className="form-group">
                         <label>Descripcion:</label>
-                        <input type="text" placeholder="Descripcion" />
+                        <textarea
+                            type="textarea"
+                            placeholder="Descripcion"
+                            rows="2"
+                            value={descripcion}
+                            onChange={(e) => setDescripcion(e.target.value)}
+                            maxLength={100}
+                        />
+                        <small style={{ color: '#888', textAlign: 'right', fontSize: '0.8rem' }}>
+                            {descripcion.length}/100
+                        </small>
                     </div>
                 </div>
 

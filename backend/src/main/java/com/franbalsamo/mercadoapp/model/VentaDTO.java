@@ -8,7 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class VentaDTO {
-    private long id_venta;
+    private long id;
     private long id_boleta;
     private long id_producto;
     private int cantidad;

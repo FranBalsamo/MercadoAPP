@@ -24,8 +24,8 @@ public class ClienteService {
     }
 
     public ClienteDTO modificarCliente(ClienteDTO dto){
-        Cliente cliente = clienteRepository.findById(dto.getId_cliente())
-                .orElseThrow(() -> new RecursoNoEncontradoException("Cliente no encontrado con id: " + dto.getId_cliente()));
+        Cliente cliente = clienteRepository.findById(dto.getId())
+                .orElseThrow(() -> new RecursoNoEncontradoException("Cliente no encontrado con id: " + dto.getId()));
 
         cliente.setNombre(dto.getNombre());
         cliente.setDocumento(dto.getDocumento());
@@ -56,5 +56,9 @@ public class ClienteService {
         Cliente cliente = clienteRepository.findByNombre(nombre)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Cliente no encontrado con nombre: " + nombre));
         return modelMapper.map(cliente, ClienteDTO.class);
+    }
+
+    public boolean existsByDocumento(String documento){
+        return clienteRepository.existsByDocumento(documento);
     }
 }

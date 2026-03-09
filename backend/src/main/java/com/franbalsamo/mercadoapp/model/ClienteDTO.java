@@ -6,7 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ClienteDTO {
-    private long id_cliente;
+    private long id;
     private String documento;
     private String nombre;
     private String direccion;

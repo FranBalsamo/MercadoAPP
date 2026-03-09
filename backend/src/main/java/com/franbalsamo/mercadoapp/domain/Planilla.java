@@ -16,7 +16,7 @@ public class Planilla {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id_planilla;
+    private long id;
 
     @OneToMany(mappedBy = "planilla", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StockProducto> stockProductos = new ArrayList<>();

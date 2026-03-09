@@ -24,13 +24,18 @@ public class ProductoController {
 
     @PostMapping("/new")
     public ResponseEntity<ProductoDTO> newProducto(@RequestBody ProductoDTO productoDTO){
+
+        if(productoService.existsByNombre(productoDTO.getNombre())){
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
+        }
+
         ProductoDTO productoNuevo = productoService.saveProducto(productoDTO);
         return new ResponseEntity<>(productoNuevo, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ProductoDTO> modificarProducto(@PathVariable Long id, @RequestBody ProductoDTO productoDTO){
-        productoDTO.setId_producto(id);
+        productoDTO.setId(id);
         ProductoDTO productoActualizado = productoService.modificarProducto(productoDTO);
         return new ResponseEntity<>(productoActualizado, HttpStatus.OK);
     }

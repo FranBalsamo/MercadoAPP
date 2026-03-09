@@ -89,7 +89,7 @@ public class BoletaService {
             stockProducto.setStock_vendido(stockProducto.getStock_vendido() + vDto.getCantidad());
 
             Venta ventaEncontrada = ventasActuales.stream()
-                    .filter(v -> v.getId_venta() == vDto.getId_venta())
+                    .filter(v -> v.getId() == vDto.getId())
                     .findFirst()
                     .orElse(null);
 
@@ -155,15 +155,15 @@ public class BoletaService {
         cargarVentas(boletaDTO, nuevaBoleta);
 
         BoletaDTO responseDTO = modelMapper.map(boletaRepository.save(nuevaBoleta), BoletaDTO.class);
-        responseDTO.setId_cliente(cliente.getId_cliente());
-        responseDTO.setId_planilla(planilla.getId_planilla());
+        responseDTO.setId_cliente(cliente.getId());
+        responseDTO.setId_planilla(planilla.getId());
         return responseDTO;
     }
 
     @Transactional
     public BoletaDTO modificarBoleta(BoletaDTO boletaDTO){
-        Boleta boleta = boletaRepository.findById(boletaDTO.getId_boleta()) //la boleta que obtenemos es la antigua (la que ya estaba cargada).
-                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontro la boleta con id: "+ boletaDTO.getId_boleta()));
+        Boleta boleta = boletaRepository.findById(boletaDTO.getId()) //la boleta que obtenemos es la antigua (la que ya estaba cargada).
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontro la boleta con id: "+ boletaDTO.getId()));
 
         //Ante de modificar la boleta debemos limpiar el stock de producto para remplazarlo con el nuevo.
         recuperarStock(boleta);

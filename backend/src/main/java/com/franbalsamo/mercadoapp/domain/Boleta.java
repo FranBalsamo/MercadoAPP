@@ -14,7 +14,7 @@ public class Boleta {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id_boleta;
+    private long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_cliente" ,nullable = false)

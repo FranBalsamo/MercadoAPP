@@ -11,12 +11,12 @@ public class Cliente {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id_cliente;
-
-    @Column(unique = true)
-    private String documento;
+    private long id;
 
     @Column(unique = true, nullable = false)
+    private String documento;
+
+    @Column(nullable = false)
     private String nombre;
 
     @Column()

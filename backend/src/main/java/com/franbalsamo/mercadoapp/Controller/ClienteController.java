@@ -19,13 +19,17 @@ public class ClienteController {
 
     @PostMapping("/new")
     public ResponseEntity<ClienteDTO> newCliente(@RequestBody ClienteDTO clienteDTO){
+        if(clienteService.existsByDocumento(clienteDTO.getDocumento())){
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
+        }
+
         ClienteDTO clienteNuevo = clienteService.saveCliente(clienteDTO);
         return new ResponseEntity<>(clienteNuevo, HttpStatus.CREATED); //Codigo de created: 201
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ClienteDTO> modificarCliente(@PathVariable Long id, @RequestBody ClienteDTO clienteDTO){
-        clienteDTO.setId_cliente(id);
+        clienteDTO.setId(id);
         ClienteDTO clienteActualizado = clienteService.modificarCliente(clienteDTO);
         return new ResponseEntity<>(clienteActualizado, HttpStatus.OK);
     }

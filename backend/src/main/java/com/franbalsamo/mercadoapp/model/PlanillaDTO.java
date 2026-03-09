@@ -10,7 +10,7 @@ import java.util.List;
 @Getter
 @Setter
 public class PlanillaDTO {
-    private long id_planilla;
+    private long id;
     private LocalDate fecha;
     private float IngresoTotal;
     private float deudaTotal;

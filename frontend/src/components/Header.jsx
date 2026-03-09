@@ -1,4 +1,4 @@
-import './Header.css';
+import './Estilos/Header.css';
 
 function Header({abrirModalProducto, abrirModalCliente, abrirModalPlanilla}) {
     return (

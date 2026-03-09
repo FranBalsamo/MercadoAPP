@@ -1,5 +1,5 @@
 import {useState, useEffect} from 'react';
-import './Modal.css';
+import '../Estilos/Modal.css';
 
 function ModalPlanilla({cerrarModal, onPlanillaCreada}) {
     

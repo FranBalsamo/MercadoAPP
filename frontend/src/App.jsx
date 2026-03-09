@@ -1,11 +1,11 @@
 import { useState } from "react";
 import reactLogo from "./assets/react.svg";
 import Header from "./components/Header"
-import ModalProducto from "./components/ModalProducto";
-import ModalCliente from "./components/ModalCliente";
-import ModalPlanilla from "./components/ModalPlanilla";
-import VistaInicio from "./components/VistaInicio";
-import VistaPuntoVenta from "./components/VistaPuntoVenta";
+import ModalProducto from "./components/Modals/ModalProducto";
+import ModalCliente from "./components/Modals/ModalCliente";
+import ModalPlanilla from "./components/Modals/ModalPlanilla";
+import VistaInicio from "./components/Vistas/VistaInicio";
+import VistaPuntoVenta from "./components/Vistas/VistaPuntoVenta";
 
 import "./App.css";
 

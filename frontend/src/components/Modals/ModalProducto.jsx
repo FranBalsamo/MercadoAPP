@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import './Modal.css'
+import '../Estilos/Modal.css';
 
 function ModalProducto({ cerrarModal }) {
     

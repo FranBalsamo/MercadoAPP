@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import ControlStock from './ControlStock';
 import ListaBoletas from './ListaBoletas';
+import ModalBoleta from '../Modals/ModalBoleta';
 
 function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
     const [catalogoProductos, setCatalogoProductos] = useState([]);
     const [cargando, setCargando] = useState(true);
-    const [mostralModalBoleta, setMostrarModalBoleta] = useState(false);
+    const [mostrarModalBuscarCliente, setMostrarModalBuscarCliente] = useState(false);
+    const [mostrarModalBoleta, setMostrarModalBoleta] = useState(false);
+    const [clienteParaBoleta, setClienteParaBoleta] = useState(null);
 
 
     useEffect(() => {
@@ -28,6 +31,12 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
     }, []);
 
     if (!planilla) return <p>Cargando datos de la caja...</p>;
+
+    const procesarClienteEncontrado = (cliente) => {
+        setClienteParaBoleta(cliente);           // 1. Guardamos los datos del cliente
+        setMostrarModalBuscarCliente(false);     // 2. Cerramos el buscador
+        setMostrarModalBoleta(true);             // 3. ¡Abrimos la boleta!
+    };
 
     return (
         <main style={{
@@ -66,13 +75,21 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
             </div>
 
             {/* AQUÍ IRÁ TU FUTURO MODAL */}
-            {/* {mostrarModalBoleta && (
+            {mostrarModalBuscarCliente && (
+                <ModalBuscarCliente 
+                    cerrarModal={() => setMostrarModalBuscarCliente(false)}
+                    onClienteEncontrado={procesarClienteEncontrado} // ¡Le pasamos la función de enlace!
+                />
+            )}
+
+            {mostrarModalBoleta && (
                 <ModalBoleta 
                     cerrarModal={() => setMostrarModalBoleta(false)}
+                    cliente={clienteParaBoleta} // ¡Le pasamos el cliente guardado!
+                    planilla = {planilla}
                     catalogoProductos={catalogoProductos}
                 />
-            )} 
-            */}
+            )}
 
         </main>
     );

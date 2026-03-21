@@ -4,25 +4,46 @@ import '../Estilos/Modal.css';
 function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
     const [metodoBusqueda, setMetodoBusqueda] = useState('nombre'); 
     const [busqueda, setBusqueda] = useState('');
+    const [error, setError] = useState('');
+    const [buscando, setBuscando] = useState(false);
 
-    // Esta función simulará que fuimos a Java y encontramos al cliente
-    const handleBuscar = () => {
-        // Validación básica
+    const handleBuscar = async () => {
         if (busqueda.trim() === '') {
-            alert("Ingresa un dato para buscar");
+            setError('❌ Ingresa un dato para buscar.');
             return;
         }
 
-        // ⚠️ AQUÍ LUEGO HARÁS EL FETCH A SPRING BOOT ⚠️
-        // Simulamos el ClienteDTO que te devolvería Java:
-        const clienteSimulado = {
-            id: 99,
-            nombre: metodoBusqueda === 'nombre' ? busqueda : 'Cliente Encontrado',
-            documento: metodoBusqueda === 'documento' ? busqueda : '11222333'
-        };
+        setBuscando(true);
+        setError('');
 
-        // ¡Le pasamos el cliente encontrado al padre (VistaPuntoVenta)!
-        onClienteEncontrado(clienteSimulado);
+        try {
+            let url = '';
+            if (metodoBusqueda === 'documento') {
+                url = `http://localhost:8080/api/clientes/buscar/documento/${busqueda}`;
+            } else {
+                url = `http://localhost:8080/api/clientes/buscar/nombre/${busqueda}`;
+            }
+
+            const respuesta = await fetch(url);
+
+            // Si Java devuelve un 404 (Not Found) o similar...
+            if (!respuesta.ok) {
+                setError('❌ Cliente no encontrado. Verifica los datos ingresados.');
+                setBuscando(false);
+                return; // ¡Frenamos aquí! No se abre la boleta.
+            }
+
+            // 4. Si el cliente existe, extraemos los datos
+            const clienteReal = await respuesta.json();
+            
+            onClienteEncontrado(clienteReal);
+
+        } catch (err) {
+            console.error(err);
+            setError('❌ Error al conectar con el servidor.');
+        } finally {
+            setBuscando(false);
+        }
     };
 
     return (
@@ -35,13 +56,28 @@ function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
                 </div>
 
                 <div className="modal-body">
+                    {/* CARTEL DE ERROR */}
+                    {error && (
+                        <div style={{ backgroundColor: '#ffcccc', color: '#cc0000', padding: '10px', borderRadius: '4px', fontSize: '0.9rem', marginBottom: '15px' }}>
+                            {error}
+                        </div>
+                    )}
+
                     <div style={{ display: 'flex', gap: '20px', marginBottom: '15px' }}>
                         <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            <input type="radio" checked={metodoBusqueda === 'nombre'} onChange={() => setMetodoBusqueda('nombre')} />
+                            <input 
+                                type="radio" 
+                                checked={metodoBusqueda === 'nombre'} 
+                                onChange={() => { setMetodoBusqueda('nombre'); setError(''); }} 
+                            />
                             Por Nombre
                         </label>
                         <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            <input type="radio" checked={metodoBusqueda === 'documento'} onChange={() => setMetodoBusqueda('documento')} />
+                            <input 
+                                type="radio" 
+                                checked={metodoBusqueda === 'documento'} 
+                                onChange={() => { setMetodoBusqueda('documento'); setError(''); }} 
+                            />
                             Por CUIT
                         </label>
                     </div>
@@ -53,14 +89,17 @@ function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
                             value={busqueda}
                             onChange={(e) => setBusqueda(e.target.value)}
                             style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
+                            //Si presiona Enter, ejecuta la búsqueda
+                            onKeyDown={(e) => e.key === 'Enter' && handleBuscar()} 
                         />
                     </div>
 
                     <button 
                         onClick={handleBuscar}
-                        style={{ width: '100%', padding: '10px', backgroundColor: '#2ecc71', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
+                        disabled={buscando}
+                        style={{ width: '100%', padding: '10px', backgroundColor: buscando ? '#95a5a6' : '#3498db', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
                     >
-                        Buscar y Continuar ➔
+                        {buscando ? 'Buscando en la base de datos...' : 'Buscar y Continuar ➔'}
                     </button>
                 </div>
             </div>

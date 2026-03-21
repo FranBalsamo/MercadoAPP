@@ -1,5 +1,7 @@
 package com.franbalsamo.mercadoapp.model;
 
+import com.franbalsamo.mercadoapp.Enum.EstadoPago;
+import com.franbalsamo.mercadoapp.Enum.EstadoRetiro;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,9 +13,10 @@ public class BoletaDTO {
     private long id;
     private long id_planilla;
     private long id_cliente;
-    private List<VentaDTO> ventas;
     private float total;
-    private float deuda;
+    private EstadoPago estadoPago;
+    private EstadoRetiro estadoRetiro;
+    private List<VentaDTO> ventas;
 
     public BoletaDTO(){}
 }

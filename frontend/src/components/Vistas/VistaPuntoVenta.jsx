@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import ControlStock from './ControlStock';
 import ListaBoletas from './ListaBoletas';
 import ModalBoleta from '../Modals/ModalBoleta';
+import ModalBuscarCliente from '../Modals/ModalBuscarCliente';
 
 function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
     const [catalogoProductos, setCatalogoProductos] = useState([]);
@@ -9,6 +10,9 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
     const [mostrarModalBuscarCliente, setMostrarModalBuscarCliente] = useState(false);
     const [mostrarModalBoleta, setMostrarModalBoleta] = useState(false);
     const [clienteParaBoleta, setClienteParaBoleta] = useState(null);
+    const [boletasDia, setBoletasDia] = useState([])
+    const [stockLocal, setStockLocal] = useState(planilla.stockProductos);
+
 
 
     useEffect(() => {
@@ -32,10 +36,10 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
 
     if (!planilla) return <p>Cargando datos de la caja...</p>;
 
-    const procesarClienteEncontrado = (cliente) => {
-        setClienteParaBoleta(cliente);           // 1. Guardamos los datos del cliente
-        setMostrarModalBuscarCliente(false);     // 2. Cerramos el buscador
-        setMostrarModalBoleta(true);             // 3. ¡Abrimos la boleta!
+    const procesarClienteEncontrado = (clienteEncontrado) => {
+        setClienteParaBoleta(clienteEncontrado); 
+        setMostrarModalBuscarCliente(false);           
+        setMostrarModalBoleta(true);             
     };
 
     return (
@@ -61,33 +65,64 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
 
             {/* CONTENEDOR DE COLUMNAS */}
             <div style={{ display: 'flex', gap: '20px', flexGrow: 1, overflow: 'hidden' }}>
-
                 <ControlStock
-                    stockProductos={planilla.stockProductos}
+                    stockProductos={stockLocal}
                     catalogoProductos={catalogoProductos}
                     cargando={cargando}
                 />
 
-                <ListaBoletas
-                    abrirModalBoleta={() => setMostrarModalBoleta(true)}
+                <ListaBoletas 
+                    abrirModalBoleta={() => setMostrarModalBuscarCliente(true)} 
+                    boletas={boletasDia} 
                 />
-
             </div>
 
-            {/* AQUÍ IRÁ TU FUTURO MODAL */}
+
             {mostrarModalBuscarCliente && (
                 <ModalBuscarCliente 
                     cerrarModal={() => setMostrarModalBuscarCliente(false)}
-                    onClienteEncontrado={procesarClienteEncontrado} // ¡Le pasamos la función de enlace!
+                    onClienteEncontrado={procesarClienteEncontrado} 
                 />
             )}
 
             {mostrarModalBoleta && (
                 <ModalBoleta 
-                    cerrarModal={() => setMostrarModalBoleta(false)}
-                    cliente={clienteParaBoleta} // ¡Le pasamos el cliente guardado!
-                    planilla = {planilla}
+                    cerrarModal={() => {
+                        setMostrarModalBoleta(false);
+                        setClienteParaBoleta(null); // Limpiamos al cerrar
+                    }}
+                    cliente={clienteParaBoleta} 
+                    planilla={planilla} 
                     catalogoProductos={catalogoProductos}
+                    onBoletaGuardada={(nuevaBoleta) => {
+                        console.log('Boleta finalizada: ', nuevaBoleta);
+                        setBoletasDia([...boletasDia, nuevaBoleta]); 
+
+                        const stockActualizado = stockLocal.map(itemStock => {
+                            const detalleVendido = nuevaBoleta.ventas.find(
+                                ventas => String(ventas.id_producto) === String(itemStock.id_producto)
+                            );
+
+                            if (detalleVendido) {
+                                // Si se vendió, le sumamos la cantidad al "stock_vendido"
+                                console.log(`Producto ID ${itemStock.id_producto} vendido en cantidad ${detalleVendido.cantidad}`); 
+                                
+                                return {
+                                    ...itemStock,
+                                    stock_vendido: itemStock.stock_vendido + detalleVendido.cantidad
+                                };
+                            }
+                            
+                            // Si no se vendió, queda exactamente igual
+                            return itemStock; 
+                        });
+                        
+                        console.log('Stock actualizado después de la venta:', stockActualizado);
+                        setStockLocal(stockActualizado);
+                        
+                        setMostrarModalBoleta(false);
+                        setClienteParaBoleta(null);
+                    }}
                 />
             )}
 

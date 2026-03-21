@@ -3,6 +3,7 @@ package com.franbalsamo.mercadoapp.Service;
 import com.franbalsamo.mercadoapp.Repository.ProductoRepository;
 import com.franbalsamo.mercadoapp.domain.Producto;
 import com.franbalsamo.mercadoapp.exception.RecursoNoEncontradoException;
+import com.franbalsamo.mercadoapp.mapper.ProductoMapper;
 import com.franbalsamo.mercadoapp.model.ProductoDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,12 +18,13 @@ public class ProductoService {
 
     @Autowired
     private ProductoRepository productoRepository;
+
     @Autowired
-    private ModelMapper modelMapper;
+    private ProductoMapper productoMapper;
 
     public ProductoDTO saveProducto(ProductoDTO productoDTO){
-        Producto productoNuevo = modelMapper.map(productoDTO, Producto.class);
-        return modelMapper.map(productoRepository.save(productoNuevo), ProductoDTO.class);
+        Producto productoNuevo = productoMapper.toEntity(productoDTO);
+        return productoMapper.toDTO(productoRepository.save(productoNuevo));
     }
 
     public ProductoDTO modificarProducto(ProductoDTO productoDTO){
@@ -31,13 +33,13 @@ public class ProductoService {
 
         producto.setNombre(productoDTO.getNombre());
         producto.setDescripcion(productoDTO.getDescripcion());
-        return modelMapper.map(productoRepository.save(producto), ProductoDTO.class);
+        return productoMapper.toDTO(productoRepository.save(producto));
     }
 
 
     public List<ProductoDTO> findAll(){
         return productoRepository.findAll().stream()
-                .map(producto -> modelMapper.map(producto, ProductoDTO.class))
+                .map(productoMapper::toDTO)
                 .toList();
     }
 
@@ -48,12 +50,10 @@ public class ProductoService {
     public ProductoDTO findByNombre(String nombre){
         Producto producto = productoRepository.findByNombre(nombre)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Producto no encontrado con nombre: " + nombre));
-        return modelMapper.map(producto, ProductoDTO.class);
+        return productoMapper.toDTO(producto);
     }
 
     public boolean existsByNombre(String nombre){
         return productoRepository.existsByNombre(nombre);
     }
-
-
 }

@@ -1,6 +1,6 @@
 package com.franbalsamo.mercadoapp.Controller;
 
-import com.franbalsamo.mercadoapp.Manager.CajaManager;
+import com.franbalsamo.mercadoapp.manager.CajaManager;
 import com.franbalsamo.mercadoapp.Service.PlanillaService;
 import com.franbalsamo.mercadoapp.model.PlanillaDTO;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -40,13 +40,13 @@ public class ClienteController {
         return new ResponseEntity<>(listaClientes,HttpStatus.OK);
     }
 
-    @GetMapping("/documento/{documento}")
+    @GetMapping("/buscar/documento/{documento}")
     public ResponseEntity<ClienteDTO> findByDocumento(@PathVariable String documento) {
         ClienteDTO clienteEncontrado = clienteService.findByDocumento(documento);
         return new ResponseEntity<>(clienteEncontrado, HttpStatus.OK);
     }
 
-    @GetMapping("/nombre/{nombre}")
+    @GetMapping("/buscar/nombre/{nombre}")
     public ResponseEntity<ClienteDTO> findByNombre(@PathVariable String nombre) {
         ClienteDTO clienteEncontrado = clienteService.findByNombre(nombre);
         return new ResponseEntity<>(clienteEncontrado, HttpStatus.OK);

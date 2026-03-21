@@ -7,6 +7,7 @@ import com.franbalsamo.mercadoapp.domain.Planilla;
 import com.franbalsamo.mercadoapp.domain.Producto;
 import com.franbalsamo.mercadoapp.domain.StockProducto;
 import com.franbalsamo.mercadoapp.exception.RecursoNoEncontradoException;
+import com.franbalsamo.mercadoapp.mapper.PlanillaMapper;
 import com.franbalsamo.mercadoapp.model.PlanillaDTO;
 import com.franbalsamo.mercadoapp.model.StockProductoDTO;
 import jakarta.transaction.Transactional;
@@ -27,7 +28,7 @@ public class PlanillaService {
     public ProductoService productoService;
 
     @Autowired
-    private ModelMapper modelMapper;
+    public PlanillaMapper planillaMapper;
 
     @Transactional
     public PlanillaDTO newPlanilla(PlanillaDTO planillaDTO){
@@ -45,6 +46,7 @@ public class PlanillaService {
         }
 
         Planilla planillaGuardada = planillaRepository.save(planillaNueva);
+        /*
         PlanillaDTO responseDTO = modelMapper.map(planillaGuardada, PlanillaDTO.class);
 
         List<StockProducto> entidadesStock = planillaGuardada.getStockProductos();
@@ -57,20 +59,22 @@ public class PlanillaService {
             dto.setId_planilla(planillaNueva.getId());
             dto.setId_producto(entidad.getProducto().getId());
         }
-
-        return responseDTO;
+        */
+        return planillaMapper.toDTO(planillaGuardada);
     }
 
     @Transactional
     public PlanillaDTO updatePlanilla(Planilla planilla){
         Planilla planillaGuardada = planillaRepository.save(planilla);
+        /*
         PlanillaDTO responseDTO = modelMapper.map(planilla, PlanillaDTO.class);
 
         for (int i = 0; i < planillaGuardada.getStockProductos().size(); i++) {
             responseDTO.getStockProductos().get(i).setId_producto(planillaGuardada.getStockProductos().get(i).getProducto().getId());
             responseDTO.getStockProductos().get(i).setId_planilla(planillaGuardada.getId());
         }
-        return responseDTO;
+         */
+        return planillaMapper.toDTO(planillaGuardada);
     }
 
     public Planilla findById(long id){

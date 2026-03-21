@@ -3,12 +3,11 @@ package com.franbalsamo.mercadoapp.Service;
 import com.franbalsamo.mercadoapp.Repository.ClienteRepository;
 import com.franbalsamo.mercadoapp.domain.Cliente;
 import com.franbalsamo.mercadoapp.exception.RecursoNoEncontradoException;
+import com.franbalsamo.mercadoapp.mapper.ClienteMapper;
 import com.franbalsamo.mercadoapp.model.ClienteDTO;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ClienteService {
@@ -16,11 +15,11 @@ public class ClienteService {
     private ClienteRepository clienteRepository;
 
     @Autowired
-    private ModelMapper modelMapper;
+    private ClienteMapper clienteMapper;
 
     public ClienteDTO saveCliente(ClienteDTO dto){
-        Cliente nuevoCliente = modelMapper.map(dto, Cliente.class);
-        return modelMapper.map(clienteRepository.save(nuevoCliente), ClienteDTO.class);
+        Cliente nuevoCliente = clienteMapper.toEntity(dto);
+        return clienteMapper.toDTO(clienteRepository.save(nuevoCliente));
     }
 
     public ClienteDTO modificarCliente(ClienteDTO dto){
@@ -32,12 +31,12 @@ public class ClienteService {
         cliente.setTelefono(dto.getTelefono());
         cliente.setDireccion(dto.getDireccion());
 
-        return modelMapper.map(clienteRepository.save(cliente),ClienteDTO.class);
+        return clienteMapper.toDTO(clienteRepository.save(cliente));
     }
 
     public List<ClienteDTO> findAll(){
         return clienteRepository.findAll().stream()
-                .map(cliente -> modelMapper.map(cliente, ClienteDTO.class))
+                .map(clienteMapper::toDTO)
                 .toList();
     }
 
@@ -49,13 +48,13 @@ public class ClienteService {
     public ClienteDTO findByDocumento(String documento){
         Cliente cliente = clienteRepository.findByDocumento(documento)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Cliente no encontrado con documento: " + documento));
-        return modelMapper.map(cliente, ClienteDTO.class);
+        return clienteMapper.toDTO(cliente);
     }
 
     public ClienteDTO findByNombre(String nombre){
         Cliente cliente = clienteRepository.findByNombre(nombre)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Cliente no encontrado con nombre: " + nombre));
-        return modelMapper.map(cliente, ClienteDTO.class);
+        return clienteMapper.toDTO(cliente);
     }
 
     public boolean existsByDocumento(String documento){

@@ -1,9 +1,9 @@
 package com.franbalsamo.mercadoapp.Service;
 
-import com.franbalsamo.mercadoapp.Enum.EstadoPago;
 import com.franbalsamo.mercadoapp.Repository.BoletaRepository;
 import com.franbalsamo.mercadoapp.domain.*;
 import com.franbalsamo.mercadoapp.exception.RecursoNoEncontradoException;
+import com.franbalsamo.mercadoapp.mapper.BoletaMapper;
 import com.franbalsamo.mercadoapp.model.BoletaDTO;
 import com.franbalsamo.mercadoapp.model.VentaDTO;
 import jakarta.transaction.Transactional;
@@ -33,11 +33,10 @@ public class BoletaService {
     public StockProductoService stockProductoService;
 
     @Autowired
-    private ModelMapper modelMapper;
+    public BoletaMapper boletaMapper;
 
     private void cargarVentas(BoletaDTO boletaDTO, Boleta nuevaBoleta){
         float totalCalculado = 0;
-        float totalDeuda = 0;
         Planilla planilla = nuevaBoleta.getPlanilla();
 
         for (VentaDTO vDto : boletaDTO.getVentas()) {
@@ -51,27 +50,20 @@ public class BoletaService {
             stockProducto.setStock_vendido(stockProducto.getStock_vendido() + vDto.getCantidad());
 
             Venta nuevaVenta = new Venta();
-            nuevaVenta.setProducto(producto);;
+            nuevaVenta.setProducto(producto);
             nuevaVenta.setCantidad(vDto.getCantidad());
             nuevaVenta.setPrecio_unitario(vDto.getPrecio_unitario());
             nuevaVenta.setPrecio_vacio(vDto.getPrecio_vacio());
             nuevaVenta.setSubtotal(vDto.getCantidad() * (vDto.getPrecio_unitario()+vDto.getPrecio_vacio()));
-            nuevaVenta.setEstadoPago(vDto.getEstadoPago());
-            nuevaVenta.setEstadoEntrega(vDto.getEstadoEntrega());
 
             nuevaBoleta.addVenta(nuevaVenta);
-
-            if(nuevaVenta.getEstadoPago() == EstadoPago.NO_PAGADO)
-                totalDeuda += nuevaVenta.getSubtotal();
             totalCalculado += nuevaVenta.getSubtotal();
         }
         nuevaBoleta.setTotal(totalCalculado);
-        nuevaBoleta.setDeuda(totalDeuda);
     }
 
     private void modificarVentas(Boleta boleta, BoletaDTO boletaDTO){
         float totalCalculado = 0;
-        float totalDeuda = 0;
         Planilla planilla = boleta.getPlanilla();
 
         List<Venta> ventasActuales = new ArrayList<>(boleta.getVentas());
@@ -99,28 +91,22 @@ public class BoletaService {
                 ventaEncontrada.setPrecio_unitario(vDto.getPrecio_unitario());
                 ventaEncontrada.setPrecio_vacio(vDto.getPrecio_vacio());
                 ventaEncontrada.setSubtotal(vDto.getCantidad()*(vDto.getPrecio_unitario()+vDto.getPrecio_vacio()));
-                ventaEncontrada.setEstadoPago(vDto.getEstadoPago());
-                ventaEncontrada.setEstadoEntrega(vDto.getEstadoEntrega());
 
                 ventasActuales.remove(ventaEncontrada);
 
-                if(ventaEncontrada.getEstadoPago() == EstadoPago.NO_PAGADO) totalDeuda += ventaEncontrada.getSubtotal();
                 totalCalculado += ventaEncontrada.getSubtotal();
             } else{
                 Venta nuevaVenta = new Venta();
 
-                nuevaVenta.setProducto(producto);;
+                nuevaVenta.setProducto(producto);
                 nuevaVenta.setCantidad(vDto.getCantidad());
                 nuevaVenta.setPrecio_unitario(vDto.getPrecio_unitario());
                 nuevaVenta.setPrecio_vacio(vDto.getPrecio_vacio());
                 nuevaVenta.setSubtotal(vDto.getCantidad() * (vDto.getPrecio_unitario()+vDto.getPrecio_vacio()));
-                nuevaVenta.setEstadoPago(vDto.getEstadoPago());
-                nuevaVenta.setEstadoEntrega(vDto.getEstadoEntrega());
 
                 boleta.addVenta(nuevaVenta);
 
-                if(nuevaVenta.getEstadoPago() == EstadoPago.NO_PAGADO) totalDeuda+= nuevaVenta.getSubtotal();
-                totalCalculado+= nuevaVenta.getSubtotal();
+                totalCalculado += nuevaVenta.getSubtotal();
             }
         }
 
@@ -129,7 +115,6 @@ public class BoletaService {
         }
 
         boleta.setTotal(totalCalculado);
-        boleta.setDeuda(totalDeuda);
     }
 
     private void recuperarStock(Boleta boleta){
@@ -152,12 +137,12 @@ public class BoletaService {
         Boleta nuevaBoleta = new Boleta();
         nuevaBoleta.setCliente(cliente);
         nuevaBoleta.setPlanilla(planilla);
+        nuevaBoleta.setEstadoRetiro(boletaDTO.getEstadoRetiro());
+        nuevaBoleta.setEstadoPago(boletaDTO.getEstadoPago());
+
         cargarVentas(boletaDTO, nuevaBoleta);
 
-        BoletaDTO responseDTO = modelMapper.map(boletaRepository.save(nuevaBoleta), BoletaDTO.class);
-        responseDTO.setId_cliente(cliente.getId());
-        responseDTO.setId_planilla(planilla.getId());
-        return responseDTO;
+        return boletaMapper.toDTO(boletaRepository.save(nuevaBoleta));
     }
 
     @Transactional
@@ -170,7 +155,7 @@ public class BoletaService {
 
         modificarVentas(boleta,boletaDTO);
 
-        return modelMapper.map(boletaRepository.save(boleta), BoletaDTO.class); //Guardar la boleta modificada.
+        return boletaMapper.toDTO(boletaRepository.save(boleta));
     }
 
     @Transactional
@@ -186,7 +171,7 @@ public class BoletaService {
 
     public List<BoletaDTO> findAll(){
         return boletaRepository.findAll().stream()
-                .map(boleta -> modelMapper.map(boleta, BoletaDTO.class))
+                .map(boletaMapper::toDTO)
                 .toList();
     }
 
@@ -198,7 +183,9 @@ public class BoletaService {
     public List<BoletaDTO> findAllByPlanilla(long id_planilla){
         Planilla planilla = planillaService.findById(id_planilla);
         List<Boleta> listaBoleta = boletaRepository.findAllByPlanilla(planilla);
-        return listaBoleta.stream().map(boleta -> modelMapper.map(boleta, BoletaDTO.class)).toList();
+        return listaBoleta.stream()
+                .map(boletaMapper::toDTO)
+                .toList();
     }
 
     public List<Boleta> findAllByPlanilla(Planilla planilla){
@@ -208,7 +195,9 @@ public class BoletaService {
     public List<BoletaDTO> findByCliente(long id_cliente){
         Cliente cliente = clienteService.findById(id_cliente);
         List<Boleta> listaBoleta = boletaRepository.findAllByCliente(cliente);
-        return listaBoleta.stream().map(boleta -> modelMapper.map(boleta, BoletaDTO.class)).toList();
+        return listaBoleta.stream()
+                .map(boletaMapper::toDTO)
+                .toList();
     }
 
 }

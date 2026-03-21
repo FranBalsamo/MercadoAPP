@@ -1,4 +1,4 @@
-function ListaBoletas({ abrirModalBoleta }) {
+function ListaBoletas({ abrirModalBoleta, boletas = [] }) {
     return (
         <div style={{
             flex: 3,
@@ -11,17 +11,64 @@ function ListaBoletas({ abrirModalBoleta }) {
         }}>
             <h3 style={{ marginTop: 0 }}>🧾 Boletas de la Planilla</h3>
 
-            {/* ZONA DE LA TABLA (Por ahora vacía) */}
+            {/* ZONA DE LA TABLA */}
             <div style={{ flexGrow: 1, overflowY: 'auto', marginBottom: '20px', paddingRight: '5px' }}>
-                <p style={{ color: '#888', fontStyle: 'italic' }}>Aún no hay boletas cargadas...</p>
+                
+                {boletas.length === 0 ? (
+                    <p style={{ color: '#888', fontStyle: 'italic', textAlign: 'center', marginTop: '50px' }}>
+                        Aún no hay boletas cargadas en esta caja...
+                    </p>
+                ) : (
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.95rem' }}>
+                        <thead style={{ backgroundColor: '#f4f6f8', position: 'sticky', top: 0 }}>
+                            <tr>
+                                <th style={{ padding: '12px', borderBottom: '2px solid #ddd' }}># ID</th>
+                                <th style={{ padding: '12px', borderBottom: '2px solid #ddd' }}>Cliente ID</th>
+                                <th style={{ padding: '12px', borderBottom: '2px solid #ddd' }}>Total</th>
+                                <th style={{ padding: '12px', borderBottom: '2px solid #ddd' }}>Pago</th>
+                                <th style={{ padding: '12px', borderBottom: '2px solid #ddd' }}>Retiro</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {boletas.map((boleta, index) => (
+                                <tr key={boleta.id || index} style={{ borderBottom: '1px solid #eee' }}>
+                                    <td style={{ padding: '12px', color: '#888' }}>{boleta.id || 'Nuevo'}</td>
+                                    
+                                    <td style={{ padding: '12px', fontWeight: 'bold' }}>{boleta.id_cliente}</td> 
+                                    <td style={{ padding: '12px', fontWeight: 'bold', color: '#2c3e50' }}>
+                                        ${boleta.total.toFixed(2)}
+                                    </td>
+                                    <td style={{ padding: '12px' }}>
+                                        <span style={{ 
+                                            padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold',
+                                            backgroundColor: boleta.estadoPago === 'PAGADO' ? '#d4efdf' : '#fadbd8',
+                                            color: boleta.estadoPago === 'PAGADO' ? '#27ae60' : '#c0392b'
+                                        }}>
+                                            {boleta.estadoPago}
+                                        </span>
+                                    </td>
+                                    <td style={{ padding: '12px' }}>
+                                        <span style={{ 
+                                            padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold',
+                                            backgroundColor: boleta.estadoRetiro === 'RETIRADO' ? '#d6eaf8' : '#fadbd8',
+                                            color: boleta.estadoRetiro === 'RETIRADO' ? '#2980b9' : '#c0392b'
+                                        }}>
+                                            {boleta.estadoRetiro}
+                                        </span>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
 
-                {/* Aquí irá la tabla con Cliente, Total, Pagado, Retirado */}
             </div>
 
+            {/* FOOTER: Botón para abrir el buscador de clientes */}
             <div style={{ paddingTop: '20px', borderTop: '2px dashed #eee', display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end' }}>
-                <button
+                <button 
                     onClick={abrirModalBoleta}
-                    style={{ padding: '10px 20px', backgroundColor: '#3498db', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                    style={{ padding: '10px 20px', backgroundColor: '#3498db', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1.1rem' }}
                 >
                     + Cargar Nueva Boleta
                 </button>

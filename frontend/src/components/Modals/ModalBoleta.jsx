@@ -1,39 +1,38 @@
 import { useState } from 'react';
 import '../Estilos/Modal.css';
 
-function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos }) {
-    // ESTADOS DEL CARRITO
+function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBoletaGuardada }) {
     const [carrito, setCarrito] = useState([]);
-    
-    // ESTADOS DEL MINI-FORMULARIO (Ahora con precios manuales)
-    const [idProductoSel, setIdProductoSel] = useState('');
-    const [cantidadSel, setCantidadSel] = useState(1);
-    const [precioUnSel, setPrecioUnSel] = useState('');    // ¡NUEVO! Precio que tipea el usuario
-    const [precioVacioSel, setPrecioVacioSel] = useState(''); // ¡NUEVO! Precio del cajón vacío
-    
+    const [idProducto, setIdProducto] = useState('');
+    const [cantidad, setCantidad] = useState(1);
+    const [precioUnitario, setPrecioUnitario] = useState('');   
+    const [precioVacio, setPrecioVacio] = useState('');
+    const [pagado, setPagado] = useState('NO_PAGADO');
+    const [retirado, setRetirado] = useState('NO_RETIRADO');
+    const [guardando, setGuardando] = useState(false);
+
     const [errorVenta, setErrorVenta] = useState('');
 
     const agregarAlCarrito = () => {
         setErrorVenta(''); 
 
-        // 1. Validaciones básicas
-        if (!idProductoSel || cantidadSel < 1) {
+        // 1. Validaciones básicas usando los nombres nuevos
+        if (!idProducto || cantidad < 1) {
             setErrorVenta('❌ Selecciona un producto y una cantidad mayor a 0.');
             return;
         }
 
-        // Convertimos los textos de los inputs a números (si están vacíos, valen 0)
-        const precioReal = parseFloat(precioUnSel) || 0;
-        const vacioReal = parseFloat(precioVacioSel) || 0;
-        const cantidadReal = parseInt(cantidadSel);
+        const precioReal = parseFloat(precioUnitario) || 0;
+        const vacioReal = parseFloat(precioVacio) || 0;
+        const cantidadReal = parseInt(cantidad);
 
         if (precioReal <= 0) {
             setErrorVenta('❌ El precio del producto debe ser mayor a 0.');
             return;
         }
 
-        const productoReal = catalogoProductos.find(p => String(p.id) === String(idProductoSel));
-        const productoEnPlanilla = planilla.stockProductos.find(p => String(p.id_producto) === String(idProductoSel));
+        const productoReal = catalogoProductos.find(p => String(p.id) === String(idProducto));
+        const productoEnPlanilla = planilla.stockProductos.find(p => String(p.id_producto) === String(idProducto));
         
         if (!productoEnPlanilla) {
             setErrorVenta('❌ Este producto no fue cargado en la planilla de hoy.');
@@ -47,10 +46,9 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos }) {
             return;
         }
 
-        // 2. EL CÁLCULO MAYORISTA: (Cant * Precio) + (Cant * Vacio)
         const subtotalFila = (cantidadReal * precioReal) + (cantidadReal * vacioReal);
 
-        // 3. Armamos la nueva fila
+        //Armamos la nueva fila
         const nuevaFila = {
             id_fila: crypto.randomUUID(), 
             id_producto: productoReal.id,
@@ -61,12 +59,12 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos }) {
             subtotal: subtotalFila
         };
 
-        // 4. Agregamos al carrito y reseteamos los inputs para el siguiente producto
+        //Agregamos al carrito y reseteamos los inputs
         setCarrito([...carrito, nuevaFila]);
-        setIdProductoSel('');
-        setCantidadSel(1);
-        setPrecioUnSel('');
-        setPrecioVacioSel('');
+        setIdProducto('');
+        setCantidad(1);
+        setPrecioUnitario('');
+        setPrecioVacio('');
     };
 
     const eliminarDelCarrito = (id_fila_borrar) => {
@@ -74,6 +72,58 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos }) {
     };
 
     const totalBoleta = carrito.reduce((suma, item) => suma + item.subtotal, 0);
+
+    const handleGuardarBoleta = async () => {
+        if (carrito.length === 0) {
+            setErrorVenta('❌ No puedes guardar una boleta vacía.');
+            return;
+        }
+
+        setGuardando(true);
+        setErrorVenta('');
+
+        try {
+            const boletaDTO = {
+                id_planilla: planilla.id,
+                id_cliente: cliente.id,
+                total: totalBoleta,
+                estadoPago: pagado,
+                estadoRetiro: retirado,
+                ventas: carrito.map(item => ({
+                    id_producto: item.id_producto,
+                    cantidad: item.cantidad,
+                    precio_unitario: item.precio_unitario,
+                    precio_vacio: item.precio_vacio,
+                    subtotal: item.subtotal
+                }))
+            };
+
+            console.log("Enviando Boleta a Java:", boletaDTO);
+
+            const respuesta = await fetch('http://localhost:8080/api/boleta/new', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(boletaDTO)
+            });
+
+            if (!respuesta.ok) {
+                setErrorVenta('❌ Error en el servidor al guardar la boleta.');
+                setGuardando(false);
+                return;
+            }
+
+            const boletaGuardada = await respuesta.json();
+            console.log('¡Boleta guardada con éxito!', boletaGuardada);
+
+            onBoletaGuardada(boletaGuardada); 
+            cerrarModal();
+
+        } catch (err) {
+            console.error(err);
+            setErrorVenta('❌ Error de conexión con el servidor.');
+            setGuardando(false);
+        }
+    };
 
     return (
         <div className="modal-overlay">
@@ -97,8 +147,8 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos }) {
                         <div style={{ flex: '2 1 200px' }}>
                             <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Producto:</label>
                             <select 
-                                value={idProductoSel} 
-                                onChange={(e) => setIdProductoSel(e.target.value)}
+                                value={idProducto} 
+                                onChange={(e) => setIdProducto(e.target.value)} // Corregido
                                 style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
                             >
                                 <option value="">-- Seleccionar --</option>
@@ -107,7 +157,7 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos }) {
                                     const disp = item.stock - item.stock_vendido;
                                     return (
                                         <option key={item.id_producto} value={item.id_producto} disabled={disp <= 0}>
-                                            {prod ? prod.nombre : `Prod #${item.id_producto}`} (Stock: {disp})
+                                            {prod ? prod.nombre : `Prod #${item.id_producto}`}
                                         </option>
                                     );
                                 })}
@@ -118,8 +168,8 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos }) {
                             <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Cant:</label>
                             <input 
                                 type="number" min="1" 
-                                value={cantidadSel} 
-                                onChange={(e) => setCantidadSel(e.target.value)}
+                                value={cantidad} 
+                                onChange={(e) => setCantidad(e.target.value)} // Corregido
                                 style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
                             />
                         </div>
@@ -129,9 +179,9 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos }) {
                             <input 
                                 type="number" min="0" step="0.01"
                                 placeholder="0.00"
-                                value={precioUnSel} 
-                                onChange={(e) => setPrecioUnSel(e.target.value)}
-                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc', backgroundColor: '#fffbe6' }} // Fondo amarillo suave para resaltar que hay que escribir
+                                value={precioUnitario}
+                                onChange={(e) => setPrecioUnitario(e.target.value)}
+                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc', backgroundColor: '#fffbe6' }}
                             />
                         </div>
 
@@ -140,8 +190,8 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos }) {
                             <input 
                                 type="number" min="0" step="0.01"
                                 placeholder="0.00"
-                                value={precioVacioSel} 
-                                onChange={(e) => setPrecioVacioSel(e.target.value)}
+                                value={precioVacio} 
+                                onChange={(e) => setPrecioVacio(e.target.value)}
                                 style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
                             />
                         </div>
@@ -204,15 +254,35 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos }) {
                 {/* FOOTER */}
                 <div className="modal-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f9f9f9', marginTop: '0' }}>
                     <div style={{ display: 'flex', gap: '15px' }}>
-                        <label style={{ cursor: 'pointer' }}><input type="checkbox" /> Pagado</label>
-                        <label style={{ cursor: 'pointer' }}><input type="checkbox" /> Retirado</label>
+                        <label style={{ cursor: 'pointer' }}>
+                            <input 
+                                type="checkbox" 
+                                checked={pagado === 'PAGADO'}
+                                value={'PAGADO'} 
+                                onChange={(e) => setPagado(e.target.checked ? 'PAGADO' : 'NO_PAGADO')}
+                            /> Pagado
+                        </label>
+                        <label style={{ cursor: 'pointer' }}>
+                            <input 
+                                type="checkbox" 
+                                checked={retirado === 'RETIRADO'}
+                                value={'RETIRADO'}
+                                onChange={(e) => setRetirado(e.target.checked ? 'RETIRADO' : 'NO_RETIRADO')}
+                            /> Retirado
+                        </label>
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                         <h2 style={{ margin: 0, color: '#2c3e50' }}>Total: ${totalBoleta.toFixed(2)}</h2>
                         <div>
                             <button className="btn-secundario" onClick={cerrarModal} style={{ marginRight: '10px' }}>Cancelar</button>
-                            <button className="btn-primario">Guardar Boleta</button>
+                            <button 
+                                className="btn-primario" 
+                                onClick={handleGuardarBoleta}
+                                disabled={guardando}
+                            >
+                                {guardando ? 'Guardando...' : 'Guardar Boleta'}
+                            </button>
                         </div>
                     </div>
                 </div>

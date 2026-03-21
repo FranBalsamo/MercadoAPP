@@ -1,4 +1,6 @@
 package com.franbalsamo.mercadoapp.domain;
+import com.franbalsamo.mercadoapp.Enum.EstadoPago;
+import com.franbalsamo.mercadoapp.Enum.EstadoRetiro;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,8 +32,13 @@ public class Boleta {
     @Column(nullable = false)
     private float total;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private float deuda;
+    private EstadoPago estadoPago;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private EstadoRetiro estadoRetiro;
 
     public Boleta(){}
 

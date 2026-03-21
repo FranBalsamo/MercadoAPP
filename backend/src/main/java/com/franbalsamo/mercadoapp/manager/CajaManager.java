@@ -1,4 +1,4 @@
-package com.franbalsamo.mercadoapp.Manager;
+package com.franbalsamo.mercadoapp.manager;
 
 
 import com.franbalsamo.mercadoapp.Enum.EstadoPlanilla;
@@ -37,9 +37,10 @@ public class CajaManager {
 
         for(Boleta boleta: boletasDelDia){
             sumaIngresos += boleta.getTotal();
-            sumaDeuda += boleta.getDeuda();
         }
-
+        /*
+            Corregir la logica de calcular la deuda de la planilla total, ya que sacamos el valor de deuda de las boletas!!!
+         */
         planilla.setIngresoTotal(sumaIngresos);
         planilla.setDeudaTotal(sumaDeuda);
         planilla.setEstadoPlanilla(EstadoPlanilla.CERRADA);

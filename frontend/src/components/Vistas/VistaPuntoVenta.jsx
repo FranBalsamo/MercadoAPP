@@ -99,21 +99,20 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                         setBoletasDia([...boletasDia, nuevaBoleta]); 
 
                         const stockActualizado = stockProductos.map(itemStock => {
-                            const detalleVendido = nuevaBoleta.ventas.find(
-                                ventas => String(ventas.id_producto) === String(itemStock.id_producto)
-                            );
+                            const totalVendido = nuevaBoleta.ventas
+                                .filter(venta => String(venta.id_producto) === String(itemStock.id_producto))
+                                .reduce((suma, venta) => suma + venta.cantidad, 0);
 
-                            if (detalleVendido) {
-                                // Si se vendió, le sumamos la cantidad al "stock_vendido"
-                                console.log(`Producto ID ${itemStock.id_producto} vendido en cantidad ${detalleVendido.cantidad}`); 
+                            if (totalVendido > 0) {
+                                console.log(`Producto ID ${itemStock.id_producto} vendido en cantidad TOTAL de ${totalVendido}`); 
                                 
                                 return {
                                     ...itemStock,
-                                    stock_vendido: itemStock.stock_vendido + detalleVendido.cantidad
+                                    // Le sumamos el TOTAL combinado de todas las filas
+                                    stock_vendido: itemStock.stock_vendido + totalVendido
                                 };
                             }
                             
-                            // Si no se vendió, queda exactamente igual
                             return itemStock; 
                         });
                         

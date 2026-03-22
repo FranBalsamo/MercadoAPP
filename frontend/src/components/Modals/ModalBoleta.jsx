@@ -212,7 +212,9 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
                         </div>
                     ) : (
                         <>
+
                             {/* SELECTOR Y CARGA MANUAL DE PRECIOS */}
+
                             <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', marginBottom: '10px', backgroundColor: '#f9f9f9', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', flexWrap: 'wrap' }}>
                                 
                                 <div style={{ flex: '2 1 200px' }}>
@@ -223,23 +225,28 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
                                         style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
                                     >
                                         <option value="">-- Seleccionar --</option>
-                                        {/* ¡CAMBIO CLAVE! Mapeamos el stockProductos en lugar de planilla.stockProductos */}
                                         {stockProductos.map(item => {
                                             const prod = catalogoProductos.find(p => String(p.id) === String(item.id_producto));
                                             const disp = item.stock - item.stock_vendido;
-                                            return (
-                                                <option key={item.id_producto} value={item.id_producto} disabled={disp <= 0}>
-                                                    {prod ? prod.nombre : `Prod #${item.id_producto}`} (Quedan: {disp})
-                                                </option>
-                                            );
+                                            if(disp>0)
+                                                return (
+                                                    <option key={item.id_producto} value={item.id_producto} disabled={disp <= 0}>
+                                                        {prod ? prod.nombre : `Prod #${item.id_producto}`}
+                                                    </option>
+                                                );
                                         })}
                                     </select>
                                 </div>
 
                                 <div style={{ flex: '1 1 80px' }}>
-                                    {excedeStock && (
-                                        <div style={{ color: '#c0392b', fontSize: '0.75rem', marginTop: '4px', fontWeight: 'bold' }}>
-                                            Máx: {stockDisponibleActual}
+                                    {stockDisponibleActual !== null && (
+                                        <div style={{ 
+                                            color: (stockDisponibleActual > 0 && !excedeStock) ? '#27ae60' : '#c0392b', 
+                                            fontSize: '0.75rem', 
+                                            marginTop: '4px', 
+                                            fontWeight: 'bold' 
+                                        }}>
+                                            {(stockDisponibleActual > 0 && !excedeStock) ? `disponible: ${stockDisponibleActual}` : 'Sin Stock'}
                                         </div>
                                     )}
                                     <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Cantidad:</label>
@@ -276,7 +283,7 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
 
                                 <button
                                     onClick={agregarAlCarrito}
-                                    disabled={excedeStock || !idProducto} // Apagado si no hay producto o excede
+                                    disabled={excedeStock || !idProducto || !stockDisponibleActual} // Apagado si no hay producto o excede
                                     style={{
                                         padding: '9px 20px',
                                         backgroundColor: (excedeStock || !idProducto) ? '#bdc3c7' : '#2ecc71',

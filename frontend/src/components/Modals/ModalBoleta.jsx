@@ -299,7 +299,7 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
 
                     {errorVenta && <div style={{ color: '#c0392b', marginBottom: '10px', fontSize: '0.9rem', fontWeight: 'bold' }}>{errorVenta}</div>}
 
-                    {/* LA TABLA ACTUALIZADA */}
+                    {/* TABLA DETALLE DE BOLETAS */}
                     <div style={{ maxHeight: '250px', overflowY: 'auto', border: '1px solid #ddd', borderRadius: '4px' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.95rem' }}>
                             <thead style={{ backgroundColor: '#f4f6f8', position: 'sticky', top: 0 }}>

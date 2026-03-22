@@ -151,24 +151,46 @@ function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
                                     Confirmar selección
                                 </button>
                             </div>
-                            <div style={{ maxHeight: '280px', overflowY: 'auto', border: '1px solid #ddd', borderRadius: '6px' }}>
-                                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                                    <thead>
-                                        <tr style={{ backgroundColor: '#f4f4f4' }}>
+
+                            {/* TABLA DE CLIENTES */}
+                            
+                            <div style={{maxHeight: '280px', overflowY: 'auto', border: '1px solid #ddd', borderRadius: '6px' }}>
+                                <table style={{ 
+                                    width: '100%',
+                                    borderCollapse: 'collapse',
+                                    display: 'flex',
+                                    flexDirection: 'column'
+                                }}>
+                                    <thead style={{ 
+                                        backgroundColor: '#f4f6f8',
+                                        width: '100%',
+                                        display: 'table',
+                                        tableLayout: 'fixed'
+                                    }}>
+                                        <tr style={{ 
+                                            backgroundColor: '#f4f4f4' 
+                                        }}>
                                             <th style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Nombre</th>
                                             <th style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>CUIT/L</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody style={{
+                                        display: 'block', 
+                                        minHeight: '200px',
+                                        maxHeight: '235px',
+                                        overflowY: 'auto',    //Activa el scroll solo dentro del cuerpo de la tabla
+                                        width: '100%'
+                                    }}>
                                         {buscando ? (
                                             <tr>
-                                                <td colSpan={3} style={{ padding: '10px', textAlign: 'center' }}>
+                                                {/* 👇 Nota: Quitamos el colSpan porque en modo 'block' a veces rompe el diseño. Usamos width '100%' */}
+                                                <td style={{ display: 'block', width: '100%', padding: '10px', textAlign: 'center' }}>
                                                     Cargando clientes...
                                                 </td>
                                             </tr>
                                         ) : clientes.length === 0 ? (
                                             <tr>
-                                                <td colSpan={3} style={{ padding: '10px', textAlign: 'center' }}>
+                                                <td style={{ display: 'block', width: '100%', padding: '10px', textAlign: 'center' }}>
                                                     No se encontró ningún cliente.
                                                 </td>
                                             </tr>
@@ -179,6 +201,9 @@ function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
                                                     <tr
                                                         key={cliente.id}
                                                         style={{
+                                                            display: 'table', //Cada fila vuelve a ser tipo tabla para que las columnas cuadren
+                                                            width: '100%',
+                                                            tableLayout: 'fixed',
                                                             cursor: 'pointer',
                                                             backgroundColor: seleccionado ? '#cce5ff' : 'transparent'
                                                         }}

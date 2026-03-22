@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import '../Estilos/Modal.css';
 
 function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBoletaGuardada }) {
+    // --- ESTADOS ORIGINALES ---
     const [carrito, setCarrito] = useState([]);
     const [idProducto, setIdProducto] = useState('');
     const [cantidad, setCantidad] = useState(1);
@@ -10,13 +11,47 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
     const [pagado, setPagado] = useState('NO_PAGADO');
     const [retirado, setRetirado] = useState('NO_RETIRADO');
     const [guardando, setGuardando] = useState(false);
-
     const [errorVenta, setErrorVenta] = useState('');
+    const [stockProductos, setStockProductos] = useState([]);
+    const [cargandoStock, setCargandoStock] = useState(true);
+
+    // --- EFECTO: BUSCAR STOCK REAL AL ABRIR EL MODAL ---
+    useEffect(() => {
+        const obtenerStockActualizado = async () => {
+            setCargandoStock(true);
+            try {
+                const respuesta = await fetch(`http://localhost:8080/api/planilla/stocks/${planilla.id}`);
+                
+                if (respuesta.ok) {
+                    //Procesamos la respuesta para asegurar la estructura de stockProducto
+                    const listaStock = await respuesta.json();
+                    const stockProductosFormateados = Array.isArray(listaStock) 
+                        ? listaStock.map(item => ({
+                            id: item.id,
+                            id_producto: item.id_producto,
+                            id_planilla: item.id_planilla,
+                            stock: item.stock,
+                            stock_vendido: item.stock_vendido
+                        }))
+                        : [];
+                    setStockProductos(stockProductosFormateados);
+                    console.log('Stock actualizado para la boleta:', stockProductosFormateados);
+                } else {
+                    setErrorVenta('❌ No se pudo sincronizar el stock con el servidor.');
+                }
+            } catch (error) {
+                console.error(error);
+                setErrorVenta('❌ Error de conexión al verificar el stock.');
+            } finally {
+                setCargandoStock(false);
+            }
+        };
+        obtenerStockActualizado();
+    }, [planilla.id]);
 
     const agregarAlCarrito = () => {
         setErrorVenta(''); 
 
-        // 1. Validaciones básicas usando los nombres nuevos
         if (!idProducto || cantidad < 1) {
             setErrorVenta('❌ Selecciona un producto y una cantidad mayor a 0.');
             return;
@@ -26,30 +61,32 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
         const vacioReal = parseFloat(precioVacio) || 0;
         const cantidadReal = parseFloat(cantidad);
 
-
         if (precioReal <= 0) {
             setErrorVenta('❌ El precio del producto debe ser mayor a 0.');
             return;
         }
 
         const productoReal = catalogoProductos.find(p => String(p.id) === String(idProducto));
-        const productoEnPlanilla = planilla.stockProductos.find(p => String(p.id_producto) === String(idProducto));
         
-        if (!productoEnPlanilla) {
+        // ¡CAMBIO CLAVE! Ahora validamos contra el stock fresco, no el de las props
+        const stockProductoEnPlanilla = stockProductos.find(p => String(p.id_producto) === String(idProducto));
+        
+        if (!stockProductoEnPlanilla) {
             setErrorVenta('❌ Este producto no fue cargado en la planilla de hoy.');
             return;
         }
-        const stockEnBD = productoEnPlanilla.stock - productoEnPlanilla.stock_vendido;
         
-        const yaEnCarrito = carrito
+        const stockEnBD = stockProductoEnPlanilla.stock - stockProductoEnPlanilla.stock_vendido;
+        
+        const stockYaEnCarrito = carrito
             .filter(item => String(item.id_producto) === String(idProducto))
             .reduce((suma, item) => suma + item.cantidad, 0);
 
-        const stockFinalDisponible = stockEnBD - yaEnCarrito;
+        const stockFinalDisponible = stockEnBD - stockYaEnCarrito;
 
         if (cantidadReal > stockFinalDisponible) {
-            if (yaEnCarrito > 0) {
-                setErrorVenta(`❌ Stock insuficiente. Ya tienes ${yaEnCarrito} en el carrito y solo quedan ${stockFinalDisponible} disponibles.`);
+            if (stockYaEnCarrito > 0) {
+                setErrorVenta(`❌ Stock insuficiente. Ya tienes ${stockYaEnCarrito} en el carrito y solo quedan ${stockFinalDisponible} disponibles.`);
             } else {
                 setErrorVenta(`❌ Stock insuficiente. Solo quedan ${stockFinalDisponible} unidades.`);
             }
@@ -58,7 +95,6 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
 
         const subtotalFila = (cantidadReal * precioReal) + (cantidadReal * vacioReal);
 
-        //Armamos la nueva fila
         const nuevaFila = {
             id_fila: crypto.randomUUID(), 
             id_producto: productoReal.id,
@@ -69,7 +105,6 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
             subtotal: subtotalFila
         };
 
-        //Agregamos al carrito y reseteamos los inputs
         setCarrito([...carrito, nuevaFila]);
         setIdProducto('');
         setCantidad(1);
@@ -108,8 +143,6 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
                 }))
             };
 
-            console.log("Enviando Boleta a Java:", boletaDTO);
-
             const respuesta = await fetch('http://localhost:8080/api/boleta/new', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -123,9 +156,7 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
             }
 
             const boletaGuardada = await respuesta.json();
-            console.log('¡Boleta guardada con éxito!', boletaGuardada);
-
-            onBoletaGuardada(boletaGuardada); 
+            onBoletaGuardada(boletaGuardada, carrito); // Pasamos el carrito por si tu VistaPuntoVenta aún lo necesita
             cerrarModal();
 
         } catch (err) {
@@ -135,30 +166,26 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
         }
     };
 
+    // --- LÓGICA DINÁMICA DE STOCK MEJORADA ---
     let stockDisponibleActual = null;
     let cantidadYaEnCarrito = 0;
 
-    if (idProducto) {
-        // 1. Buscamos el stock en la base de datos (Planilla)
-        const prodPlanilla = planilla.stockProductos.find(p => String(p.id_producto) === String(idProducto));
+    if (idProducto && !cargandoStock) {
+        // ¡CAMBIO CLAVE! Leemos del stockProductos
+        const prodPlanilla = stockProductos.find(p => String(p.id_producto) === String(idProducto));
         
         if (prodPlanilla) {
             const stockEnBD = prodPlanilla.stock - prodPlanilla.stock_vendido;
 
-            // 2. Calculamos cuánto de este producto YA ESTÁ en el carrito actual
             cantidadYaEnCarrito = carrito
                 .filter(item => String(item.id_producto) === String(idProducto))
                 .reduce((suma, item) => suma + item.cantidad, 0);
 
-            // 3. El stock real disponible es el de la BD menos lo que ya separaste en el carrito
             stockDisponibleActual = stockEnBD - cantidadYaEnCarrito;
         }
     }
 
-    // Pro-Tip: Usamos parseFloat en lugar de parseInt porque vi que en tu input tienes step="0.5"
     const cantidadRealInput = parseFloat(cantidad) || 0; 
-
-    // La alerta salta si superan el stock REAL disponible
     const excedeStock = stockDisponibleActual !== null && cantidadRealInput > stockDisponibleActual;
 
     return (
@@ -173,98 +200,95 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
                 <div className="modal-body">
                     {/* DATOS DEL CLIENTE */}
                     <div style={{ backgroundColor: '#e8f4f8', padding: '10px 15px', borderRadius: '8px', marginBottom: '15px', border: '1px solid #bce8f1', display: 'flex', justifyContent: 'space-between' }}>
-                        <div><strong style={{ color: '#31708f' }}>👤 Cliente:</strong> {cliente?.nombre}</div>
+                        <div><strong style={{ color: '#31708f' }}>👤 Cliente:</strong> <span style={{ textTransform: 'capitalize' }}>{cliente?.nombre}</span></div>
                         <div><strong style={{ color: '#31708f' }}>CUIT:</strong> {cliente?.documento}</div>
                     </div>
 
-                    {/* SELECTOR Y CARGA MANUAL DE PRECIOS */}
-                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', marginBottom: 0, backgroundColor: '#f9f9f9', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', flexWrap: 'wrap' }}>
-                        
-                        <div style={{ flex: '2 1 200px' }}>
-                            <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Producto:</label>
-                            <select 
-                                value={idProducto} 
-                                onChange={(e) => setIdProducto(e.target.value)} // Corregido
-                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-                            >
-                                <option value="">-- Seleccionar --</option>
-                                {planilla.stockProductos.map(item => {
-                                    const prod = catalogoProductos.find(p => String(p.id) === String(item.id_producto));
-                                    const disp = item.stock - item.stock_vendido;
-                                    return (
-                                        <option key={item.id_producto} value={item.id_producto} disabled={disp <= 0}>
-                                            {prod ? prod.nombre : `Prod #${item.id_producto}`}
-                                        </option>
-                                    );
-                                })}
-                            </select>
+                    {/* BLOQUEO VISUAL MIENTRAS CARGA EL STOCK */}
+                    {cargandoStock ? (
+                        <div style={{ padding: '30px', textAlign: 'center', backgroundColor: '#f9f9f9', borderRadius: '8px', border: '1px solid #ddd', marginBottom: '20px' }}>
+                            <h4 style={{ color: '#3498db', margin: 0 }}>🔄 Sincronizando stock en vivo...</h4>
+                            <p style={{ fontSize: '0.9rem', color: '#7f8c8d', marginTop: '5px' }}>Por favor, espera un segundo.</p>
                         </div>
-
-                        <div style={{ flex: '1 1 80px' }}>
-                            {/* Mensaje de alerta dinámico */}
-                            {excedeStock && (
-                                <div style={{ color: '#c0392b', fontSize: '0.75rem', marginTop: '4px', fontWeight: 'bold' }}>
-                                    Máx: {stockDisponibleActual}
+                    ) : (
+                        <>
+                            {/* SELECTOR Y CARGA MANUAL DE PRECIOS */}
+                            <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', marginBottom: '10px', backgroundColor: '#f9f9f9', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', flexWrap: 'wrap' }}>
+                                
+                                <div style={{ flex: '2 1 200px' }}>
+                                    <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Producto:</label>
+                                    <select 
+                                        value={idProducto} 
+                                        onChange={(e) => setIdProducto(e.target.value)} 
+                                        style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+                                    >
+                                        <option value="">-- Seleccionar --</option>
+                                        {/* ¡CAMBIO CLAVE! Mapeamos el stockProductos en lugar de planilla.stockProductos */}
+                                        {stockProductos.map(item => {
+                                            const prod = catalogoProductos.find(p => String(p.id) === String(item.id_producto));
+                                            const disp = item.stock - item.stock_vendido;
+                                            return (
+                                                <option key={item.id_producto} value={item.id_producto} disabled={disp <= 0}>
+                                                    {prod ? prod.nombre : `Prod #${item.id_producto}`} (Quedan: {disp})
+                                                </option>
+                                            );
+                                        })}
+                                    </select>
                                 </div>
-                            )}
-                            <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>
-                                Cantidad:
-                            </label>
-                            <input
-                                type="number" min="1" step="0.5"
-                                value={cantidad}
-                                onChange={(e) => setCantidad(e.target.value)}
-                                style={{
-                                    width: '100%',
-                                    padding: '8px',
-                                    borderRadius: '4px',
-                                    // Borde rojo y fondo rojizo si se pasa del stock:
-                                    border: excedeStock ? '2px solid #e74c3c' : '1px solid #ccc',
-                                    backgroundColor: excedeStock ? '#fadbd8' : 'white',
-                                    outline: 'none'
-                                }}
-                            />
-                        </div>
 
-                        <div style={{ flex: '1 1 100px' }}>
-                            <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>$ Precio:</label>
-                            <input 
-                                type="number" min="0" step="0.01"
-                                placeholder="0.00"
-                                value={precioUnitario}
-                                onChange={(e) => setPrecioUnitario(e.target.value)}
-                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc', backgroundColor: '#fffbe6' }}
-                            />
-                        </div>
+                                <div style={{ flex: '1 1 80px' }}>
+                                    {excedeStock && (
+                                        <div style={{ color: '#c0392b', fontSize: '0.75rem', marginTop: '4px', fontWeight: 'bold' }}>
+                                            Máx: {stockDisponibleActual}
+                                        </div>
+                                    )}
+                                    <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Cantidad:</label>
+                                    <input
+                                        type="number" min="1" step="0.5"
+                                        value={cantidad}
+                                        onChange={(e) => setCantidad(e.target.value)}
+                                        style={{
+                                            width: '100%', padding: '8px', borderRadius: '4px',
+                                            border: excedeStock ? '2px solid #e74c3c' : '1px solid #ccc',
+                                            backgroundColor: excedeStock ? '#fadbd8' : 'white',
+                                            outline: 'none'
+                                        }}
+                                    />
+                                </div>
 
-                        <div style={{ flex: '1 1 100px' }}>
-                            <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>$ Vacío:</label>
-                            <input 
-                                type="number" min="0" step="0.01"
-                                placeholder="0.00"
-                                value={precioVacio} 
-                                onChange={(e) => setPrecioVacio(e.target.value)}
-                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-                            />
-                        </div>
+                                <div style={{ flex: '1 1 100px' }}>
+                                    <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>$ Precio:</label>
+                                    <input 
+                                        type="number" min="0" step="0.01" placeholder="0.00"
+                                        value={precioUnitario} onChange={(e) => setPrecioUnitario(e.target.value)}
+                                        style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc', backgroundColor: '#fffbe6' }}
+                                    />
+                                </div>
 
-                        <button
-                            onClick={agregarAlCarrito}
-                            disabled={excedeStock} // Desactiva el botón
-                            style={{
-                                padding: '9px 20px',
-                                // Si excede, gris. Si está todo bien, verde.
-                                backgroundColor: excedeStock ? '#bdc3c7' : '#2ecc71',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: excedeStock ? 'not-allowed' : 'pointer',
-                                fontWeight: 'bold'
-                            }}
-                        >
-                            + Agregar
-                        </button>
-                    </div>
+                                <div style={{ flex: '1 1 100px' }}>
+                                    <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>$ Vacío:</label>
+                                    <input 
+                                        type="number" min="0" step="0.01" placeholder="0.00"
+                                        value={precioVacio} onChange={(e) => setPrecioVacio(e.target.value)}
+                                        style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+                                    />
+                                </div>
+
+                                <button
+                                    onClick={agregarAlCarrito}
+                                    disabled={excedeStock || !idProducto} // Apagado si no hay producto o excede
+                                    style={{
+                                        padding: '9px 20px',
+                                        backgroundColor: (excedeStock || !idProducto) ? '#bdc3c7' : '#2ecc71',
+                                        color: 'white', border: 'none', borderRadius: '4px', 
+                                        cursor: (excedeStock || !idProducto) ? 'not-allowed' : 'pointer', fontWeight: 'bold'
+                                    }}
+                                >
+                                    + Agregar
+                                </button>
+                            </div>
+                        </>
+                    )}
 
                     {errorVenta && <div style={{ color: '#c0392b', marginBottom: '10px', fontSize: '0.9rem', fontWeight: 'bold' }}>{errorVenta}</div>}
 
@@ -341,7 +365,7 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
                             <button 
                                 className="btn-primario" 
                                 onClick={handleGuardarBoleta}
-                                disabled={guardando}
+                                disabled={guardando || cargandoStock}
                             >
                                 {guardando ? 'Guardando...' : 'Guardar Boleta'}
                             </button>

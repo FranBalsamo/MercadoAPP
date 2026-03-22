@@ -3,10 +3,13 @@ package com.franbalsamo.mercadoapp.Controller;
 import com.franbalsamo.mercadoapp.manager.CajaManager;
 import com.franbalsamo.mercadoapp.Service.PlanillaService;
 import com.franbalsamo.mercadoapp.model.PlanillaDTO;
+import com.franbalsamo.mercadoapp.model.StockProductoDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/planilla")
@@ -29,5 +32,11 @@ public class PlanillaController {
     public ResponseEntity<PlanillaDTO> closePlanilla(@PathVariable long id){
         PlanillaDTO planillaCerrada = cajaManager.closePlanilla(id);
         return new ResponseEntity<>(planillaCerrada, HttpStatus.OK);
+    }
+
+    @GetMapping("/stocks/{id_planilla}")
+    public ResponseEntity<List<StockProductoDTO>> findAllByPlanilla(@PathVariable long id_planilla){
+        List<StockProductoDTO> listaStock = planillaService.getStockProductos(id_planilla);
+        return new ResponseEntity<>(listaStock, HttpStatus.OK);
     }
 }

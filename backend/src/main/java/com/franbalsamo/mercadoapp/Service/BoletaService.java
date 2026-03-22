@@ -42,11 +42,12 @@ public class BoletaService {
         for (VentaDTO vDto : boletaDTO.getVentas()) {
             Producto producto = productoService.findById(vDto.getId_producto());
             StockProducto stockProducto = stockProductoService.findByProductoAndPlanilla(producto, planilla);
-            if(stockProducto.getStock() < vDto.getCantidad()){
+            float stockDisponible = stockProducto.getStock() - stockProducto.getStock_vendido();
+
+            if(stockDisponible < vDto.getCantidad()){
                 throw new RecursoNoEncontradoException("No hay suficiente stock para el producto: " + producto.getNombre());
             }
 
-            stockProducto.setStock(stockProducto.getStock() - vDto.getCantidad());
             stockProducto.setStock_vendido(stockProducto.getStock_vendido() + vDto.getCantidad());
 
             Venta nuevaVenta = new Venta();

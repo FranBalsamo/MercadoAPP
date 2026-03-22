@@ -17,10 +17,6 @@ public class StockProductoService {
 
     @Autowired
     private StockProductoRepository stockProductoRepository;
-    @Autowired
-    private PlanillaService planillaService;
-    @Autowired
-    private ProductoService productoService;
 
     @Autowired
     private StockProductoMapper stockProductoMapper;
@@ -69,5 +65,9 @@ public class StockProductoService {
 
         stockProducto.setStock(nuevoStock);
         return stockProductoMapper.toDTO(stockProductoRepository.save(stockProducto));
+    }
+
+    public StockProducto save(StockProducto stockProducto){
+        return stockProductoRepository.save(stockProducto);
     }
 }

@@ -8,6 +8,7 @@ import com.franbalsamo.mercadoapp.domain.Producto;
 import com.franbalsamo.mercadoapp.domain.StockProducto;
 import com.franbalsamo.mercadoapp.exception.RecursoNoEncontradoException;
 import com.franbalsamo.mercadoapp.mapper.PlanillaMapper;
+import com.franbalsamo.mercadoapp.mapper.StockProductoMapper;
 import com.franbalsamo.mercadoapp.model.PlanillaDTO;
 import com.franbalsamo.mercadoapp.model.StockProductoDTO;
 import jakarta.transaction.Transactional;
@@ -29,6 +30,10 @@ public class PlanillaService {
 
     @Autowired
     public PlanillaMapper planillaMapper;
+
+    @Autowired
+    public StockProductoMapper stockProductoMapper;
+
 
     @Transactional
     public PlanillaDTO newPlanilla(PlanillaDTO planillaDTO){
@@ -75,6 +80,17 @@ public class PlanillaService {
         }
          */
         return planillaMapper.toDTO(planillaGuardada);
+    }
+
+
+    public List<StockProductoDTO> getStockProductos(long id_planilla){
+        Planilla planilla = planillaRepository.findById(id_planilla)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontro la planilla con id: " + id_planilla));
+
+        List<StockProducto> listaStocks = planilla.getStockProductos();
+        return listaStocks.stream()
+                .map(stockProductoMapper::toDTO)
+                .toList();
     }
 
     public Planilla findById(long id){

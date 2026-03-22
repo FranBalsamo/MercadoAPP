@@ -40,6 +40,13 @@ public class ClienteService {
                 .toList();
     }
 
+    public List<ClienteDTO> findAllByFiltroNombre(String nombre){
+        List<Cliente> listaClientes = clienteRepository.findAllByFiltroNombre(nombre);
+        return listaClientes.stream()
+                .map(clienteMapper::toDTO)
+                .toList();
+    }
+
     public Cliente findById(long id){
        return clienteRepository.findById(id)
                .orElseThrow(() -> new RecursoNoEncontradoException("Cliente no encontrado con id: " + id));

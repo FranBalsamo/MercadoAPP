@@ -40,6 +40,12 @@ public class ClienteController {
         return new ResponseEntity<>(listaClientes,HttpStatus.OK);
     }
 
+    @GetMapping("All/{FiltroNombre}")
+    public ResponseEntity<List<ClienteDTO>> findAllByNombre(@PathVariable String FiltroNombre){
+        List<ClienteDTO> listaClientes = clienteService.findAllByFiltroNombre(FiltroNombre);
+        return new ResponseEntity<>(listaClientes,HttpStatus.OK);
+    }
+
     @GetMapping("/buscar/documento/{documento}")
     public ResponseEntity<ClienteDTO> findByDocumento(@PathVariable String documento) {
         ClienteDTO clienteEncontrado = clienteService.findByDocumento(documento);

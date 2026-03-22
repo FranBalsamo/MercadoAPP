@@ -23,4 +23,10 @@ public class Producto {
     public Producto(String nombre){
         this.nombre= nombre;
     }
+
+    @PrePersist
+    @PreUpdate
+    public void normalizarDatos() {
+        this.nombre = this.nombre.trim().toLowerCase();
+    }
 }

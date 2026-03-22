@@ -5,6 +5,18 @@ function ControlStock({ stockProductos, catalogoProductos, cargando }) {
         return productoEncontrado ? productoEncontrado.nombre : `Producto #${idBusqueda}`;
     };
 
+    const ColorFondoStock = (stockActual) => {
+        if (stockActual === 0) return '#fccc';
+        else if (stockActual <= 20) return '#ffbc';
+        else return '#fffa';
+    };
+
+    const ColorTextoStock = (stockActual) => {
+        if (stockActual === 0) return '#e74c3c';
+        else if (stockActual <= 20) return '#e67e22';
+        else return '#2ecc71';
+    };
+
     return (
         <div style={{
             flex: 1,
@@ -22,28 +34,42 @@ function ControlStock({ stockProductos, catalogoProductos, cargando }) {
                 <p>Cargando catálogo...</p>
             ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '15px', flexGrow: 1, overflowY: 'auto', paddingRight: '5px' }}>
-                    {stockProductos.map((item) => {
-                        const stockActual = item.stock;
+                    {[...stockProductos]
+                        .sort((itemA, itemB) => {
+                            const stockA = itemA.stock - itemA.stock_vendido;
+                            const stockB = itemB.stock - itemB.stock_vendido;
 
-                        return (
-                            <div key={item.id} style={{
-                                border: '1px solid #ddd',
-                                padding: '10px 15px',
-                                borderRadius: '8px',
-                                backgroundColor: stockActual <= 0 ? '#ffeeee' : '#f8f9fa',
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center'
-                            }}>
-                                <h4 style={{ margin: 0, fontSize: '1rem' }}>
-                                    {obtenerNombreProducto(item.id_producto)}
-                                </h4>
-                                <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: stockActual > 0 ? '#27ae60' : '#c0392b' }}>
-                                    {stockActual} un.
+                            const esCeroA = stockA === 0;
+                            const esCeroB = stockB === 0;
+
+                            if (esCeroA && esCeroB) return 0;
+                            if (esCeroA) return 1; // 0 al final
+                            if (esCeroB) return -1;
+
+                            return stockA - stockB; // ascendente normal
+                        })
+                        .map((item) => {
+                            const stockActual = item.stock - item.stock_vendido;
+
+                            return (
+                                <div key={item.id} style={{
+                                    border: '1px solid #ddd',
+                                    padding: '10px 15px',
+                                    borderRadius: '8px',
+                                    backgroundColor: ColorFondoStock(stockActual),
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center'
+                                }}>
+                                    <h4 style={{ margin: 0, fontSize: '1rem' }}>
+                                        {obtenerNombreProducto(item.id_producto)}
+                                    </h4>
+                                    <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color:ColorTextoStock(stockActual) }}>
+                                        {stockActual} un.
+                                    </div>
                                 </div>
-                            </div>
-                        );
-                    })}
+                            );
+                        })}
                 </div>
             )}
         </div>

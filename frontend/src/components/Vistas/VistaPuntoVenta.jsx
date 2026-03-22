@@ -11,7 +11,7 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
     const [mostrarModalBoleta, setMostrarModalBoleta] = useState(false);
     const [clienteParaBoleta, setClienteParaBoleta] = useState(null);
     const [boletasDia, setBoletasDia] = useState([])
-    const [stockLocal, setStockLocal] = useState(planilla.stockProductos);
+    const [stockProductos, setStockProductos] = useState(planilla.stockProductos);
 
 
 
@@ -66,7 +66,7 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
             {/* CONTENEDOR DE COLUMNAS */}
             <div style={{ display: 'flex', gap: '20px', flexGrow: 1, overflow: 'hidden' }}>
                 <ControlStock
-                    stockProductos={stockLocal}
+                    stockProductos={stockProductos}
                     catalogoProductos={catalogoProductos}
                     cargando={cargando}
                 />
@@ -98,7 +98,7 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                         console.log('Boleta finalizada: ', nuevaBoleta);
                         setBoletasDia([...boletasDia, nuevaBoleta]); 
 
-                        const stockActualizado = stockLocal.map(itemStock => {
+                        const stockActualizado = stockProductos.map(itemStock => {
                             const detalleVendido = nuevaBoleta.ventas.find(
                                 ventas => String(ventas.id_producto) === String(itemStock.id_producto)
                             );
@@ -118,7 +118,7 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                         });
                         
                         console.log('Stock actualizado después de la venta:', stockActualizado);
-                        setStockLocal(stockActualizado);
+                        setStockProductos(stockActualizado);
                         
                         setMostrarModalBoleta(false);
                         setClienteParaBoleta(null);

@@ -30,4 +30,14 @@ public class Cliente {
 
     public Cliente(){
     }
+
+    //Antes de realizar un insert o un update se ejecuta siempre esta funcion!
+    @PrePersist
+    @PreUpdate
+    public void normalizarDatos() {
+        this.nombre = this.nombre.trim().toLowerCase();
+        if (this.direccion != null) {
+            this.direccion = this.direccion.trim().toLowerCase();
+        }
+    }
 }

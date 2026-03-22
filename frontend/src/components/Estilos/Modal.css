@@ -5,7 +5,7 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.6); /* Negro con 60% de transparencia */
+  background-color: #0005; /* Negro con 60% de transparencia */
   display: flex;
   justify-content: center;
   align-items: center;

@@ -220,8 +220,8 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
                     }}>
                     <div style={{ 
                             display: 'flex', 
-                            alignItems: 'center', 
-                            gap: '15px' 
+                            alignItems: 'center',
+                            gap: '10px'
                         }}>
                         <button 
                             onClick={handleVolver}

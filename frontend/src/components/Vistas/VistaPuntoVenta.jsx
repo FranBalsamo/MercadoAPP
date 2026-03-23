@@ -3,12 +3,14 @@ import ControlStock from './ControlStock';
 import ListaBoletas from './ListaBoletas';
 import ModalBoleta from '../Modals/ModalBoleta';
 import ModalBuscarCliente from '../Modals/ModalBuscarCliente';
+import ModalModificarStock from '../Modals/ModalModificarStock';
 
 function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
     const [catalogoProductos, setCatalogoProductos] = useState([]);
     const [cargando, setCargando] = useState(true);
     const [mostrarModalBuscarCliente, setMostrarModalBuscarCliente] = useState(false);
     const [mostrarModalBoleta, setMostrarModalBoleta] = useState(false);
+    const [mostrarModalModificarStock, setMostrarModalModificarStock] = useState(false);
     const [clienteParaBoleta, setClienteParaBoleta] = useState(null);
     const [boletasDia, setBoletasDia] = useState([])
     const [stockProductos, setStockProductos] = useState(planilla.stockProductos);
@@ -64,11 +66,12 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
             </div>
 
             {/* CONTENEDOR DE COLUMNAS */}
-            <div style={{ display: 'flex', gap: '20px', flexGrow: 1, overflow: 'hidden' }}>
+            <div style={{ display: 'flex', gap: '10px', flexGrow: 1, overflow: 'hidden' }}>
                 <ControlStock
                     stockProductos={stockProductos}
                     catalogoProductos={catalogoProductos}
                     cargando={cargando}
+                    abrirModificarStock={() => setMostrarModalModificarStock(true)}
                 />
 
                 <ListaBoletas 
@@ -130,6 +133,13 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                 />
             )}
 
+            {mostrarModalModificarStock && (
+                <ModalModificarStock
+                    cerrarModal={() => {
+                        setMostrarModalModificarStock(false);
+                    }}
+                />
+            )}
         </main>
     );
 }

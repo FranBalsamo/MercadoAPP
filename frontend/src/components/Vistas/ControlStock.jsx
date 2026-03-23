@@ -1,4 +1,5 @@
-function ControlStock({ stockProductos, catalogoProductos, cargando }) {
+function ControlStock({ stockProductos, catalogoProductos, cargando, abrirModificarStock }) {
+    
     
     const obtenerNombreProducto = (idBusqueda) => {
         const productoEncontrado = catalogoProductos.find(p => String(p.id) === String(idBusqueda));
@@ -28,8 +29,26 @@ function ControlStock({ stockProductos, catalogoProductos, cargando }) {
             display: 'flex',
             flexDirection: 'column'
         }}>
-            <h3 style={{ marginTop: 0 }}>📦 Stock Hoy</h3>
-
+            <div className="controlStock-header" style={{display:'flex', flexDirection:'row', justifyContent:'space-between' }}>
+                <h3 style={{ marginTop: 0, padding: '5px' }}>📦 Stock Hoy</h3>
+                <button 
+                    className="boton-modifiar" 
+                    style=
+                        {{
+                            borderRadius: '5px', 
+                            border: 'none', 
+                            padding: '5px 15px',
+                            fontSize: '15px',
+                            fontWeight: '600',
+                            backgroundColor: '#3498db',
+                            color: '#eeef',
+                            cursor:'pointer'
+                        }}
+                    onClick={abrirModificarStock}
+                >
+                    Modificar
+                </button>
+            </div>
             {cargando ? (
                 <p>Cargando catálogo...</p>
             ) : (

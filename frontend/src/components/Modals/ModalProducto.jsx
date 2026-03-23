@@ -61,7 +61,6 @@ function ModalProducto({ cerrarModal }) {
                 </div>
 
                 <div className="modal-body">
-                   
                     {error && (
                         <div style={{ color: 'red', fontSize: '0.8rem' }}>{error}</div>
                     )}

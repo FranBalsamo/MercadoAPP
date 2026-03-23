@@ -68,7 +68,6 @@ function ModalPlanilla({cerrarModal, onPlanillaCreada}) {
         }
         
         setError('');
-
         try {
             console.log('Guardando planilla...', stockDiario);
             
@@ -80,7 +79,6 @@ function ModalPlanilla({cerrarModal, onPlanillaCreada}) {
             };
             
             console.log("Enviando: ", planillaDTO);
-
             const respuesta = await fetch('http://localhost:8080/api/planilla/new', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -128,7 +126,7 @@ function ModalPlanilla({cerrarModal, onPlanillaCreada}) {
                         <div key={fila.id_fila} style={{display: 'flex', gap: '10px', marginBotton: '10px'}}>
 
                             <select 
-                                style={{flex: 2, padding: '8px' }}
+                                style={{flex: 2, padding: '8px', textTransform:'capitalize'}}
                                 values={fila.id_producto}
                                 onChange={(e) => actualizarFila(index, 'id_producto', e.target.value)}
                             >
@@ -143,6 +141,7 @@ function ModalPlanilla({cerrarModal, onPlanillaCreada}) {
                                             <option
                                                 key={prod.id}
                                                 value={prod.id}
+                                                style={{textTransform:'capitalize'}}
                                             >
                                                 {prod.nombre}
                                             </option>

@@ -78,7 +78,7 @@ public class BoletaService {
                         ("No hay suficiente stock para el producto: " + producto.getNombre());
             }
 
-            stockProducto.setStock(stockProducto.getStock() - vDto.getCantidad());
+            //stockProducto.setStock(stockProducto.getStock() - vDto.getCantidad());
             stockProducto.setStock_vendido(stockProducto.getStock_vendido() + vDto.getCantidad());
 
             Venta ventaEncontrada = ventasActuales.stream()
@@ -123,7 +123,7 @@ public class BoletaService {
         for (Venta venta : boleta.getVentas()) {
             Producto producto = venta.getProducto();
             StockProducto stockProducto = stockProductoService.findByProductoAndPlanilla(producto, planilla);
-            stockProducto.setStock(stockProducto.getStock() + venta.getCantidad()); //Restaurar el stock sin la venta
+            //stockProducto.setStock(stockProducto.getStock() + venta.getCantidad()); //Restaurar el stock sin la venta
             stockProducto.setStock_vendido(stockProducto.getStock_vendido() - venta.getCantidad()); //Restaurar el stock vendido sin la venta
         }
     }

@@ -122,6 +122,11 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                         setMostrarModalBoleta(false);
                         setClienteParaBoleta(null);
                     }}
+                    volverABuscarCliente={() => {
+                        setMostrarModalBoleta(false);
+                        setClienteParaBoleta(null);
+                        setMostrarModalBuscarCliente(true);
+                    }}
                 />
             )}
 

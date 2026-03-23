@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import '../Estilos/Modal.css';
+import AlertaConfirmacion from '../Alertas/AlertaConfirmacion';
 
-function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBoletaGuardada }) {
+function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBoletaGuardada, volverABuscarCliente }) {
     // --- ESTADOS ORIGINALES ---
     const [carrito, setCarrito] = useState([]);
     const [idProducto, setIdProducto] = useState('');
@@ -14,6 +15,7 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
     const [errorVenta, setErrorVenta] = useState('');
     const [stockProductos, setStockProductos] = useState([]);
     const [cargandoStock, setCargandoStock] = useState(true);
+    const [mostrarAlertaVolver, setMostrarAlertaVolver] = useState(false);
 
     // --- EFECTO: BUSCAR STOCK REAL AL ABRIR EL MODAL ---
     useEffect(() => {
@@ -118,6 +120,22 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
 
     const totalBoleta = carrito.reduce((suma, item) => suma + item.subtotal, 0);
 
+    const handleVolver = () => {
+        //Ventana de confirmacion de accion
+        if (carrito.length > 0){
+            /*
+            const confirmar = window.confirm("⚠️ Tienes productos cargados en esta boleta.\n\nSi vuelves a la selección de cliente, perderás estos datos.\n¿Estás seguro de que deseas volver?");
+            if(!confirmar){
+                return;
+            }
+            */
+            setMostrarAlertaVolver(true);
+        } else {
+            volverABuscarCliente();
+        }
+        
+    }
+
     const handleGuardarBoleta = async () => {
         if (carrito.length === 0) {
             setErrorVenta('❌ No puedes guardar una boleta vacía.');
@@ -190,10 +208,34 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
 
     return (
         <div className="modal-overlay">
+            
             <div className="modal-contenido" style={{ width: '95%', maxWidth: '800px' }}>
                 
-                <div className="modal-header">
-                    <h3>🧾 Nueva Boleta</h3>
+                <div 
+                className="modal-header" 
+                style={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        alignItems: 'center',
+                    }}>
+                    <div style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: '15px' 
+                        }}>
+                        <button 
+                            onClick={handleVolver}
+                            style={{ 
+                                background: 'none', border: 'none', color: '#3498db', 
+                                fontSize: '1rem', fontWeight: 'bold', cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', gap: '5px'
+                            }}
+                            title="Volver a seleccionar cliente"
+                        >
+                            ⬅ Volver
+                        </button>
+                        <h3 style={{ margin: 0 }}>🧾 Nueva Boleta</h3>
+                    </div>
                     <button className="btn-cerrar" onClick={cerrarModal}>X</button>
                 </div>
 
@@ -212,9 +254,7 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
                         </div>
                     ) : (
                         <>
-
                             {/* SELECTOR Y CARGA MANUAL DE PRECIOS */}
-
                             <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', marginBottom: '10px', backgroundColor: '#f9f9f9', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', flexWrap: 'wrap' }}>
                                 
                                 <div style={{ flex: '2 1 200px' }}>
@@ -341,11 +381,18 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
                             </tbody>
                         </table>
                     </div>
-
                 </div>
                 
+                                
                 {/* FOOTER */}
-                <div className="modal-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f9f9f9', marginTop: '0' }}>
+                <div
+                    className="modal-footer"
+                    style={{
+                        display: 'flex',
+                        justifyContent: 'space-between', alignItems: 'center',
+                        backgroundColor: '#f9f9f9',
+                        marginTop: 0
+                    }}>
                     <div style={{ display: 'flex', gap: '15px' }}>
                         <label style={{ cursor: 'pointer' }}>
                             <input 
@@ -379,8 +426,22 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
                         </div>
                     </div>
                 </div>
-
             </div>
+
+            {/* ALERTA DE CONFIRMACION PARA VOLVER */}
+            {mostrarAlertaVolver && (
+                <AlertaConfirmacion 
+                    mensaje="Tienes productos cargados en esta boleta.
+                    Si vuelves a la selección de cliente, perderás estos datos.
+                    ¿Estás seguro de que deseas volver?"
+                    onConfirmar={() => {
+                        setMostrarAlertaVolver(false);
+                        volverABuscarCliente();
+                    }}
+                    onCancelar={() => setMostrarAlertaVolver(false)}
+                />
+            )}
+
         </div>
     );
 }

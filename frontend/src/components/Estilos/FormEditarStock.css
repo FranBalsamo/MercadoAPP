@@ -1,0 +1,42 @@
+/* Agregar estas propiedades si no están definidas en Modal.css */
+
+.form-modificar-stock {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.form-modificar-stock label {
+    font-weight: bold;
+}
+
+.form-modificar-stock select,
+.form-modificar-stock input {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.botones-modal {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.btn-cancelar,
+.btn-modificar {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-cancelar {
+    background-color: #f0f0f0;
+}
+
+.btn-modificar {
+    background-color: #007bff;
+    color: white;
+}

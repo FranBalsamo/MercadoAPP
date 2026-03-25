@@ -138,6 +138,7 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                     cerrarModal={() => {
                         setMostrarModalModificarStock(false);
                     }}
+                    plnailla={planilla}
                 />
             )}
         </main>

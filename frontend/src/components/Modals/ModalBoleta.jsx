@@ -349,7 +349,7 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
                                     <th style={{ padding: '10px', borderBottom: '2px solid #ddd' }}>$ Precio</th>
                                     <th style={{ padding: '10px', borderBottom: '2px solid #ddd' }}>$ Vacío</th>
                                     <th style={{ padding: '10px', borderBottom: '2px solid #ddd' }}>Subtotal</th>
-                                    <th style={{ padding: '10px', borderBottom: '2px solid #ddd', textAlign: 'center' }}>X</th>
+                                    <th style={{ padding: '10px', borderBottom: '2px solid #ddd'}}/>
                                 </tr>
                             </thead>
                             <tbody>
@@ -370,9 +370,8 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
                                             <td style={{ padding: '10px', textAlign: 'center' }}>
                                                 <button 
                                                     onClick={() => eliminarDelCarrito(fila.id_fila)}
-                                                    style={{ backgroundColor: '#e74c3c', color: 'white', border: 'none', borderRadius: '50%', width: '25px', height: '25px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                                >
-                                                    X
+                                                    style={{backgroundColor: '#dddc', color: 'white', border: 'none', borderRadius: '80%', width: '25px', height: '25px', cursor: 'pointer', textAlign:'center', fontSize:'10px'}}>
+                                                        ❌
                                                 </button>
                                             </td>
                                         </tr>
@@ -393,22 +392,33 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
                         backgroundColor: '#f9f9f9',
                         marginTop: 0
                     }}>
-                    <div style={{ display: 'flex', gap: '15px' }}>
-                        <label style={{ cursor: 'pointer' }}>
-                            <input 
-                                type="checkbox" 
-                                checked={pagado === 'PAGADO'}
-                                value={'PAGADO'} 
-                                onChange={(e) => setPagado(e.target.checked ? 'PAGADO' : 'NO_PAGADO')}
-                            /> Pagado
+                    <div style={{ display: 'flex', gap:'5px' ,fontWeight:'bold'}}>
+                        <input 
+                            id='checkbox_pagado'
+                            type="checkbox" 
+                            checked={pagado === 'PAGADO'}
+                            value={'PAGADO'} 
+                            onChange={(e) => setPagado(e.target.checked ? 'PAGADO' : 'NO_PAGADO')}
+                        />
+
+                        <label 
+                            htmlFor='checkbox_pagado'
+                            style={{ cursor: 'pointer', paddingRight:'30px'}}>
+                            Pagado
                         </label>
-                        <label style={{ cursor: 'pointer' }}>
-                            <input 
-                                type="checkbox" 
-                                checked={retirado === 'RETIRADO'}
-                                value={'RETIRADO'}
-                                onChange={(e) => setRetirado(e.target.checked ? 'RETIRADO' : 'NO_RETIRADO')}
-                            /> Retirado
+                        
+                        <input 
+                            id='checkbox_retirado'
+                            type="checkbox" 
+                            checked={retirado === 'RETIRADO'}
+                            value={'RETIRADO'}
+                            onChange={(e) => setRetirado(e.target.checked ? 'RETIRADO' : 'NO_RETIRADO')}
+                        />
+
+                        <label 
+                            htmlFor='checkbox_retirado'
+                            style={{ cursor: 'pointer' }}>
+                            Retirado
                         </label>
                     </div>
 

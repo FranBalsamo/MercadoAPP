@@ -140,8 +140,8 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos }) {
                                                     />
                                                 </td>
                                                 <td style={{padding: '10px', textAlign:'center'}}>
-                                                        <button style={{backgroundColor: '#e74c3c', color: 'white', border: 'none', borderRadius: '50%', width: '25px', height: '25px', cursor: 'pointer'}}>
-                                                        X
+                                                        <button style={{backgroundColor: '#dddc', color: 'white', border: 'none', borderRadius: '100%', width: '25px', height: '25px', cursor: 'pointer', textAlign:'center', fontSize:'11px'}}>
+                                                        ❌
                                                         </button>
                                                     </td>
                                             </tr>

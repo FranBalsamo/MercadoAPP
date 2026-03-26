@@ -23,8 +23,19 @@ function ListaBoletas({ abrirModalBoleta, boletas = [], clientes = []}) {
             display: 'flex',
             flexDirection: 'column'
         }}>
-            <h3 style={{ marginTop: 0 }}>🧾 Boletas de la Planilla</h3>
-
+            
+            <div style={{display:'flex', justifyContent:'space-between' ,gap:'15px', marginBottom:'10px'}}>
+                <input type="text" placeholder="Filtrar boletas por nombre..." style={{
+                    border:'none', 
+                    borderBottom:'2px solid',
+                    borderColor:'#eeee', 
+                    borderRadius:'5px', 
+                    padding: '5px 10px', 
+                    width:'50%'}} 
+                />
+                <h3>Boletas Cargadas🧾 </h3>
+            </div>
+            
             {/* ZONA DE LA TABLA */}
             <div style={{ flexGrow: 1, overflowY: 'auto', marginBottom: '20px', paddingRight: '5px' }}>
                 

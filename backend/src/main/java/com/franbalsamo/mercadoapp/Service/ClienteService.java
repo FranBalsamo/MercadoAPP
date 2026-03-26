@@ -1,10 +1,10 @@
 package com.franbalsamo.mercadoapp.Service;
 
 import com.franbalsamo.mercadoapp.Repository.ClienteRepository;
-import com.franbalsamo.mercadoapp.domain.Cliente;
-import com.franbalsamo.mercadoapp.exception.RecursoNoEncontradoException;
-import com.franbalsamo.mercadoapp.mapper.ClienteMapper;
-import com.franbalsamo.mercadoapp.model.ClienteDTO;
+import com.franbalsamo.mercadoapp.Model.Entity.Cliente;
+import com.franbalsamo.mercadoapp.Service.exception.RecursoNoEncontradoException;
+import com.franbalsamo.mercadoapp.Service.mapper.ClienteMapper;
+import com.franbalsamo.mercadoapp.Model.DTO.ClienteDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;

@@ -1,9 +1,9 @@
 package com.franbalsamo.mercadoapp.Controller;
 
-import com.franbalsamo.mercadoapp.manager.CajaManager;
+import com.franbalsamo.mercadoapp.Service.manager.CajaManager;
 import com.franbalsamo.mercadoapp.Service.PlanillaService;
-import com.franbalsamo.mercadoapp.model.PlanillaDTO;
-import com.franbalsamo.mercadoapp.model.StockProductoDTO;
+import com.franbalsamo.mercadoapp.Model.DTO.PlanillaDTO;
+import com.franbalsamo.mercadoapp.Model.DTO.StockProductoDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

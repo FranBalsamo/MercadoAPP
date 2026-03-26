@@ -1,8 +1,7 @@
 package com.franbalsamo.mercadoapp.Controller;
 
 import com.franbalsamo.mercadoapp.Service.ClienteService;
-import com.franbalsamo.mercadoapp.domain.Cliente;
-import com.franbalsamo.mercadoapp.model.ClienteDTO;
+import com.franbalsamo.mercadoapp.Model.DTO.ClienteDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

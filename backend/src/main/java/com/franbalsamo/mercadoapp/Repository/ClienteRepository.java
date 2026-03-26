@@ -1,6 +1,6 @@
 package com.franbalsamo.mercadoapp.Repository;
 
-import com.franbalsamo.mercadoapp.domain.Cliente;
+import com.franbalsamo.mercadoapp.Model.Entity.Cliente;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

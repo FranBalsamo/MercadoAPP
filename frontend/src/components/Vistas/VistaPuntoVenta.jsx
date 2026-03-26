@@ -20,7 +20,7 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
     useEffect(() => {
         const traerCatalogo = async () => {
             try {
-                const respuesta = await fetch('http://localhost:8080/api/productos/All');
+                const respuesta = await fetch(`http://localhost:8080/api/productos/All`);
                 if (respuesta.ok) {
                     const datos = await respuesta.json();
                     console.log('Productos encontrados: ',datos);
@@ -138,7 +138,8 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                     cerrarModal={() => {
                         setMostrarModalModificarStock(false);
                     }}
-                    plnailla={planilla}
+                    catalogoProductos={catalogoProductos}
+                    planilla={planilla}
                 />
             )}
         </main>

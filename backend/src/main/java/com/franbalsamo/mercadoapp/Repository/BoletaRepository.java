@@ -1,8 +1,8 @@
 package com.franbalsamo.mercadoapp.Repository;
 
-import com.franbalsamo.mercadoapp.domain.Boleta;
-import com.franbalsamo.mercadoapp.domain.Cliente;
-import com.franbalsamo.mercadoapp.domain.Planilla;
+import com.franbalsamo.mercadoapp.Model.Entity.Boleta;
+import com.franbalsamo.mercadoapp.Model.Entity.Cliente;
+import com.franbalsamo.mercadoapp.Model.Entity.Planilla;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

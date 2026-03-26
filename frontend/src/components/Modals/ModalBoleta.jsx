@@ -262,7 +262,7 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
                                     <select 
                                         value={idProducto} 
                                         onChange={(e) => setIdProducto(e.target.value)} 
-                                        style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+                                        style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc', textTransform:'capitalize'}}
                                     >
                                         <option value="">-- Seleccionar --</option>
                                         {stockProductos.map(item => {
@@ -360,7 +360,7 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
                                 ) : (
                                     carrito.map(fila => (
                                         <tr key={fila.id_fila} style={{ borderBottom: '1px solid #eee' }}>
-                                            <td style={{ padding: '10px', fontWeight: 'bold' }}>{fila.nombre}</td>
+                                            <td style={{ padding: '10px', fontWeight: 'bold', textTransform: 'capitalize' }}>{fila.nombre}</td>
                                             <td style={{ padding: '10px' }}>{fila.cantidad}</td>
                                             <td style={{ padding: '10px' }}>${fila.precio_unitario.toFixed(2)}</td>
                                             <td style={{ padding: '10px', color: '#7f8c8d' }}>

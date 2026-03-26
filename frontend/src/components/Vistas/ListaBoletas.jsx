@@ -1,4 +1,18 @@
-function ListaBoletas({ abrirModalBoleta, boletas = [] }) {
+import {useState } from "react";
+
+
+function ListaBoletas({ abrirModalBoleta, boletas = [], clientes = []}) {
+    const [error, setError] = useState('');
+    const [cliente, setCliente] = useState('');
+    
+    const nombreCliente = (id_cliente) => {
+        const clienteEncontrado = clientes.find(cliente => cliente.id === id_cliente);
+        if(!clienteEncontrado){
+            return '-';
+        }
+        return clienteEncontrado.nombre;
+    }
+
     return (
         <div style={{
             flex: 3,
@@ -22,19 +36,21 @@ function ListaBoletas({ abrirModalBoleta, boletas = [] }) {
                     <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.95rem' }}>
                         <thead style={{ backgroundColor: '#f4f6f8', position: 'sticky', top: 0 }}>
                             <tr>
-                                <th style={{ padding: '12px', borderBottom: '2px solid #ddd' }}># ID</th>
-                                <th style={{ padding: '12px', borderBottom: '2px solid #ddd' }}>Cliente ID</th>
+                                <th style={{ padding: '12px', borderBottom: '2px solid #ddd' }}># Boleta</th>
+                                <th style={{ padding: '12px', borderBottom: '2px solid #ddd' }}>Cliente</th>
                                 <th style={{ padding: '12px', borderBottom: '2px solid #ddd' }}>Total</th>
                                 <th style={{ padding: '12px', borderBottom: '2px solid #ddd' }}>Pago</th>
-                                <th style={{ padding: '12px', borderBottom: '2px solid #ddd' }}>Retiro</th>
+                                <th style={{ padding: '12px', borderBottom: '2px solid #ddd' }}>Retiro</th> 
+                                <th style={{ borderBottom: '2px solid #ddd' }}>Ver</th> 
                             </tr>
                         </thead>
                         <tbody>
                             {boletas.map((boleta, index) => (
-                                <tr key={boleta.id || index} style={{ borderBottom: '1px solid #eee' }}>
-                                    <td style={{ padding: '12px', color: '#888' }}>{boleta.id || 'Nuevo'}</td>
-                                    
-                                    <td style={{ padding: '12px', fontWeight: 'bold' }}>{boleta.id_cliente}</td> 
+                                <tr 
+                                    key={boleta.id || index} style={{ borderBottom: '1px solid #eee',cursor:'pointer'}}
+                                >
+                                    <td style={{ padding: '12px', color: '#888'}}>{index + 1}</td>
+                                    <td key={boleta.id_cliente} style={{ padding: '12px', fontWeight: 'bold', textTransform:'capitalize'}}>{nombreCliente(boleta.id_cliente)}</td> 
                                     <td style={{ padding: '12px', fontWeight: 'bold', color: '#2c3e50' }}>
                                         ${boleta.total.toFixed(2)}
                                     </td>
@@ -55,6 +71,9 @@ function ListaBoletas({ abrirModalBoleta, boletas = [] }) {
                                         }}>
                                             {boleta.estadoRetiro}
                                         </span>
+                                    </td>
+                                    <td style={{textAlign:'center', fontSize:'1.5rem'}}>
+                                        👁
                                     </td>
                                 </tr>
                             ))}

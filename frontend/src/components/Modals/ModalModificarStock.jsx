@@ -36,7 +36,6 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos }) {
         obtenerStockDeLaPlanilla();
     }, [planilla]);
 
-    // Actualiza el diccionario cuando el usuario escribe en un input
     const handleCambioStock = (id_producto, valor) => {
         setNuevosStocks({...nuevosStocks,[id_producto]: valor});
     };
@@ -45,18 +44,15 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos }) {
 
     const hayCambios = Object.keys(nuevosStocks).some(id_prod => {
         const valorModificado = nuevosStocks[id_prod];
-        // Si borró todo el texto, requiere atención. Debe poner minimo 0!
         if (valorModificado === '') {
             return false;
         }
-            // Buscamos cuánto había originalmente
         const stockProdOriginal = stockProductos.find(p => String(p.id_producto) === String(id_prod));
-        
+
         if (!stockProdOriginal) return false;
 
         const disponibleOriginal = stockProdOriginal.stock - stockProdOriginal.stock_vendido;
-        
-        // Es un cambio válido solo si el número nuevo es diferente al original
+
         return Number(valorModificado) !== disponibleOriginal;
     });
 
@@ -78,13 +74,14 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos }) {
                     <button className="btn-cerrar" onClick={cerrarModal}>X</button>
                 </div>
 
-                <div className="modal-body">
+                <div className="modal-body" style={{height:'100%'}}>
                     {(error || hayInputsVacios) && (
                         <p style={{ color: '#c0392b', fontWeight: 'bold', margin: '0', padding: '0' }}>
                             {error || "❌ Los campos no pueden estar vacíos!"}
                         </p>
                     )}
-                    <p style={{ color: '#7f8c8d', fontSize: '0.95rem', marginBottom: '15px' }}>
+
+                    <p style={{ color: '#7f8c8d', fontSize: '0.95rem', marginBottom: '3px' }}>
                         Ajusta la cantidad disponible de los productos necesarios.
                     </p>
 
@@ -94,9 +91,10 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos }) {
                                 <tr>
                                     <th style={{ padding: '12px', borderBottom: '2px solid #ccc' }}>Producto</th>
                                     <th style={{ padding: '12px', borderBottom: '2px solid #ccc', width: '150px', textAlign: 'center' }}>Cant. Disponible</th>
+                                    <th style={{ padding: '12px', borderBottom: '2px solid #ccc'}}> </th>
                                 </tr>
                             </thead>
-                            <tbody style={{height:'300px'}}>
+                            <tbody style={{height:'250px'}}>
                                 {stockProductos.length === 0 ? (
                                     <tr>
                                         <td colSpan="2" style={{ padding: '20px', textAlign: 'center', color: '#888' }}>
@@ -113,7 +111,7 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos }) {
                                             : disponibleReal;
                                         
                                         return (
-                                            <tr key={item.id_producto} style={{ borderBottom: '1px solid #eee' }}>
+                                            <tr key={item.id_producto} style={{borderBottom: '1px solid #eee'}}>
                                                 <td style={{
                                                     padding: '10px',
                                                     textTransform: 'capitalize',
@@ -121,7 +119,7 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos }) {
                                                 }}>
                                                     {nombre}
                                                 </td>
-                                                <td style={{ padding: '10px', textAlign: 'center' }}>
+                                                <td style={{padding: '10px', textAlign: 'center' }}>
                                                     <input
                                                         type="number"
                                                         min="0"
@@ -141,6 +139,11 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos }) {
                                                         }}
                                                     />
                                                 </td>
+                                                <td style={{padding: '10px', textAlign:'center'}}>
+                                                        <button style={{backgroundColor: '#e74c3c', color: 'white', border: 'none', borderRadius: '50%', width: '25px', height: '25px', cursor: 'pointer'}}>
+                                                        X
+                                                        </button>
+                                                    </td>
                                             </tr>
                                         );
                                     })

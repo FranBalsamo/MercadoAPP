@@ -1,6 +1,4 @@
 function ControlStock({ stockProductos, catalogoProductos, cargando, abrirModificarStock }) {
-    
-    
     const obtenerNombreProducto = (idBusqueda) => {
         const productoEncontrado = catalogoProductos.find(p => String(p.id) === String(idBusqueda));
         return productoEncontrado ? productoEncontrado.nombre : `Producto #${idBusqueda}`;
@@ -80,7 +78,7 @@ function ControlStock({ stockProductos, catalogoProductos, cargando, abrirModifi
                                     justifyContent: 'space-between',
                                     alignItems: 'center'
                                 }}>
-                                    <h4 style={{ margin: 0, fontSize: '1rem' }}>
+                                    <h4 style={{ margin: 0, fontSize: '1rem', textTransform:'capitalize'}}>
                                         {obtenerNombreProducto(item.id_producto)}
                                     </h4>
                                     <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color:ColorTextoStock(stockActual) }}>
@@ -91,6 +89,13 @@ function ControlStock({ stockProductos, catalogoProductos, cargando, abrirModifi
                         })}
                 </div>
             )}
+            <div style={{ paddingTop: '20px', borderTop: '2px dashed #eee', display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end'}}>
+                <button 
+                    style={{border: 'none', width:'100%', color:'#eeef', background:'#3498db', fontSize:'1.1rem', fontWeight:'bold',padding:'10px 20px', borderRadius:'6px', cursor:'pointer'}}
+                >
+                    + Agregar Producto
+                </button>
+            </div>
         </div>
     );
 }

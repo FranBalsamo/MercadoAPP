@@ -12,7 +12,8 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
     const [mostrarModalBoleta, setMostrarModalBoleta] = useState(false);
     const [mostrarModalModificarStock, setMostrarModalModificarStock] = useState(false);
     const [clienteParaBoleta, setClienteParaBoleta] = useState(null);
-    const [boletasDia, setBoletasDia] = useState([])
+    const [boletasDia, setBoletasDia] = useState([]);
+    const [clientesDia, setClientesDia] = useState([]);
     const [stockProductos, setStockProductos] = useState(planilla.stockProductos);
 
 
@@ -56,7 +57,7 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
 
             {/* HEADER DE LA VISTA */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h2>🛒 Caja Abierta - Planilla #{planilla.id}</h2>
+                <h2>🧾Estado Planilla: <span style={{color: planilla.estadoPlanilla === 'ABIERTA' ? '#3b3c': '#e43' }}> {planilla.estadoPlanilla} </span> - Fecha: {planilla.fecha}</h2>
                 <button
                     onClick={cerrarPlanilla}
                     style={{ padding: '8px 15px', backgroundColor: '#e74c3c', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
@@ -77,6 +78,7 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                 <ListaBoletas 
                     abrirModalBoleta={() => setMostrarModalBuscarCliente(true)} 
                     boletas={boletasDia} 
+                    clientes={clientesDia}
                 />
             </div>
 
@@ -100,6 +102,7 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                     onBoletaGuardada={(nuevaBoleta) => {
                         console.log('Boleta finalizada: ', nuevaBoleta);
                         setBoletasDia([...boletasDia, nuevaBoleta]); 
+                        setClientesDia([...clientesDia, clienteParaBoleta]);
 
                         const stockActualizado = stockProductos.map(itemStock => {
                             const totalVendido = nuevaBoleta.ventas
@@ -111,7 +114,6 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                                 
                                 return {
                                     ...itemStock,
-                                    // Le sumamos el TOTAL combinado de todas las filas
                                     stock_vendido: itemStock.stock_vendido + totalVendido
                                 };
                             }

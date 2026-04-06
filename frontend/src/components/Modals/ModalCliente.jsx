@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import '../Estilos/Modal.css';
 
-function ModalCliente({ cerrarModal }) {
+function ModalCliente({ cerrarModal, onClienteAgregado }) {
     
     const [nombre, setNombre] = useState('');
     const [documento, setDocumento] = useState('');
@@ -53,6 +53,7 @@ function ModalCliente({ cerrarModal }) {
 
             
             console.log('Cliente guadado con exito!');
+            onClienteAgregado();
             cerrarModal();    
         } catch (err) {
             console.log(err);

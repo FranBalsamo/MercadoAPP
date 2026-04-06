@@ -1,9 +1,16 @@
 import './Estilos/Header.css';
 
-function Header({abrirModalProducto, abrirModalCliente, abrirModalPlanilla}) {
+function Header({ abrirModalProducto, abrirModalCliente, abrirModalPlanilla, abrirVistaClientes, volverInicio }) {
     return (
         <header className="header-principal">
             <nav className="navegacion">
+                {/*Inicio*/}
+                <div className="nav-item">
+                    <span
+                        className="nav-titulo"
+                        onClick={volverInicio}
+                        style={{ cursor: "pointer" }}>Inicio</span>
+                </div>
                 {/*Planilla*/}
                 <div className="nav-item">
                     <span className="nav-titulo">Planillas</span>
@@ -24,7 +31,7 @@ function Header({abrirModalProducto, abrirModalCliente, abrirModalPlanilla}) {
                 <div className="nav-item">
                     <span className="nav-titulo">Clientes</span>
                     <div className="dropdown-menu">
-                        <button onClick={() => console.log('Buscado clientes...')}>Ver todos</button>
+                        <button onClick={abrirVistaClientes}>Ver todos</button>
                         <button onClick={abrirModalCliente}>Nuevo cliente</button>
                     </div>
                 </div>

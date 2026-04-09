@@ -154,6 +154,8 @@ public class BoletaService {
         recuperarStock(boleta);
 
         modificarVentas(boleta,boletaDTO);
+        boleta.setEstadoPago(boletaDTO.getEstadoPago());
+        boleta.setEstadoRetiro(boletaDTO.getEstadoRetiro());
 
         return boletaMapper.toDTO(boletaRepository.save(boleta));
     }

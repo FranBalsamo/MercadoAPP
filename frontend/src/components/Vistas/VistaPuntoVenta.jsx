@@ -4,6 +4,7 @@ import ListaBoletas from './ListaBoletas';
 import ModalBoleta from '../Modals/ModalBoleta';
 import ModalBuscarCliente from '../Modals/ModalBuscarCliente';
 import ModalModificarStock from '../Modals/ModalModificarStock';
+import ModalModificarBoleta from '../Modals/ModalModificarBoleta'
 
 function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
     const [catalogoProductos, setCatalogoProductos] = useState([]);
@@ -15,8 +16,9 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
     const [boletasDia, setBoletasDia] = useState([]);
     const [clientesDia, setClientesDia] = useState([]);
     const [stockProductos, setStockProductos] = useState(planilla.stockProductos);
-
-
+    const [mostrarModalModificarBoleta, setMostrarModalModificarBoleta] = useState(false);
+    const [boletaSeleccionada, setBoletaSeleccionada] = useState(null);
+    const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
 
     useEffect(() => {
         const traerCatalogo = async () => {
@@ -39,10 +41,31 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
 
     if (!planilla) return <p>Cargando datos de la caja...</p>;
 
+    const sincronizarStock = async () => {
+        if (!planilla || !planilla.id) return;
+
+        try {
+            const respuestaStock = await fetch(`http://localhost:8080/api/planilla/stocks/${planilla.id}`);
+            if (respuestaStock.ok) {
+                const stockFresco = await respuestaStock.json();
+                setStockProductos(stockFresco);
+                console.log("🔄 Stock sincronizado con éxito desde el servidor.");
+            }
+        } catch (error) {
+            console.error("❌ No se pudo refrescar el stock en la vista principal:", error);
+        }
+    };
+
     const procesarClienteEncontrado = (clienteEncontrado) => {
         setClienteParaBoleta(clienteEncontrado); 
         setMostrarModalBuscarCliente(false);           
         setMostrarModalBoleta(true);             
+    };
+
+    const handleAbrirEdicion = (boleta, cliente) => {
+        setBoletaSeleccionada(boleta);
+        setClienteSeleccionado(cliente);
+        setMostrarModalModificarBoleta(true);
     };
 
     return (
@@ -77,6 +100,7 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
 
                 <ListaBoletas 
                     abrirModalBoleta={() => setMostrarModalBuscarCliente(true)} 
+                    abrirModalModificarBoleta={handleAbrirEdicion}
                     boletas={boletasDia} 
                     clientes={clientesDia}
                 />
@@ -94,36 +118,16 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                 <ModalBoleta 
                     cerrarModal={() => {
                         setMostrarModalBoleta(false);
-                        setClienteParaBoleta(null); // Limpiamos al cerrar
+                        setClienteParaBoleta(null);
                     }}
                     cliente={clienteParaBoleta} 
                     planilla={planilla} 
                     catalogoProductos={catalogoProductos}
-                    onBoletaGuardada={(nuevaBoleta) => {
+                    onBoletaGuardada={async (nuevaBoleta) => {
                         console.log('Boleta finalizada: ', nuevaBoleta);
-                        setBoletasDia([...boletasDia, nuevaBoleta]); 
+                        setBoletasDia([...boletasDia, nuevaBoleta]);
                         setClientesDia([...clientesDia, clienteParaBoleta]);
-
-                        const stockActualizado = stockProductos.map(itemStock => {
-                            const totalVendido = nuevaBoleta.ventas
-                                .filter(venta => String(venta.id_producto) === String(itemStock.id_producto))
-                                .reduce((suma, venta) => suma + venta.cantidad, 0);
-
-                            if (totalVendido > 0) {
-                                console.log(`Producto ID ${itemStock.id_producto} vendido en cantidad TOTAL de ${totalVendido}`); 
-                                
-                                return {
-                                    ...itemStock,
-                                    stock_vendido: itemStock.stock_vendido + totalVendido
-                                };
-                            }
-                            
-                            return itemStock; 
-                        });
-                        
-                        console.log('Stock actualizado después de la venta:', stockActualizado);
-                        setStockProductos(stockActualizado);
-                        
+                        await sincronizarStock();
                         setMostrarModalBoleta(false);
                         setClienteParaBoleta(null);
                     }}
@@ -131,6 +135,26 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                         setMostrarModalBoleta(false);
                         setClienteParaBoleta(null);
                         setMostrarModalBuscarCliente(true);
+                    }}
+                />
+            )}
+
+            {mostrarModalModificarBoleta && (
+                <ModalModificarBoleta
+                    boleta={boletaSeleccionada}
+                    cliente={clienteSeleccionado}
+                    planilla={planilla}
+                    catalogoProductos={catalogoProductos}
+                    cerrarModal={() => setMostrarModalModificarBoleta(false)}
+                    onBoletaEditada={async (boletaActualizada) => {
+                        if (boletaActualizada) {
+                            // 1. Actualizamos la tabla visual
+                            setBoletasDia(prevBoletas =>
+                                prevBoletas.map(b => b.id === boletaActualizada.id ? boletaActualizada : b)
+                            );
+                            // 2. Llamamos a nuestra nueva herramienta
+                            await sincronizarStock();
+                        }
                     }}
                 />
             )}
@@ -144,6 +168,7 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                     planilla={planilla}
                 />
             )}
+            
         </main>
     );
 }

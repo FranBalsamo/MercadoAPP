@@ -54,7 +54,7 @@ public class BoletaService {
             nuevaVenta.setCantidad(vDto.getCantidad());
             nuevaVenta.setPrecio_unitario(vDto.getPrecio_unitario());
             nuevaVenta.setPrecio_vacio(vDto.getPrecio_vacio());
-            nuevaVenta.setSubtotal(vDto.getCantidad() * (vDto.getPrecio_unitario()+vDto.getPrecio_vacio()));
+            nuevaVenta.setSubtotal((vDto.getCantidad() * vDto.getPrecio_unitario() + ((int)vDto.getCantidad())) * vDto.getPrecio_vacio());
 
             nuevaBoleta.addVenta(nuevaVenta);
             totalCalculado += nuevaVenta.getSubtotal();
@@ -90,7 +90,7 @@ public class BoletaService {
                 ventaEncontrada.setCantidad(vDto.getCantidad());
                 ventaEncontrada.setPrecio_unitario(vDto.getPrecio_unitario());
                 ventaEncontrada.setPrecio_vacio(vDto.getPrecio_vacio());
-                ventaEncontrada.setSubtotal(vDto.getCantidad()*(vDto.getPrecio_unitario()+vDto.getPrecio_vacio()));
+                ventaEncontrada.setSubtotal((vDto.getCantidad() * vDto.getPrecio_unitario() + ((int)vDto.getCantidad())) * vDto.getPrecio_vacio());
 
                 ventasActuales.remove(ventaEncontrada);
 
@@ -102,8 +102,8 @@ public class BoletaService {
                 nuevaVenta.setCantidad(vDto.getCantidad());
                 nuevaVenta.setPrecio_unitario(vDto.getPrecio_unitario());
                 nuevaVenta.setPrecio_vacio(vDto.getPrecio_vacio());
-                nuevaVenta.setSubtotal(vDto.getCantidad() * (vDto.getPrecio_unitario()+vDto.getPrecio_vacio()));
-
+                nuevaVenta.setSubtotal((vDto.getCantidad() * vDto.getPrecio_unitario() + ((int)vDto.getCantidad())) * vDto.getPrecio_vacio());
+                
                 boleta.addVenta(nuevaVenta);
 
                 totalCalculado += nuevaVenta.getSubtotal();

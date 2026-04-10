@@ -9,8 +9,8 @@ public class StockProductoDTO {
     private long id;
     private long id_producto;
     private long id_planilla;
-    private int stock;
-    private int stock_vendido;
+    private float stock;
+    private float stock_vendido;
 
     public StockProductoDTO(){}
 }

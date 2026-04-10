@@ -95,7 +95,7 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
             return;
         }
 
-        const subtotalFila = (cantidadReal * precioReal) + (cantidadReal * vacioReal);
+        const subtotalFila = (cantidadReal * precioReal) + (parseInt(cantidadReal) * vacioReal);
 
         const nuevaFila = {
             id_fila: crypto.randomUUID(), 

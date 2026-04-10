@@ -22,10 +22,10 @@ public class StockProducto {
     private Planilla planilla;
 
     @Column(nullable = false)
-    private int stock;
+    private float stock;
 
     @Column(nullable = false)
-    private int stock_vendido;
+    private float stock_vendido;
 
     public StockProducto(){
         this.stock_vendido = 0;

@@ -37,7 +37,7 @@ public class StockProductoService {
         StockProducto stockProducto = stockProductoRepository.findByProductoIdAndPlanillaId(producto, planilla)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontro el producto en la planilla"));
         */
-        int nuevoStock = stockProducto.getStock() + cantidadAjuste;
+        float nuevoStock = stockProducto.getStock() + cantidadAjuste;
 
         if(nuevoStock < 0){
             throw new ReglaNegocioException("Error: El ajuste dejaria en stock negativo");
@@ -58,7 +58,7 @@ public class StockProductoService {
         StockProducto stockDiario = stockProductoRepository.findByProductoAndPlanilla(producto, planilla)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontro el producto en la planilla"));
          */
-        int nuevoStock = stockProducto.getStock() - cantidadAjuste;
+        float nuevoStock = stockProducto.getStock() - cantidadAjuste;
         if(nuevoStock < 0){
             throw new ReglaNegocioException("Error: El ajuste dejaria en stock negativo");
         }

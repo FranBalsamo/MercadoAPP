@@ -22,7 +22,7 @@ public class Venta {
     private Producto producto;
 
     @Column(nullable = false)
-    private int cantidad;
+    private float cantidad;
 
     @Column(nullable = false)
     private float precio_unitario;

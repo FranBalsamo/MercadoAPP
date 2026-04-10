@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/stock")
 @CrossOrigin(origins = "*")
@@ -15,17 +17,22 @@ public class StockProductoController {
     @Autowired
     private StockProductoService stockProductoService;
 
-    @PutMapping("/add")
-    public ResponseEntity<StockProductoDTO> addStock(@RequestBody StockProductoDTO stockProductoDTO,
-                                                     @RequestParam int cantidadAjuste){
-        StockProductoDTO stockProductoActualizado = stockProductoService.addStock(stockProductoDTO, cantidadAjuste);
+
+    @PostMapping("/add")
+    public ResponseEntity<StockProductoDTO> newStock(@RequestBody StockProductoDTO stockProductoDTONuevo){
+        StockProductoDTO stockProductoActualizado = stockProductoService.addStock(stockProductoDTONuevo);
         return new ResponseEntity<>(stockProductoActualizado, HttpStatus.OK);
     }
 
-    @PutMapping("/remove")
-    public ResponseEntity<StockProductoDTO> removeStock(@RequestBody StockProductoDTO stockProductoDTO,
-                                                     @RequestParam int cantidadAjuste){
-        StockProductoDTO stockProductoActualizado = stockProductoService.removeStock(stockProductoDTO, cantidadAjuste);
-        return new ResponseEntity<>(stockProductoActualizado, HttpStatus.OK);
+    @PutMapping("/update")
+    public ResponseEntity<List<StockProductoDTO>> editStocks(@RequestBody List<StockProductoDTO> listaStockProductosDTO){
+        List<StockProductoDTO> listaStockProductoDTOActualizados = stockProductoService.updateStocks(listaStockProductosDTO);
+        return new ResponseEntity<>(listaStockProductoDTOActualizados, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<Void> deleteStock(@PathVariable long id){
+        stockProductoService.delete(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

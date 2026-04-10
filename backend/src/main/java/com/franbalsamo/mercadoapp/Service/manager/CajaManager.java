@@ -1,12 +1,14 @@
 package com.franbalsamo.mercadoapp.Service.manager;
 
 
+import com.franbalsamo.mercadoapp.Model.DTO.StockProductoDTO;
 import com.franbalsamo.mercadoapp.Service.Enum.EstadoPlanilla;
 import com.franbalsamo.mercadoapp.Service.BoletaService;
 import com.franbalsamo.mercadoapp.Service.PlanillaService;
 import com.franbalsamo.mercadoapp.Model.Entity.Boleta;
 import com.franbalsamo.mercadoapp.Model.Entity.Planilla;
 import com.franbalsamo.mercadoapp.Model.DTO.PlanillaDTO;
+import com.franbalsamo.mercadoapp.Service.StockProductoService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

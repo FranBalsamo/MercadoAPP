@@ -46,34 +46,13 @@ public class PlanillaService {
         }
 
         Planilla planillaGuardada = planillaRepository.save(planillaNueva);
-        /*
-        PlanillaDTO responseDTO = modelMapper.map(planillaGuardada, PlanillaDTO.class);
 
-        List<StockProducto> entidadesStock = planillaGuardada.getStockProductos();
-        List<StockProductoDTO> dtosStock = responseDTO.getStockProductos();
-
-        for(int i = 0; i < entidadesStock.size(); i++){
-            StockProducto entidad = entidadesStock.get(i);
-            StockProductoDTO dto = dtosStock.get(i);
-
-            dto.setId_planilla(planillaNueva.getId());
-            dto.setId_producto(entidad.getProducto().getId());
-        }
-        */
         return planillaMapper.toDTO(planillaGuardada);
     }
 
     @Transactional
     public PlanillaDTO updatePlanilla(Planilla planilla){
         Planilla planillaGuardada = planillaRepository.save(planilla);
-        /*
-        PlanillaDTO responseDTO = modelMapper.map(planilla, PlanillaDTO.class);
-
-        for (int i = 0; i < planillaGuardada.getStockProductos().size(); i++) {
-            responseDTO.getStockProductos().get(i).setId_producto(planillaGuardada.getStockProductos().get(i).getProducto().getId());
-            responseDTO.getStockProductos().get(i).setId_planilla(planillaGuardada.getId());
-        }
-         */
         return planillaMapper.toDTO(planillaGuardada);
     }
 

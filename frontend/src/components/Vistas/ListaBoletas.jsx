@@ -134,7 +134,7 @@ function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, boletas = [
                                         {nombreCliente(boleta.id_cliente)}
                                     </td>
                                     <td style={{ padding: '12px', fontWeight: 'bold', color: '#2c3e50' }}>
-                                        ${boleta.total.toFixed(2)}
+                                        {boleta.total.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}
                                     </td>
                                     <td style={{ padding: '12px' }}>
                                         <span style={{

@@ -38,7 +38,8 @@ public class VentaMapper {
         venta.setCantidad(dto.getCantidad());
         venta.setPrecio_unitario(dto.getPrecio_unitario());
         venta.setPrecio_vacio(dto.getPrecio_vacio());
-        venta.setSubtotal(dto.getCantidad() * (dto.getPrecio_unitario()+dto.getPrecio_vacio()));
+        float subtotal = (dto.getCantidad() * dto.getPrecio_unitario()) + (((int)dto.getCantidad()) * dto.getPrecio_vacio());
+        venta.setSubtotal(subtotal);
 
 
         return venta;

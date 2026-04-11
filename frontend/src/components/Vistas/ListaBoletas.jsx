@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, boletas = [], clientes = [] }) {
+function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBoleta ,boletas = [], clientes = [] }) {
     const [error, setError] = useState('');
     const [busqueda, setBusqueda] = useState('');
 
@@ -103,9 +103,7 @@ function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, boletas = [
                                 >
                                     Cliente {obtenerIconoOrden('nombre')}
                                 </th>
-
                                 <th style={{ padding: '12px', borderBottom: '2px solid #ddd' }}>Total</th>
-
                                 <th
                                     onClick={() => solicitarOrden('pago')}
                                     style={{ padding: '12px', borderBottom: '2px solid #ddd', cursor: 'pointer', userSelect: 'none' }}
@@ -113,7 +111,6 @@ function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, boletas = [
                                 >
                                     Pago {obtenerIconoOrden('pago')}
                                 </th>
-
                                 <th
                                     onClick={() => solicitarOrden('retiro')}
                                     style={{ padding: '12px', borderBottom: '2px solid #ddd', cursor: 'pointer', userSelect: 'none' }}
@@ -121,12 +118,10 @@ function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, boletas = [
                                 >
                                     Retiro {obtenerIconoOrden('retiro')}
                                 </th>
-
-                                <th style={{ borderBottom: '2px solid #ddd' }}></th>
+                                <th style={{ padding: '12px', borderBottom: '2px solid #ddd', textAlign: 'center' }}>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {/* Mapeamos boletasProcesadas en lugar de boletasFiltradas */}
                             {boletasProcesadas.map((boleta, index) => (
                                 <tr key={boleta.id || index} style={{ borderBottom: '1px solid #eee', cursor: 'pointer' }}>
                                     <td style={{ padding: '12px', color: '#888' }}>{boleta.id || index + 1}</td>
@@ -154,12 +149,23 @@ function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, boletas = [
                                             {boleta.estadoRetiro}
                                         </span>
                                     </td>
-                                    <td 
-                                        onClick={() => abrirModalModificarBoleta(boleta, nombreCliente(boleta.id_cliente))} 
-                                        style={{textAlign:'center', fontSize:'1rem', cursor:'pointer', color:'#2980b9'}}
-                                        title="Editar Boleta"
-                                    >
-                                        Editar
+                                    <td style={{ padding: '12px', textAlign: 'center', display: 'flex', gap: '15px', justifyContent: 'center', alignItems: 'center' }}>
+                                        <button
+                                            onClick={() => abrirModalModificarBoleta(boleta, nombreCliente(boleta.id_cliente))} 
+                                            style={{
+                                                fontSize:'0.9rem', cursor:'pointer', color:'#fff', fontWeight: 'bold', border: 'none', backgroundColor: '#2980b9', padding: '4px 8px', borderRadius: '4px',
+                                            }}
+                                            title="Modificar Boleta"
+                                        >
+                                            Modificar
+                                        </button>
+                                        <button 
+                                            onClick={() => eliminarBoleta(boleta)} 
+                                            style={{ backgroundColor: '#e74c3c', color: 'white', border: 'none', borderRadius: '4px', width: '25px', height: '25px', cursor: 'pointer', textAlign: 'center', fontSize: '12px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+                                            title="Eliminar Boleta"
+                                        >
+                                            X
+                                        </button>
                                     </td>
                                 </tr>
                             ))}

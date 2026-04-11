@@ -1,62 +1,97 @@
-.alerta-overlay{
+/* 1. Fondo Oscuro y Centrado Absoluto */
+.alerta-overlay {
     position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    z-index: 1000;
-    background-color: #3336;
+    z-index: 9999;
+    background-color: rgba(0, 0, 0, 0.6); /* Un gris oscuro transparente */
+    display: flex; /* Flexbox para centrar mágicamente */
+    justify-content: center;
+    align-items: center;
 }
 
-.alerta-contenido{
-    background-color: #eee;
-    width: 550px;
-    height: 150px;
-    margin: auto;
-    margin-top: 10px;
-    padding: 10px 20px;
-    border-radius: 10px;
-    box-shadow: 0 8px 8px #000a;
-    text-align: justify;
+/* 2. Caja Blanca del Modal */
+.alerta-contenido {
+    background-color: #ffffff;
+    width: 90%;
+    max-width: 450px; /* Crece hasta 450px, ideal para celulares y PC */
+    /* Eliminamos el height fijo para que se adapte al texto */
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    overflow: hidden; /* Hace que el header respete los bordes redondeados */
+    text-align: center;
+    animation: aparecer 0.1s ease-out; /* Una pequeña animación opcional */
 }
 
-.alerta-header{
+/* 3. Encabezado */
+.alerta-header {
     background-color: #2c3e50;
-    color: #eee;
-    padding-top: 5px;
-    padding-bottom: 5px;
-    margin: -10px -20px 10px -20px;
-    border-radius: 8px 8px 0 0;
+    color: #eeeeee;
+    padding: 15px;
+    /* Eliminamos los márgenes negativos, ya no son necesarios gracias al padding general 0 */
 }
 
-.alerta-botones{
+/* 4. Cuerpo del Mensaje */
+.alerta-mensaje {
+    padding: 20px 25px;
+    font-size: 1.05rem;
+    color: #333333;
+    line-height: 1.5;
+    white-space: pre-wrap; /*Esto hace que React respete los saltos de línea (enters) de tu texto */
+    text-align: center;
+}
+.alerta-mensaje p{
+    margin: 0;
+}
+
+/* 5. Contenedor de Botones */
+.alerta-botones {
     display: flex;
-    justify-content: space-between;
-    padding: 0 20px;
-    margin-top: 20px;
-    margin-bottom: 0;
+    justify-content: center;
+    gap: 15px; /* Separación entre botones */
+    padding: 0 25px 25px 25px;
 }
 
-.alerta-mensaje{
-    font-size: 1rem;
-}
-
-.botones-confirmacion{
-    background-color: #2a6;
-    color: #eee;
+/* 6. Botón Confirmar (Rojo para acciones destructivas, o Verde para éxito) */
+.botones-confirmacion {
+    background-color: #e74c3c; /* Rojo alerta */
+    color: white;
     border: none;
-    padding: 8px 15px;
+    padding: 10px 0;
     border-radius: 5px;
-    font-size: 18px;
+    font-size: 1rem;
+    font-weight: bold;
     cursor: pointer;
-    width:45%;
+    flex: 1; /* Hace que ambos botones midan exactamente lo mismo */
+    transition: background-color 0.2s;
 }
 
-.botones-cancelar{
-    background-color: #e43c;
-        color: #eee;
-        border: none;
-        padding: 8px 15px;
-        border-radius: 5px;
-        font-size: 18px;
-        cursor: pointer;
-        width: 45%;
+.botones-confirmacion:hover {
+    background-color: #c0392b;
+}
+
+/* 7. Botón Cancelar (Gris neutro) */
+.botones-cancelar {
+    background-color: #bdc3c7;
+    color: #2c3e50;
+    border: none;
+    padding: 10px 0;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    flex: 1;
+    transition: background-color 0.2s;
+}
+
+.botones-cancelar:hover {
+    background-color: #95a5a6;
+}
+
+/* Bonus: Animación suave al abrir */
+@keyframes aparecer {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
 }

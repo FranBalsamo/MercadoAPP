@@ -441,9 +441,9 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
             {/* ALERTA DE CONFIRMACION PARA VOLVER */}
             {mostrarAlertaVolver && (
                 <AlertaConfirmacion 
-                    mensaje="Tienes productos cargados en esta boleta.
-                    Si vuelves a la selección de cliente, perderás estos datos.
-                    ¿Estás seguro de que deseas volver?"
+                    mensaje={"Tienes productos cargados en esta boleta. \n"+ 
+                        "Si vuelves a la selección de cliente, perderás estos datos.\n" +
+                        "¿Estás seguro de que deseas volver?"}
                     onConfirmar={() => {
                         setMostrarAlertaVolver(false);
                         volverABuscarCliente();

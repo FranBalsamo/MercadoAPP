@@ -223,10 +223,7 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
                             display: 'flex', 
                             alignItems: 'center',
                             gap: '10px'
-                        }}>
-                        <h3 style={{ margin: 0 }}>🧾 Nueva Boleta</h3>
-                    </div>
-                    <div style={{display:'flex', direction:'row', gap:'px', margin:'0px', padding:'0px' }}>
+                    }}>
                         <button
                             onClick={handleVolver}
                             style={{
@@ -238,7 +235,10 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
                         >
                             ⬅ Volver
                         </button>
-                        <button className="btn-cerrar" onClick={cerrarModal}>X</button>
+                        <h3 style={{ margin: 0 }}>🧾 Nueva Boleta</h3>
+                    </div>
+                    <div style={{display:'flex', direction:'row', gap:'px', margin:'0px', padding:'0px' }}>
+                        <button className="btn-cerrar-modal" onClick={cerrarModal}>X</button>
                     </div>
                     
                 </div>
@@ -325,18 +325,13 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
                                     />
                                 </div>
 
-                                <button
-                                    onClick={agregarAlCarrito}
-                                    disabled={excedeStock || !idProducto || !stockDisponibleActual} // Apagado si no hay producto o excede
-                                    style={{
-                                        padding: '9px 20px',
-                                        backgroundColor: (excedeStock || !idProducto) ? '#bdc3c7' : '#2ecc71',
-                                        color: 'white', border: 'none', borderRadius: '4px', 
-                                        cursor: (excedeStock || !idProducto) ? 'not-allowed' : 'pointer', fontWeight: 'bold'
-                                    }}
-                                >
+                                    <button
+                                        className="btn-global btn-primario"
+                                        onClick={agregarAlCarrito}
+                                        disabled={excedeStock || !idProducto || !stockDisponibleActual} // Apagado si no hay producto o excede
+                                        style={{ padding: '9px 20px', color: 'white', }}>
                                     + Agregar
-                                </button>
+                                    </button>
                             </div>
                         </>
                     )}
@@ -429,9 +424,9 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
                     <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                         <h2 style={{ margin: 0, color: '#2c3e50' }}>Total: {totalBoleta.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</h2>
                         <div>
-                            <button className="btn-secundario" onClick={cerrarModal} style={{ marginRight: '10px' }}>Cancelar</button>
+                            <button className="btn-global btn-secundario" onClick={cerrarModal} style={{ marginRight: '10px' }}>Cancelar</button>
                             <button 
-                                className="btn-primario" 
+                                className="btn-global btn-primario-green" 
                                 onClick={handleGuardarBoleta}
                                 disabled={guardando || cargandoStock}
                             >

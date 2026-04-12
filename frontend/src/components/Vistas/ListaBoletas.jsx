@@ -179,8 +179,9 @@ function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBol
 
             <div style={{ paddingTop: '20px', borderTop: '2px dashed #eee', display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end' }}>
                 <button
+                    className='btn-global btn-primario'
                     onClick={abrirModalBoleta}
-                    style={{ padding: '10px 20px', backgroundColor: '#3498db', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1.1rem' }}
+                    style={{ padding: '10px 20px', color: 'white',fontSize: '1.1rem' }}
                 >
                     + Cargar Nueva Boleta
                 </button>

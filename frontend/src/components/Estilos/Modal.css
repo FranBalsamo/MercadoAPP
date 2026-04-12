@@ -21,6 +21,13 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  max-height: 90vh;
+
+  animation: aparecerModal 0.2s ease-out;
+  /* - aparecerModal: El nombre de la animación que definimos abajo.
+       - 0.2s: La duración (igual que en la alerta para consistencia).
+       - ease-out: Hace que la animación empiece rápido y desacelere al final.
+    */
 }
 
 .modal-header {
@@ -43,6 +50,8 @@
   display: flex;
   flex-direction: column;
   gap: 15px;
+
+  overflow-y:auto;
 }
 
 .form-group {
@@ -66,4 +75,20 @@
   gap: 10px;
   background-color: #f9f9f9;
   border-top: 1px solid #eee;
+}
+
+@keyframes aparecerModal {
+  from {
+    transform: scale(0.9);
+    /* Empieza un poco más pequeño */
+    opacity: 0;
+    /* Y completamente transparente */
+  }
+
+  to {
+    transform: scale(1);
+    /* Termina en su tamaño original */
+    opacity: 1;
+    /* Y totalmente visible */
+  }
 }

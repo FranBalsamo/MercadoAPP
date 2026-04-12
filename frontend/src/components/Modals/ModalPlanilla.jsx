@@ -172,14 +172,15 @@ function ModalPlanilla({cerrarModal, onPlanillaCreada}) {
 
                         </div>
                     ))}
-                    <button 
-                        className="btn-global btn-primario"
-                        type="button" 
-                        onClick={agregarFila}
-                        style={{ padding: '8px', marginTop: '10px' }}>
-                            + Agregar otro producto
-                    </button>
                 </div>
+                
+                <button
+                    className="btn-global btn-primario"
+                    type="button"
+                    onClick={agregarFila}
+                    style={{ padding: '8px', margin: '10px', }}>
+                    + Agregar otro producto
+                </button>
 
                 <div className="modal-footer">
                     <button className="btn-global btn-secundario" onClick={cerrarModal}>Cancelar</button>

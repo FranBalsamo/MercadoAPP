@@ -92,7 +92,7 @@ function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
                 
                 <div className="modal-header">
                     <h3>🔍 Buscar Cliente</h3>
-                    <button className="btn-cerrar" onClick={cerrarModal}>X</button>
+                    <button className="btn-cerrar-modal" onClick={cerrarModal}>X</button>
                 </div>
 
                 <div className="modal-body">

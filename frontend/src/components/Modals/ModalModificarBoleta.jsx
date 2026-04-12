@@ -395,7 +395,7 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
 
                                             {/* Subtotal en tiempo real (seguro contra errores) */}
                                             <td style={{ padding: '10px', fontWeight: 'bold', color: '#27ae60' }}>
-                                                ${Number(fila.subtotal || 0).toFixed(2)}
+                                                {Number(fila.subtotal || 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}
                                             </td>
 
                                             {/* Botón Borrar */}
@@ -435,7 +435,7 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                        <h2 style={{ margin: 0, color: '#2c3e50' }}>Total: ${totalBoleta.toFixed(2)}</h2>
+                        <h2 style={{ margin: 0, color: '#2c3e50' }}>Total: {totalBoleta.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</h2>
                         <div>
                             <button className="btn-secundario" onClick={cerrarModal} style={{ marginRight: '10px' }}>Cancelar</button>
                             <button className="btn-primario" onClick={guardarCambios} disabled={guardando || cargandoStock}>

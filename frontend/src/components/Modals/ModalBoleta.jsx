@@ -362,11 +362,11 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
                                         <tr key={fila.id_fila} style={{ borderBottom: '1px solid #eee' }}>
                                             <td style={{ padding: '10px', fontWeight: 'bold', textTransform: 'capitalize' }}>{fila.nombre}</td>
                                             <td style={{ padding: '10px' }}>{fila.cantidad}</td>
-                                            <td style={{ padding: '10px' }}>${fila.precio_unitario.toFixed(2)}</td>
+                                            <td style={{ padding: '10px' }}>{fila.precio_unitario.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</td>
                                             <td style={{ padding: '10px', color: '#7f8c8d' }}>
-                                                {fila.precio_vacio > 0 ? `$${fila.precio_vacio.toFixed(2)}` : '-'}
+                                                {fila.precio_vacio > 0 ? `${fila.precio_vacio.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}` : '-'}
                                             </td>
-                                            <td style={{ padding: '10px', fontWeight: 'bold', color: '#27ae60' }}>${fila.subtotal.toFixed(2)}</td>
+                                            <td style={{ padding: '10px', fontWeight: 'bold', color: '#27ae60' }}>{fila.subtotal.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</td>
                                             <td style={{ padding: '10px', textAlign: 'center' }}>
                                                 <button 
                                                     onClick={() => eliminarDelCarrito(fila.id_fila)}
@@ -423,7 +423,7 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                        <h2 style={{ margin: 0, color: '#2c3e50' }}>Total: ${totalBoleta.toFixed(2)}</h2>
+                        <h2 style={{ margin: 0, color: '#2c3e50' }}>Total: {totalBoleta.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</h2>
                         <div>
                             <button className="btn-secundario" onClick={cerrarModal} style={{ marginRight: '10px' }}>Cancelar</button>
                             <button 
@@ -441,9 +441,9 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
             {/* ALERTA DE CONFIRMACION PARA VOLVER */}
             {mostrarAlertaVolver && (
                 <AlertaConfirmacion 
-                    mensaje="Tienes productos cargados en esta boleta.
-                    Si vuelves a la selección de cliente, perderás estos datos.
-                    ¿Estás seguro de que deseas volver?"
+                    mensaje={"Tienes productos cargados en esta boleta. \n"+ 
+                        "Si vuelves a la selección de cliente, perderás estos datos.\n" +
+                        "¿Estás seguro de que deseas volver?"}
                     onConfirmar={() => {
                         setMostrarAlertaVolver(false);
                         volverABuscarCliente();

@@ -159,6 +159,7 @@ function ModalPlanilla({cerrarModal, onPlanillaCreada}) {
                                 value={fila.stock}
                                 onChange={(e) => actualizarFila(index, 'stock', e.target.value)}
                                 min="1"
+                                step="0.5" 
                             />
 
                             <button

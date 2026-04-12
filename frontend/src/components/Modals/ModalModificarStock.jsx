@@ -1,6 +1,6 @@
+import { useEffect, useState } from 'react';
 import '../Estilos/Modal.css';
 import '../Estilos/FormEditarStock.css';
-import { useEffect, useState } from 'react';
 
 function ModalModificarStock({ cerrarModal, planilla, catalogoProductos }) {
     const [stockProductos, setStockProductos] = useState([]);
@@ -71,7 +71,7 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos }) {
 
                 <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h3>✏️ Modificar Stock</h3>
-                    <button className="btn-cerrar" onClick={cerrarModal}>X</button>
+                    <button className="btn-cerrar-modal" onClick={cerrarModal}>X</button>
                 </div>
 
                 <div className="modal-body" style={{height:'100%'}}>
@@ -155,11 +155,11 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos }) {
                 </div>
 
                 <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '15px', marginTop: '20px' }}>
-                    <button type="button" className="btn-secundario" onClick={cerrarModal}>Cancelar</button>
+                    <button type="button" className="btn-global btn-secundario" onClick={cerrarModal}>Cancelar</button>
 
                     <button
                         type="button"
-                        className="btn-primario"
+                        className="btn-global btn-primario-green"
                         disabled={!hayCambios}
                         style={{
                             backgroundColor: !hayCambios ? '#bdc3c7' : '#2ecc71',

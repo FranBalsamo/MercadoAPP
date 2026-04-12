@@ -1,4 +1,5 @@
 import { useState } from "react";
+import "../Estilos/Botones.css";
 
 function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBoleta ,boletas = [], clientes = [] }) {
     const [error, setError] = useState('');
@@ -151,17 +152,19 @@ function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBol
                                     </td>
                                     <td style={{ padding: '12px', textAlign: 'center', display: 'flex', gap: '15px', justifyContent: 'center', alignItems: 'center' }}>
                                         <button
+                                            className='btn-global btn-primario'
                                             onClick={() => abrirModalModificarBoleta(boleta, nombreCliente(boleta.id_cliente))} 
                                             style={{
-                                                fontSize:'0.9rem', cursor:'pointer', color:'#fff', fontWeight: 'bold', border: 'none', backgroundColor: '#2980b9', padding: '4px 8px', borderRadius: '4px',
+                                                fontSize:'0.9rem', color:'#eeef', padding: '4px 8px',
                                             }}
                                             title="Modificar Boleta"
                                         >
                                             Modificar
                                         </button>
                                         <button 
+                                            className='btn-global btn-peligro'
                                             onClick={() => eliminarBoleta(boleta)} 
-                                            style={{ backgroundColor: '#e74c3c', color: 'white', border: 'none', borderRadius: '4px', width: '25px', height: '25px', cursor: 'pointer', textAlign: 'center', fontSize: '12px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+                                            style={{ color: '#eeef', width: '25px', height: '25px',padding:'4px 8px',fontSize: '0.9rem', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
                                             title="Eliminar Boleta"
                                         >
                                             X

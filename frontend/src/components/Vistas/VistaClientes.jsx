@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import '../Estilos/Botones.css';
 
 function VistaClientes({senalRecarga, abrirModalNuevoCliente}) {
     // --- ESTADOS ---
@@ -188,7 +189,12 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente}) {
                                         {cliente.direccion || '-'}
                                     </td>
                                     <td style={{ padding: '10px 15px', textTransform: 'capitalize', fontWeight: '500' }}>
-                                        Modificar
+                                        <button
+                                            className="btn-global btn-primario"
+                                            style={{padding:'4px 4px', fontSize:'0.9rem'}}
+                                        >
+                                            Modificar
+                                        </button>
                                     </td>
                                 </tr>
                             ))
@@ -198,17 +204,13 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente}) {
             </div>
             <div>
                 <button
+                    className="btn-global btn-primario-green"
                     style={{
                         width: '100%',
-                        border: 'none',
-                        borderRadius: '5px',
                         padding: '10px 8px',
-                        fontWeight: 'bold',
                         fontSize:'1em',
                         color: '#ffff',
-                        background: '#27ae60',
                         boxShadow:'1px 3px 10px #0008',
-                        cursor:'pointer',
                     }}
                     onClick={abrirModalNuevoCliente}>
                     +Nuevo Cliente

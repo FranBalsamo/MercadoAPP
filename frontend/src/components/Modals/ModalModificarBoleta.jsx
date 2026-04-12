@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import '../Estilos/Modal.css';
+import '../Estilos/Botones.css';
 
 function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogoProductos, onBoletaEditada }) {
     // --- ESTADOS ---
@@ -249,7 +250,7 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
 
                 <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h3 style={{ margin: 0 }}>✏️ Editar Boleta #{boleta?.id}</h3>
-                    <button className="btn-cerrar" onClick={cerrarModal}>X</button>
+                    <button className="btn-cerrar-modal" onClick={cerrarModal}>X</button>
                 </div>
 
                 <div className="modal-body" style={{ marginTop: '10px' }}>
@@ -318,9 +319,10 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                                 </div>
 
                                 <button
+                                    className='btn-global btn-primario'
                                     onClick={agregarAlCarrito}
                                     disabled={excedeStock || !idProducto || !stockDisponibleActual}
-                                    style={{ padding: '9px 20px', backgroundColor: (excedeStock || !idProducto) ? '#bdc3c7' : '#2ecc71', color: 'white', border: 'none', borderRadius: '4px', cursor: (excedeStock || !idProducto) ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
+                                    style={{ padding: '9px 20px', color: 'white', cursor: (excedeStock || !idProducto) ? 'not-allowed' : 'pointer'}}
                                 >
                                     + Agregar
                                 </button>
@@ -437,8 +439,8 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                     <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                         <h2 style={{ margin: 0, color: '#2c3e50' }}>Total: {totalBoleta.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</h2>
                         <div>
-                            <button className="btn-secundario" onClick={cerrarModal} style={{ marginRight: '10px' }}>Cancelar</button>
-                            <button className="btn-primario" onClick={guardarCambios} disabled={guardando || cargandoStock}>
+                            <button className="btn-global btn-secundario" onClick={cerrarModal} style={{ marginRight: '10px' }}>Cancelar</button>
+                            <button className="btn-global btn-primario-green" onClick={guardarCambios} disabled={guardando || cargandoStock}>
                                 {guardando ? 'Guardando...' : 'Guardar Cambios'}
                             </button>
                         </div>

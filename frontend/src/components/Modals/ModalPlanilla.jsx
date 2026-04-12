@@ -1,5 +1,6 @@
 import {useState, useEffect} from 'react';
 import '../Estilos/Modal.css';
+import '../Estilos/Botones.css'; 
 
 function ModalPlanilla({cerrarModal, onPlanillaCreada}) {
     
@@ -110,7 +111,7 @@ function ModalPlanilla({cerrarModal, onPlanillaCreada}) {
                 
                 <div className="modal-header">
                     <h3>Abrir Nueva Planilla</h3>
-                    <button className="btn-cerrar" onClick={cerrarModal}>X</button>
+                    <button className="btn-cerrar-modal" onClick={cerrarModal}>X</button>
                 </div>
 
                 <div className="modal-body">
@@ -172,21 +173,22 @@ function ModalPlanilla({cerrarModal, onPlanillaCreada}) {
                         </div>
                     ))}
                     <button 
+                        className="btn-global btn-primario"
                         type="button" 
                         onClick={agregarFila}
-                        style={{ padding: '8px', background: '#e0e0e0', border: 'none', cursor: 'pointer', marginTop: '10px' }}>
+                        style={{ padding: '8px', marginTop: '10px' }}>
                             + Agregar otro producto
                     </button>
                 </div>
 
                 <div className="modal-footer">
-                    <button className="btn-secundario" onClick={cerrarModal}>Cancelar</button>
-                    <button className="btn-primario" onClick={handleGuardar}>Abrir Planilla</button>
+                    <button className="btn-global btn-secundario" onClick={cerrarModal}>Cancelar</button>
+                    <button className="btn-global btn-primario-green" onClick={handleGuardar}>Abrir Planilla</button>
                 </div>
 
             </div>
         </div>
-  );
+    );
 }
 
 export default ModalPlanilla;

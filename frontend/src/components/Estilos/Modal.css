@@ -37,13 +37,6 @@
   font-size: 1.2rem;
 }
 
-.btn-cerrar {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 1.2rem;
-  cursor: pointer;
-}
 
 .modal-body {
   padding: 20px;
@@ -73,22 +66,4 @@
   gap: 10px;
   background-color: #f9f9f9;
   border-top: 1px solid #eee;
-}
-
-.btn-secundario {
-  padding: 8px 15px;
-  background-color: #e0e0e0;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.btn-primario {
-  padding: 8px 15px;
-  background-color: #27ae60;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
 }

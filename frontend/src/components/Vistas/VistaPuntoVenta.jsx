@@ -6,6 +6,7 @@ import ModalBuscarCliente from '../Modals/ModalBuscarCliente';
 import ModalModificarStock from '../Modals/ModalModificarStock';
 import ModalModificarBoleta from '../Modals/ModalModificarBoleta';
 import AlertaConfirmacion from '../Alertas/AlertaConfirmacion';
+import '../Estilos/Botones.css';
 
 
 function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
@@ -122,7 +123,7 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                 <h2>🧾Estado Planilla: <span style={{color: planilla.estadoPlanilla === 'ABIERTA' ? '#3b3c': '#e43' }}> {planilla.estadoPlanilla} </span> - Fecha: {planilla.fecha}</h2>
                 <button
                     onClick={cerrarPlanilla}
-                    style={{ padding: '8px 15px', backgroundColor: '#e74c3c', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                    className = "btn-global btn-peligro"
                 >
                     Cerrar Caja
                 </button>

@@ -1,3 +1,5 @@
+import '../Estilos/Botones.css'
+
 function ControlStock({ stockProductos, catalogoProductos, cargando, abrirModificarStock }) {
     const obtenerNombreProducto = (idBusqueda) => {
         const productoEncontrado = catalogoProductos.find(p => String(p.id) === String(idBusqueda));
@@ -30,18 +32,7 @@ function ControlStock({ stockProductos, catalogoProductos, cargando, abrirModifi
             <div className="controlStock-header" style={{display:'flex', flexDirection:'row', justifyContent:'space-between' }}>
                 <h3 style={{ marginTop: 0, padding: '5px' }}>📦 Stock Hoy</h3>
                 <button 
-                    className="boton-modifiar" 
-                    style=
-                        {{
-                            borderRadius: '5px', 
-                            border: 'none', 
-                            padding: '5px 15px',
-                            fontSize: '15px',
-                            fontWeight: '600',
-                            backgroundColor: '#3498db',
-                            color: '#eeef',
-                            cursor:'pointer'
-                        }}
+                    className="btn-global btn-primario"
                     onClick={abrirModificarStock}
                 >
                     Modificar
@@ -91,7 +82,8 @@ function ControlStock({ stockProductos, catalogoProductos, cargando, abrirModifi
             )}
             <div style={{ paddingTop: '20px', borderTop: '2px dashed #eee', display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end'}}>
                 <button 
-                    style={{border: 'none', width:'100%', color:'#eeef', background:'#3498db', fontSize:'1.1rem', fontWeight:'bold',padding:'10px 20px', borderRadius:'6px', cursor:'pointer'}}
+                    className='btn-global btn-primario'
+                    style={{ width: '100%', color: '#eeef', fontSize: '1.1rem', fontWeight: 'bold', }}
                 >
                     + Agregar Producto
                 </button>

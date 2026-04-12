@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import '../Estilos/Modal.css';
+import '../Estilos/Botones.css';
 
 function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
     const [metodoBusqueda, setMetodoBusqueda] = useState('nombre');
@@ -75,8 +76,6 @@ function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
 
     const seleccionarCliente = (cliente) => {
         setClienteSeleccionadoId(cliente.id);
-        // onClienteEncontrado(cliente);
-        // cerrarModal();
     };
 
     const confirmarSeleccion = () => {
@@ -134,17 +133,11 @@ function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
                                     style={{ flex: 1,padding: '10px', borderRadius: '4px', border: '1px solid #ccc', margin: 0 }}
                                 />
                                 <button
+                                    className='btn-global btn-primario'
                                     onClick={confirmarSeleccion}
                                     disabled={!clienteSeleccionadoId}
                                     style={{
                                         width: 'auto',
-                                        padding: '10px 20px',
-                                        backgroundColor: clienteSeleccionadoId ? '#3498db' : '#95a5a6',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '4px',
-                                        fontWeight: 'bold',
-                                        cursor: clienteSeleccionadoId ? 'pointer' : 'not-allowed',
                                         margin: 0
                                     }}
                                 >
@@ -234,9 +227,10 @@ function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
                             </div>
 
                             <button
-                                onClick={handleBuscarDocumento}
-                                disabled={buscando}
-                                style={{ width: '100%', padding: '10px', backgroundColor: buscando ? '#95a5a6' : '#3498db', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
+                                    className='btn-global btn-primario'
+                                    onClick={handleBuscarDocumento}
+                                    disabled={buscando}
+                                    style={{ width: '100%', padding: '10px', color: '#ffff' }}
                             >
                                 {buscando ? 'Buscando en la base de datos...' : 'Buscar y Continuar ➔'}
                             </button>

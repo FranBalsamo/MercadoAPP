@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import '../Estilos/Modal.css';
+import '../Estilos/Botones.css';
 import AlertaConfirmacion from '../Alertas/AlertaConfirmacion';
 
 function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBoletaGuardada, volverABuscarCliente }) {
@@ -223,20 +224,23 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
                             alignItems: 'center',
                             gap: '10px'
                         }}>
-                        <button 
+                        <h3 style={{ margin: 0 }}>🧾 Nueva Boleta</h3>
+                    </div>
+                    <div style={{display:'flex', direction:'row', gap:'px', margin:'0px', padding:'0px' }}>
+                        <button
                             onClick={handleVolver}
-                            style={{ 
-                                background: 'none', border: 'none', color: '#3498db', 
-                                fontSize: '1rem', fontWeight: 'bold', cursor: 'pointer',
+                            style={{
+                                background: 'none', border: 'none', color: '#3498db',
+                                fontSize: '1.2rem', fontWeight: 'bold', cursor: 'pointer',
                                 display: 'flex', alignItems: 'center', gap: '5px'
                             }}
                             title="Volver a seleccionar cliente"
                         >
                             ⬅ Volver
                         </button>
-                        <h3 style={{ margin: 0 }}>🧾 Nueva Boleta</h3>
+                        <button className="btn-cerrar" onClick={cerrarModal}>X</button>
                     </div>
-                    <button className="btn-cerrar" onClick={cerrarModal}>X</button>
+                    
                 </div>
 
                 <div className="modal-body">

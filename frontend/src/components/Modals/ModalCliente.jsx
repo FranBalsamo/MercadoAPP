@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import '../Estilos/Modal.css';
+import '../Estilos/Botones.css';
 
 function ModalCliente({ cerrarModal, onClienteAgregado }) {
     
@@ -68,7 +69,7 @@ function ModalCliente({ cerrarModal, onClienteAgregado }) {
             <div className="modal-contenido">
                 <div className="modal-header">
                     <h3>👤 Cargar Nuevo Cliente</h3>
-                    <button className="btn-cerrar" onClick={cerrarModal}>X</button>   
+                    <button className="btn-cerrar-modal" onClick={cerrarModal}>X</button>   
                 </div>
 
                 <div className="modal-body">
@@ -118,8 +119,8 @@ function ModalCliente({ cerrarModal, onClienteAgregado }) {
                 </div>
 
                 <div className="modal-footer">
-                    <button className="btn-secundario" onClick={cerrarModal}>Cancelar</button>
-                    <button className="btn-primario" onClick={handleGuardar}>Guardar</button>
+                    <button className="btn-global btn-secundario" onClick={cerrarModal}>Cancelar</button>
+                    <button className="btn-global btn-primario-green" onClick={handleGuardar}>Guardar</button>
                 </div>
             </div>
         </div>

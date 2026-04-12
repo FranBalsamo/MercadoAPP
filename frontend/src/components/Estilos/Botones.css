@@ -1,0 +1,105 @@
+/* =========================================
+ESTILOS BASE (Se aplican a todos los botones)
+========================================= */
+.btn-global {
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+
+    /*HOVER SUAVE */
+    transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+}
+
+/* Opcional: Este pequeño truco hace que el botón se "hunda" un poquito al hacerle clic */
+.btn-global:active {
+    transform: scale(0.97);
+}
+
+.btn-global:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+    transform: none;
+    /* Quitamos el hundimiento si está deshabilitado */
+}
+
+.btn-cerrar-modal {
+    background-color: transparent;
+    /* Fondo transparente para fusionarse con el header */
+    color: #eeeeee;
+    /* Un blanco/gris claro para que resalte sobre el fondo oscuro del header */
+    border: none;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    width: 25px;
+    /* Un tamaño fijo hace que el botón sea un cuadrado perfecto */
+    height: 25px;
+    border-radius: 50%;
+    /* Lo hacemos redondo para un look más moderno */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    /* La magia de la transición suave */
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+/* =========================================
+   TIPOS DE BOTONES (Colores y Hover)
+   ========================================= */
+
+/* 1. Botón Primario (Azul - Para "Cargar Nueva Boleta", "Guardar") */
+.btn-primario {
+    background-color: #3498db;
+    color: white;
+}
+
+.btn-primario:hover:not(:disabled) {
+    background-color: #2980b9;
+    /* Un azul más oscuro */
+}
+
+/* 2. Botón de Éxito (Verde - Para "Agregar al carrito") */
+.btn-primario-green {
+    background-color: #2ecc71;
+    color: white;
+}
+
+.btn-primario-green:hover:not(:disabled) {
+    background-color: #27ae60;
+    /* Un verde más oscuro */
+}
+
+/* 3. Botón de Peligro (Rojo - Para "Eliminar", "Cerrar Caja") */
+.btn-peligro {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.btn-peligro:hover:not(:disabled) {
+    background-color: #c0392b;
+    /* Un rojo más oscuro */
+}
+
+/* 4. Botón Secundario (Gris - Para "Cancelar", "Volver") */
+.btn-secundario {
+    background-color: #ecf0f1;
+    color: #2c3e50;
+}
+
+.btn-secundario:hover:not(:disabled) {
+    background-color: #bdc3c7;
+}
+
+/* 5. Boton Cerrar Header*/
+.btn-cerrar-modal:hover {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.btn-cerrar-modal:active {
+    transform: scale(0.9);
+}

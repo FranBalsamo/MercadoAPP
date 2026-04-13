@@ -1,10 +1,11 @@
 import { useState } from "react";
 import "../Estilos/Botones.css";
+import AlertaEmergente from "../Alertas/AlertaEmergente";
 
 function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBoleta ,boletas = [], clientes = [] }) {
     const [error, setError] = useState('');
     const [busqueda, setBusqueda] = useState('');
-
+    const [mensajeAlerta, setMensajeAlerta] = useState(null);
     const [configOrden, setConfigOrden] = useState({ columna: null, direccion: 'asc' });
 
     const nombreCliente = (id_cliente) => {
@@ -67,6 +68,22 @@ function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBol
     const obtenerIconoOrden = (nombreColumna) => {
         if (configOrden.columna !== nombreColumna) return ' ↕️'; // Icono por defecto (inactivo)
         return configOrden.direccion === 'asc' ? ' ⬇️' : ' ⬆️'; // Activo
+    };
+
+    const intentarEliminar = (boleta) => {
+        const estaPagada = boleta.estadoPago === 'PAGADO';
+        const estaRetirada = boleta.estadoRetiro === 'RETIRADO';
+
+        if (estaPagada || estaRetirada) {
+            const motivos = [];
+            if (estaPagada) motivos.push('Pagada');
+            if (estaRetirada) motivos.push('Retirada');
+
+            setMensajeAlerta(`La boleta #${boleta.id} no puede ser eliminada porque está ${motivos.join(' y ')}.`);
+            return;
+        }
+
+        eliminarBoleta(boleta);
     };
 
     return (
@@ -163,7 +180,7 @@ function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBol
                                         </button>
                                         <button 
                                             className='btn-eliminar-fila'
-                                            onClick={() => eliminarBoleta(boleta)} 
+                                            onClick={() => intentarEliminar(boleta)}
                                             style={{ width: '25px', height: '25px',padding:'4px 8px',fontSize: '1.2rem',fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
                                             title="Eliminar Boleta"
                                         >
@@ -186,6 +203,11 @@ function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBol
                     + Cargar Nueva Boleta
                 </button>
             </div>
+
+            <AlertaEmergente 
+                mensaje={mensajeAlerta} 
+                onClose={() => setMensajeAlerta(null)} 
+            />
         </div>
     );
 }

@@ -69,6 +69,11 @@ public class StockProductoService {
     }
 
     public void delete(long id_stockProducto){
+        StockProducto stock = stockProductoRepository.findById(id_stockProducto)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontro el producto en la planilla"));
+        if(stock.getStock_vendido() != 0){
+            throw new ReglaNegocioException("No se puede eliminar el producto porque ya ha sido vendido al menos una vez");
+        }
         stockProductoRepository.deleteById(id_stockProducto);
     }
     public StockProducto findByProductoAndPlanilla(Producto producto, Planilla planilla){

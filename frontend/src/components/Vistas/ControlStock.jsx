@@ -1,6 +1,6 @@
 import '../Estilos/Botones.css'
 
-function ControlStock({ stockProductos, catalogoProductos, cargando, abrirModificarStock }) {
+function ControlStock({ stockProductos, catalogoProductos, cargando, abrirModificarStock , abrirAgregarProducto}) {
     const obtenerNombreProducto = (idBusqueda) => {
         const productoEncontrado = catalogoProductos.find(p => String(p.id) === String(idBusqueda));
         return productoEncontrado ? productoEncontrado.nombre : `Producto #${idBusqueda}`;
@@ -83,6 +83,7 @@ function ControlStock({ stockProductos, catalogoProductos, cargando, abrirModifi
             <div style={{ paddingTop: '20px', borderTop: '2px dashed #eee', display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end'}}>
                 <button 
                     className='btn-global btn-primario'
+                    onClick={abrirAgregarProducto}
                     style={{ width: '100%', color: '#eeef', fontSize: '1.1rem', fontWeight: 'bold', }}
                 >
                     + Agregar Producto

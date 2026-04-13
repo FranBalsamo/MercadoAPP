@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import '../Estilos/Modal.css';
 import '../Estilos/FormEditarStock.css';
+import AlertaConfirmacion from '../Alertas/AlertaConfirmacion';
 
-function ModalModificarStock({ cerrarModal, planilla, catalogoProductos }) {
+function ModalModificarStock({ cerrarModal, planilla, catalogoProductos, onStockActualizado }) {
     const [stockProductos, setStockProductos] = useState([]);
     const [error, setError] = useState('');
     const [nuevosStocks, setNuevosStocks] = useState({});
+    const [mostrarAlertaEliminar, setMostrarAlertaEliminar] = useState(false);
+    const [itemAEliminar, setItemAEliminar] = useState(null);
 
     useEffect(() => {
         const obtenerStockDeLaPlanilla = async () => {
@@ -65,7 +68,6 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos }) {
         return '#fffbe6';
     };
 
-    // 1. PREPARAMOS EL STOCK ORDENADO
     const stockOrdenado = [...stockProductos]
         .map(itemStock => {
             const producto = catalogoProductos.find(p => String(p.id) === String(itemStock.id_producto));
@@ -76,19 +78,106 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos }) {
         })
         .sort((a, b) => a.nombre.localeCompare(b.nombre));
 
+    const solicitarEliminacion = (itemStock) => {
+        if (itemStock.stock_vendido > 0) {
+            setError(`❌ No se puede eliminar "${itemStock.nombre}" porque ya tiene ${itemStock.stock_vendido} venta(s) registrada(s).`);
+            return; 
+        }
+        setError('');
+        setItemAEliminar(itemStock);
+        setMostrarAlertaEliminar(true);
+    };
+
+    const confirmarEliminacionStock = async () => {
+        if (!itemAEliminar) return;
+
+        try {
+            const respuesta = await fetch(`http://localhost:8080/api/stock/delete/${itemAEliminar.id}`, {
+                method: 'DELETE'
+            });
+
+            if (respuesta.ok) {
+                setStockProductos(prevStock => prevStock.filter(p => p.id !== itemAEliminar.id));
+                
+                const nuevosStocksCopia = { ...nuevosStocks };
+                delete nuevosStocksCopia[itemAEliminar.id_producto];
+                setNuevosStocks(nuevosStocksCopia);
+
+                setMostrarAlertaEliminar(false);
+                setItemAEliminar(null);
+                await onStockActualizado();
+                
+            } else {
+                setError('❌ Error del servidor al intentar eliminar el producto.');
+                setMostrarAlertaEliminar(false);
+            }
+        } catch (error) {
+            console.error("Error de conexión:", error);
+            setError('❌ Error de conexión al intentar eliminar el producto.');
+            setMostrarAlertaEliminar(false);
+        }
+    };
+
+    const guardarCambiosStock = async () => {
+        if (hayInputsVacios) {
+            setError('❌ No se pueden guardar cambios con campos vacíos.');
+            return;
+        }
+        if (!planilla || !planilla.id) {
+            setError('❌ No se pudo identificar la planilla para actualizar el stock.');
+            return;
+        }
+
+        try {
+            const listaStockActualizada = stockProductos.map(item => {
+                if (nuevosStocks[item.id_producto] !== undefined){
+                    const nuevoDisponible = Number(nuevosStocks[item.id_producto]);
+                    const nuevoStockTotal = nuevoDisponible + item.stock_vendido;
+                    return {
+                        id: item.id,
+                        id_producto: item.id_producto,
+                        id_planilla: item.id_planilla,
+                        stock: nuevoStockTotal,
+                        stock_vendido: item.stock_vendido
+                    }
+                } else {
+                    return item;
+                }
+            });
+
+            console.log("Enviando actualizacion de stock: ", listaStockActualizada);
+
+            const respuesta = await fetch(`http://localhost:8080/api/stock/update`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(listaStockActualizada)
+            });
+            
+            if (!respuesta.ok) {
+                throw new Error('Error al actualizar el stock en el servidor.');
+            }
+            await onStockActualizado();
+            cerrarModal();
+        } catch (err) { 
+            console.error(err);
+            setError('❌ Error al intentar guardar los cambios en el servidor.');
+        }
+    };
+
     return (
         <div className="modal-overlay">
             <div className="modal-contenido" style={{ width: '95%', maxWidth: '500px', maxHeight: '700px', height:'95%' }}>
 
                 <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h3 style={{ margin: 0 }}>✏️ Modificar Stock</h3>
-                    {/* Cambiamos la X por el símbolo de multiplicación para que quede centrado perfecto */}
-                    <button className="btn-cerrar-modal" onClick={cerrarModal}>X</button>
+                    <button className="btn-cerrar-modal" onClick={cerrarModal}>×</button>
                 </div>
 
                 <div className="modal-body" style={{height:'100%'}}>
                     {(error || hayInputsVacios) && (
-                        <p style={{ color: '#c0392b', fontWeight: 'bold', margin: '0', padding: '0' }}>
+                        <p style={{ color: '#c0392b', fontWeight: 'bold', margin: '0', padding: '10px', backgroundColor: '#fadbd8', borderRadius: '4px' }}>
                             {error || "❌ Los campos no pueden estar vacíos!"}
                         </p>
                     )}
@@ -107,7 +196,6 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos }) {
                                 </tr>
                             </thead>
                             <tbody style={{height:'250px'}}>
-                                {/* 2. USAMOS stockOrdenado EN LUGAR DE stockProductos */}
                                 {stockOrdenado.length === 0 ? (
                                     <tr>
                                         <td colSpan="3" style={{ padding: '20px', textAlign: 'center', color: '#888' }}>
@@ -116,7 +204,6 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos }) {
                                     </tr>
                                 ) : (
                                     stockOrdenado.map(item => {
-                                        // Ya no necesitamos buscar el catálogo aquí porque stockOrdenado ya lo hizo
                                         const disponibleReal = item.stock - item.stock_vendido;
                                         const valorAVisualizar = nuevosStocks[item.id_producto] !== undefined
                                             ? nuevosStocks[item.id_producto]
@@ -129,7 +216,6 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos }) {
                                                     textTransform: 'capitalize',
                                                     fontWeight: '500',
                                                 }}>
-                                                    {/* Usamos directamente el nombre ya procesado */}
                                                     {item.nombre}
                                                 </td>
                                                 <td style={{padding: '10px', textAlign: 'center' }}>
@@ -153,9 +239,10 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos }) {
                                                     />
                                                 </td>
                                                 <td style={{padding: '10px', textAlign:'center'}}>
-                                                    {/* Usamos la clase de cerrar modal para el botón de eliminar también */}
                                                     <button 
                                                         className="btn-eliminar-fila"
+                                                        title='Eliminar producto del catalogo'
+                                                        onClick={() => solicitarEliminacion(item)}
                                                     >
                                                         X
                                                     </button>
@@ -177,12 +264,28 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos }) {
                         type="button"
                         className="btn-global btn-primario-green"
                         disabled={!hayCambios}
+                        onClick={guardarCambiosStock}
                     >
                         Guardar Cambios
                     </button>
                 </div>
 
             </div>
+
+            {mostrarAlertaEliminar && (
+                <AlertaConfirmacion 
+                    mensaje={
+                        `⚠️ Estás a punto de eliminar "${itemAEliminar?.nombre}" del control de stock.\n` +
+                        `Esta acción es inmediata y no se puede deshacer.\n\n` +
+                        `¿Estás seguro de continuar?`
+                    }
+                    onConfirmar={confirmarEliminacionStock}
+                    onCancelar={() => {
+                        setMostrarAlertaEliminar(false);
+                        setItemAEliminar(null);
+                    }}
+                />
+            )}
         </div>
     );
 }

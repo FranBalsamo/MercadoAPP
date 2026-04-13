@@ -6,6 +6,7 @@ import ModalBuscarCliente from '../Modals/ModalBuscarCliente';
 import ModalModificarStock from '../Modals/ModalModificarStock';
 import ModalModificarBoleta from '../Modals/ModalModificarBoleta';
 import AlertaConfirmacion from '../Alertas/AlertaConfirmacion';
+import ModalAgregarProducto from '../Modals/ModalAgregarProducto';
 import '../Estilos/Botones.css';
 
 
@@ -24,26 +25,29 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
     const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
     const [mostrarAlertaEliminar, setMostrarAlertaEliminar] = useState(false);
     const [boletaAEliminar, setBoletaAEliminar] = useState(null);
-    
+    const [mostrarModalAgregarProducto, setMostrarModalAgregarProducto] = useState(false);
+
 
     useEffect(() => {
-        const traerCatalogo = async () => {
-            try {
-                const respuesta = await fetch(`http://localhost:8080/api/productos/All`);
-                if (respuesta.ok) {
-                    const datos = await respuesta.json();
-                    console.log('Productos encontrados: ',datos);
-                    setCatalogoProductos(datos);
-                }
-            } catch (err) {
-                console.error("Error al cargar el catálogo:", err);
-            } finally {
-                setCargando(false);
-            }
+        const cargaInicial = async () => {
+            await sincronizarCatalogo();
+            setCargando(false);
         };
-
-        traerCatalogo();
+        cargaInicial();
     }, []);
+
+    const sincronizarCatalogo = async () => {
+        try {
+            const respuesta = await fetch(`http://localhost:8080/api/productos/All`);
+            if (respuesta.ok) {
+                const datos = await respuesta.json();
+                console.log('🔄 Catálogo sincronizado: ', datos);
+                setCatalogoProductos(datos);
+            }
+        } catch (err) {
+            console.error("Error al cargar/sincronizar el catálogo:", err);
+        }
+    };
 
     if (!planilla) return <p>Cargando datos de la caja...</p>;
 
@@ -136,6 +140,10 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                     catalogoProductos={catalogoProductos}
                     cargando={cargando}
                     abrirModificarStock={() => setMostrarModalModificarStock(true)}
+                    abrirAgregarProducto={async () => {
+                        await sincronizarCatalogo();
+                        setMostrarModalAgregarProducto(true);
+                    }}
                 />
 
                 <ListaBoletas 
@@ -189,11 +197,9 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                     cerrarModal={() => setMostrarModalModificarBoleta(false)}
                     onBoletaEditada={async (boletaActualizada) => {
                         if (boletaActualizada) {
-                            // 1. Actualizamos la tabla visual
                             setBoletasDia(prevBoletas =>
                                 prevBoletas.map(b => b.id === boletaActualizada.id ? boletaActualizada : b)
                             );
-                            // 2. Llamamos a nuestra nueva herramienta
                             await sincronizarStock();
                         }
                     }}
@@ -207,6 +213,21 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                     }}
                     catalogoProductos={catalogoProductos}
                     planilla={planilla}
+                    onStockActualizado={async () => {
+                        await sincronizarStock();
+                    }}
+                />
+            )}
+
+            {mostrarModalAgregarProducto && (
+                <ModalAgregarProducto
+                    cerrarModal={() => setMostrarModalAgregarProducto(false)}
+                    planilla={planilla}
+                    catalogoProductos={catalogoProductos}
+                    stockProductos={stockProductos}
+                    onStockAgregado={async () => {
+                        await sincronizarStock();
+                    }}
                 />
             )}
 

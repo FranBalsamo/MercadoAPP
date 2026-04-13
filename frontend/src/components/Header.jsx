@@ -40,7 +40,7 @@ function Header({ abrirModalProducto, abrirModalCliente, abrirModalPlanilla, abr
             <div className="logo-contenedor">
                 <h2>🛒 MercadoApp</h2>
             </div>
-      </header>  
+        </header>  
     );
 }
 

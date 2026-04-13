@@ -27,18 +27,15 @@ ESTILOS BASE (Se aplican a todos los botones)
 
 .btn-cerrar-modal {
     background-color: transparent;
-    /* Fondo transparente para fusionarse con el header */
     color: #eeeeee;
-    /* Un blanco/gris claro para que resalte sobre el fondo oscuro del header */
     border: none;
     font-size: 1.2rem;
     font-weight: bold;
     cursor: pointer;
-    width: 25px;
-    /* Un tamaño fijo hace que el botón sea un cuadrado perfecto */
-    height: 25px;
+    width: 30px;
+    height: 30px;
+    padding: 4px 8px; 
     border-radius: 50%;
-    /* Lo hacemos redondo para un look más moderno */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -46,6 +43,21 @@ ESTILOS BASE (Se aplican a todos los botones)
     /* La magia de la transición suave */
     transition: background-color 0.2s ease, transform 0.1s ease;
 }
+
+.btn-eliminar-fila {
+    background-color: transparent; /* Fondo transparente inicial */
+    color: #e74c3c;                /* Texto rojo inicial */
+    border: 1px solid transparent; /* Borde invisible para que no "salte" el tamaño al hacer hover */
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    
+    /* Le decimos que anime tanto el color de fondo como el del texto */
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
+}
+
 
 /* =========================================
    TIPOS DE BOTONES (Colores y Hover)
@@ -102,4 +114,15 @@ ESTILOS BASE (Se aplican a todos los botones)
 
 .btn-cerrar-modal:active {
     transform: scale(0.9);
+}
+
+/* Boton de eliminar fila */
+.btn-eliminar-fila:hover {
+    background-color: #e74c3c;
+    color: #ffffff;            
+}
+
+/* Pequeño hundimiento al hacer clic */
+.btn-eliminar-fila:active {
+    transform: scale(0.90);
 }

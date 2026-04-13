@@ -162,9 +162,9 @@ function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBol
                                             Modificar
                                         </button>
                                         <button 
-                                            className='btn-global btn-peligro'
+                                            className='btn-eliminar-fila'
                                             onClick={() => eliminarBoleta(boleta)} 
-                                            style={{ color: '#eeef', width: '25px', height: '25px',padding:'4px 8px',fontSize: '0.9rem', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+                                            style={{ width: '25px', height: '25px',padding:'4px 8px',fontSize: '1.2rem',fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
                                             title="Eliminar Boleta"
                                         >
                                             X

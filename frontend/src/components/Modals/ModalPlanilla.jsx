@@ -132,25 +132,27 @@ function ModalPlanilla({cerrarModal, onPlanillaCreada}) {
                                 onChange={(e) => actualizarFila(index, 'id_producto', e.target.value)}
                             >
                                 <option value="">Seleccionar Producto</option>
-                                {productosDB.map(prod => {
-                                    const idProdString = String(prod.id);
-                                    const estaEnUso = idsEnUso.includes(idProdString);
-                                    const esMiSeleccion = String(fila.id_producto) === idProdString;
+                                    {productosDB
+                                        .sort((a, b) => a.nombre.localeCompare(b.nombre))
+                                        .map(prod => {
+                                            const idProdString = String(prod.id);
+                                            const estaEnUso = idsEnUso.includes(idProdString);
+                                            const esMiSeleccion = String(fila.id_producto) === idProdString;
 
-                                    if (!estaEnUso || esMiSeleccion) {
-                                        return (
-                                            <option
-                                                key={prod.id}
-                                                value={prod.id}
-                                                style={{textTransform:'capitalize'}}
-                                            >
-                                                {prod.nombre}
-                                            </option>
-                                        );
+                                            if (!estaEnUso || esMiSeleccion) {
+                                                return (
+                                                    <option
+                                                        key={prod.id}
+                                                        value={prod.id}
+                                                        style={{textTransform:'capitalize'}}
+                                                    >
+                                                        {prod.nombre}
+                                                    </option>
+                                                );
+                                            }
+                                            return null;
+                                        })
                                     }
-
-                                    return null;
-                                })}
                             </select>
                             
                             <input
@@ -165,10 +167,9 @@ function ModalPlanilla({cerrarModal, onPlanillaCreada}) {
 
                             <button
                                 type="button"
+                                className="btn-eliminar-fila"
                                 onClick={() => eliminarFila(index)}
-                                style={{ padding: '8px', border: 'none', cursor: 'pointer', borderRadius: '100%' }}>
-                                ❌
-                            </button>
+                            >X</button>
 
                         </div>
                     ))}

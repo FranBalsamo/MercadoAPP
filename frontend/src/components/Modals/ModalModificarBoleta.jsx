@@ -402,8 +402,11 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
 
                                             {/* Botón Borrar */}
                                             <td style={{ padding: '10px', textAlign: 'center' }}>
-                                                <button onClick={() => eliminarDelCarrito(fila.id_fila)} style={{ backgroundColor: '#dddc', color: 'white', border: 'none', borderRadius: '80%', width: '25px', height: '25px', cursor: 'pointer', textAlign: 'center', fontSize: '10px' }}>
-                                                    ❌
+                                                <button 
+                                                    className='btn-eliminar-fila'
+                                                    onClick={() => eliminarDelCarrito(fila.id_fila)}
+                                                >
+                                                    X
                                                 </button>
                                             </td>
 

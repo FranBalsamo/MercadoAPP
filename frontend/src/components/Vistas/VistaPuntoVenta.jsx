@@ -26,7 +26,7 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
     const [mostrarAlertaEliminar, setMostrarAlertaEliminar] = useState(false);
     const [boletaAEliminar, setBoletaAEliminar] = useState(null);
     const [mostrarModalAgregarProducto, setMostrarModalAgregarProducto] = useState(false);
-
+    const [mostrarAlertaCerrarCaja, setMostrarAlertaCerrarCaja] = useState(false);
 
     useEffect(() => {
         const cargaInicial = async () => {
@@ -112,6 +112,28 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
         }
     };
 
+    const confirmarCierrePlanilla = async () => {
+        try {
+            const respuesta = await fetch(`http://localhost:8080/api/planilla/close/${planilla.id}`, {
+                method: 'PUT' 
+            });
+
+            if (respuesta.ok) {
+                const planillaCerrada = await respuesta.json();
+                console.log("✅ Planilla cerrada con éxito:", planillaCerrada);
+                
+                setMostrarAlertaCerrarCaja(false);
+                cerrarPlanilla(planillaCerrada); 
+            } else {
+                console.error("Error al cerrar la planilla");
+                alert("Hubo un error en el servidor al intentar cerrar la planilla.");
+            }
+        } catch (error) {
+            console.error("Error de conexión:", error);
+            alert("Error de conexión al servidor.");
+        }
+    };
+
     return (
         <main style={{
             padding: '20px',
@@ -126,8 +148,8 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2>🧾Estado Planilla: <span style={{color: planilla.estadoPlanilla === 'ABIERTA' ? '#3b3c': '#e43' }}> {planilla.estadoPlanilla} </span> - Fecha: {planilla.fecha}</h2>
                 <button
-                    onClick={cerrarPlanilla}
-                    className = "btn-global btn-peligro"
+                    onClick={() => setMostrarAlertaCerrarCaja(true)}
+                    className="btn-global btn-peligro"
                 >
                     Cerrar Caja
                 </button>
@@ -243,6 +265,18 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                         setMostrarAlertaEliminar(false);
                         setBoletaAEliminar(null);
                     }}
+                />
+            )}
+
+            {mostrarAlertaCerrarCaja && (
+                <AlertaConfirmacion 
+                    mensaje={
+                        "⚠️ Estás a punto de CERRAR definitivamente esta Planilla.\n" +
+                        "Al cerrarla, se calcularán los ingresos y deudas totales, y NO se podrán agregar ni eliminar más boletas.\n" +
+                        "¿Estás completamente seguro de realizar el cierre?"
+                    }
+                    onConfirmar={confirmarCierrePlanilla}
+                    onCancelar={() => setMostrarAlertaCerrarCaja(false)}
                 />
             )}
             

@@ -2,6 +2,7 @@ package com.franbalsamo.mercadoapp.Service.manager;
 
 
 import com.franbalsamo.mercadoapp.Model.DTO.StockProductoDTO;
+import com.franbalsamo.mercadoapp.Service.Enum.EstadoPago;
 import com.franbalsamo.mercadoapp.Service.Enum.EstadoPlanilla;
 import com.franbalsamo.mercadoapp.Service.BoletaService;
 import com.franbalsamo.mercadoapp.Service.PlanillaService;
@@ -39,11 +40,12 @@ public class CajaManager {
         float sumaDeuda = 0;
 
         for(Boleta boleta: boletasDelDia){
-            sumaIngresos += boleta.getTotal();
+            if(boleta.getEstadoPago() == EstadoPago.PAGADO){
+                sumaIngresos += boleta.getTotal();
+            }else{
+                sumaDeuda += boleta.getTotal();
+            }
         }
-        /*
-            Corregir la logica de calcular la deuda de la planilla total, ya que sacamos el valor de deuda de las boletas!!!
-         */
         planilla.setIngresoTotal(sumaIngresos);
         planilla.setDeudaTotal(sumaDeuda);
         planilla.setEstadoPlanilla(EstadoPlanilla.CERRADA);

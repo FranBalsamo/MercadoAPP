@@ -3,6 +3,9 @@ package com.franbalsamo.mercadoapp.Service;
 import com.franbalsamo.mercadoapp.Model.Entity.*;
 import com.franbalsamo.mercadoapp.Repository.BoletaRepository;
 import com.franbalsamo.mercadoapp.Service.exception.RecursoNoEncontradoException;
+import com.franbalsamo.mercadoapp.Service.exception.ReglaNegocioException;
+import com.franbalsamo.mercadoapp.Service.Enum.EstadoPago;
+import com.franbalsamo.mercadoapp.Service.Enum.EstadoRetiro;
 import com.franbalsamo.mercadoapp.Service.mapper.BoletaMapper;
 import com.franbalsamo.mercadoapp.Model.DTO.BoletaDTO;
 import com.franbalsamo.mercadoapp.Model.DTO.VentaDTO;
@@ -169,6 +172,10 @@ public class BoletaService {
     public void removeBoleta(long id_boleta){
         Boleta boleta = boletaRepository.findById(id_boleta)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontro la boleta con id: "+ id_boleta));
+
+        if(boleta.getEstadoPago() == EstadoPago.PAGADO || boleta.getEstadoRetiro() == EstadoRetiro.RETIRADO){
+            throw new ReglaNegocioException("No se puede eliminar la boleta #" + id_boleta + " porque ya se encuentra pagada y/o retirada.");
+        }
 
         //Antes de eliminar la boleta debemos recuperar el stock del producto.
         recuperarStock(boleta);

@@ -7,6 +7,7 @@ import ModalModificarStock from '../Modals/ModalModificarStock';
 import ModalModificarBoleta from '../Modals/ModalModificarBoleta';
 import AlertaConfirmacion from '../Alertas/AlertaConfirmacion';
 import AlertaAviso from '../Alertas/AlertaAviso';
+import ModalAgregarProducto from '../Modals/ModalAgregarProducto';
 import '../Estilos/Botones.css';
 
 
@@ -27,25 +28,29 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
     const [boletaAEliminar, setBoletaAEliminar] = useState(null);
     const [avisoEliminar, setAvisoEliminar] = useState(null);
     
+    const [mostrarModalAgregarProducto, setMostrarModalAgregarProducto] = useState(false);
+    const [mostrarAlertaCerrarCaja, setMostrarAlertaCerrarCaja] = useState(false);
 
     useEffect(() => {
-        const traerCatalogo = async () => {
-            try {
-                const respuesta = await fetch(`http://localhost:8080/api/productos/All`);
-                if (respuesta.ok) {
-                    const datos = await respuesta.json();
-                    console.log('Productos encontrados: ',datos);
-                    setCatalogoProductos(datos);
-                }
-            } catch (err) {
-                console.error("Error al cargar el catálogo:", err);
-            } finally {
-                setCargando(false);
-            }
+        const cargaInicial = async () => {
+            await sincronizarCatalogo();
+            setCargando(false);
         };
-
-        traerCatalogo();
+        cargaInicial();
     }, []);
+
+    const sincronizarCatalogo = async () => {
+        try {
+            const respuesta = await fetch(`http://localhost:8080/api/productos/All`);
+            if (respuesta.ok) {
+                const datos = await respuesta.json();
+                console.log('🔄 Catálogo sincronizado: ', datos);
+                setCatalogoProductos(datos);
+            }
+        } catch (err) {
+            console.error("Error al cargar/sincronizar el catálogo:", err);
+        }
+    };
 
     if (!planilla) return <p>Cargando datos de la caja...</p>;
 
@@ -113,6 +118,28 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
         }
     };
 
+    const confirmarCierrePlanilla = async () => {
+        try {
+            const respuesta = await fetch(`http://localhost:8080/api/planilla/close/${planilla.id}`, {
+                method: 'PUT' 
+            });
+
+            if (respuesta.ok) {
+                const planillaCerrada = await respuesta.json();
+                console.log("✅ Planilla cerrada con éxito:", planillaCerrada);
+                
+                setMostrarAlertaCerrarCaja(false);
+                cerrarPlanilla(planillaCerrada); 
+            } else {
+                console.error("Error al cerrar la planilla");
+                alert("Hubo un error en el servidor al intentar cerrar la planilla.");
+            }
+        } catch (error) {
+            console.error("Error de conexión:", error);
+            alert("Error de conexión al servidor.");
+        }
+    };
+
     return (
         <main style={{
             padding: '20px',
@@ -127,8 +154,8 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2>🧾Estado Planilla: <span style={{color: planilla.estadoPlanilla === 'ABIERTA' ? '#3b3c': '#e43' }}> {planilla.estadoPlanilla} </span> - Fecha: {planilla.fecha}</h2>
                 <button
-                    onClick={cerrarPlanilla}
-                    className = "btn-global btn-peligro"
+                    onClick={() => setMostrarAlertaCerrarCaja(true)}
+                    className="btn-global btn-peligro"
                 >
                     Cerrar Caja
                 </button>
@@ -141,6 +168,10 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                     catalogoProductos={catalogoProductos}
                     cargando={cargando}
                     abrirModificarStock={() => setMostrarModalModificarStock(true)}
+                    abrirAgregarProducto={async () => {
+                        await sincronizarCatalogo();
+                        setMostrarModalAgregarProducto(true);
+                    }}
                 />
 
                 <ListaBoletas 
@@ -194,11 +225,9 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                     cerrarModal={() => setMostrarModalModificarBoleta(false)}
                     onBoletaEditada={async (boletaActualizada) => {
                         if (boletaActualizada) {
-                            // 1. Actualizamos la tabla visual
                             setBoletasDia(prevBoletas =>
                                 prevBoletas.map(b => b.id === boletaActualizada.id ? boletaActualizada : b)
                             );
-                            // 2. Llamamos a nuestra nueva herramienta
                             await sincronizarStock();
                         }
                     }}
@@ -212,6 +241,21 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                     }}
                     catalogoProductos={catalogoProductos}
                     planilla={planilla}
+                    onStockActualizado={async () => {
+                        await sincronizarStock();
+                    }}
+                />
+            )}
+
+            {mostrarModalAgregarProducto && (
+                <ModalAgregarProducto
+                    cerrarModal={() => setMostrarModalAgregarProducto(false)}
+                    planilla={planilla}
+                    catalogoProductos={catalogoProductos}
+                    stockProductos={stockProductos}
+                    onStockAgregado={async () => {
+                        await sincronizarStock();
+                    }}
                 />
             )}
 
@@ -240,6 +284,18 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                 />
             )}
 
+            {mostrarAlertaCerrarCaja && (
+                <AlertaConfirmacion 
+                    mensaje={
+                        "⚠️ Estás a punto de CERRAR definitivamente esta Planilla.\n" +
+                        "Al cerrarla, se calcularán los ingresos y deudas totales, y NO se podrán agregar ni eliminar más boletas.\n" +
+                        "¿Estás completamente seguro de realizar el cierre?"
+                    }
+                    onConfirmar={confirmarCierrePlanilla}
+                    onCancelar={() => setMostrarAlertaCerrarCaja(false)}
+                />
+            )}
+            
         </main>
     );
 }

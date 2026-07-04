@@ -6,7 +6,7 @@ import ModalBuscarCliente from '../Modals/ModalBuscarCliente';
 import ModalModificarStock from '../Modals/ModalModificarStock';
 import ModalModificarBoleta from '../Modals/ModalModificarBoleta';
 import AlertaConfirmacion from '../Alertas/AlertaConfirmacion';
-import AlertaAviso from '../Alertas/AlertaAviso';
+import AlertaEmergente from '../Alertas/AlertaEmergente';
 import ModalAgregarProducto from '../Modals/ModalAgregarProducto';
 import '../Estilos/Botones.css';
 
@@ -274,15 +274,13 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                 />
             )}
 
-            {avisoEliminar && (
-                <AlertaAviso
-                    mensaje={avisoEliminar}
-                    onAceptar={() => {
-                        setAvisoEliminar(null);
-                        setBoletaAEliminar(null);
-                    }}
-                />
-            )}
+            <AlertaEmergente
+                mensaje={avisoEliminar}
+                onClose={() => {
+                    setAvisoEliminar(null);
+                    setBoletaAEliminar(null);
+                }}
+            />
 
             {mostrarAlertaCerrarCaja && (
                 <AlertaConfirmacion 

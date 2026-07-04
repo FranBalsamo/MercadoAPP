@@ -6,6 +6,7 @@ import ModalBuscarCliente from '../Modals/ModalBuscarCliente';
 import ModalModificarStock from '../Modals/ModalModificarStock';
 import ModalModificarBoleta from '../Modals/ModalModificarBoleta';
 import AlertaConfirmacion from '../Alertas/AlertaConfirmacion';
+import AlertaAviso from '../Alertas/AlertaAviso';
 import '../Estilos/Botones.css';
 
 
@@ -24,6 +25,7 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
     const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
     const [mostrarAlertaEliminar, setMostrarAlertaEliminar] = useState(false);
     const [boletaAEliminar, setBoletaAEliminar] = useState(null);
+    const [avisoEliminar, setAvisoEliminar] = useState(null);
     
 
     useEffect(() => {
@@ -90,21 +92,24 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
             if (respuesta.ok) {
                 // 1. La borramos visualmente de la tabla local
                 setBoletasDia(prevBoletas => prevBoletas.filter(b => b.id !== boletaAEliminar.id));
-                
+
                 // 2. Sincronizamos el stock (los productos vuelven al inventario)
                 await sincronizarStock();
-                
+
                 // 3. Cerramos la alerta
                 setMostrarAlertaEliminar(false);
                 setBoletaAEliminar(null);
                 console.log("Boleta eliminada correctamente");
             } else {
-                console.error("Error del servidor al eliminar la boleta");
-                alert("Hubo un error al intentar eliminar la boleta en el servidor.");
+                const mensajeError = await respuesta.text();
+                console.error("Error del servidor al eliminar la boleta:", mensajeError);
+                setMostrarAlertaEliminar(false);
+                setAvisoEliminar(mensajeError || "Hubo un error al intentar eliminar la boleta en el servidor.");
             }
         } catch (error) {
             console.error("Error de conexión:", error);
-            alert("Error de conexión al servidor.");
+            setMostrarAlertaEliminar(false);
+            setAvisoEliminar("Error de conexión al servidor.");
         }
     };
 
@@ -224,7 +229,17 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                     }}
                 />
             )}
-            
+
+            {avisoEliminar && (
+                <AlertaAviso
+                    mensaje={avisoEliminar}
+                    onAceptar={() => {
+                        setAvisoEliminar(null);
+                        setBoletaAEliminar(null);
+                    }}
+                />
+            )}
+
         </main>
     );
 }

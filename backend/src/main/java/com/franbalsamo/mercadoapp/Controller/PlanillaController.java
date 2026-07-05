@@ -39,4 +39,10 @@ public class PlanillaController {
         List<StockProductoDTO> listaStock = planillaService.getStockProductos(id_planilla);
         return new ResponseEntity<>(listaStock, HttpStatus.OK);
     }
+
+    @GetMapping("/All")
+    public ResponseEntity<List<PlanillaDTO>> findAll(){
+        List<PlanillaDTO> listaPlanillas = planillaService.findAll();
+        return new ResponseEntity<>(listaPlanillas, HttpStatus.OK);
+    }
 }

@@ -71,4 +71,10 @@ public class PlanillaService {
         return planillaRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontro la planilla con id: " + id));
     }
+
+    public List<PlanillaDTO> findAll(){
+        return planillaRepository.findAll().stream()
+                .map(planillaMapper::toDTO)
+                .toList();
+    }
 }

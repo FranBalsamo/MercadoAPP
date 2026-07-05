@@ -7,6 +7,8 @@ import ModalPlanilla from "./components/Modals/ModalPlanilla";
 import VistaInicio from "./components/Vistas/VistaInicio";
 import VistaPuntoVenta from "./components/Vistas/VistaPuntoVenta";
 import VistaClientes from "./components/Vistas/VistaClientes";
+import VistaPlanillas from "./components/Vistas/VistaPlanillas";
+import VistaPlanillaCerrada from "./components/Vistas/VistaPlanillaCerrada";
 
 import "./App.css";
 
@@ -33,6 +35,11 @@ function App() {
     setVistaActiva('puntoDeVenta');
   }
 
+  const abrirPlanillaCerrada = (dtoPlanilla) => {
+    setPlanillaActiva(dtoPlanilla);
+    setVistaActiva('planillaCerrada');
+  };
+
   const cerrarPlanilla = () => {
     setVistaActiva('inicio');
     setPlanillaActiva(null);
@@ -45,6 +52,11 @@ function App() {
 
   const cerrarVistaClientes = () => {
     setVistaActiva(vistaAnterior);
+  }
+
+  const abrirVistaPlanillas = () => {
+    setVistaAnterior(vistaActiva);
+    setVistaActiva('planillas');
   }
 
   const abrirModalPlanilla = () => {
@@ -73,11 +85,23 @@ function App() {
         abrirModalNuevoCliente={abrirModalCliente}
       />
     }
+    else if (vistaActiva === 'planillas') {
+      return <VistaPlanillas
+        abrirPlanilla={abrirPlanilla}
+        abrirPlanillaCerrada={abrirPlanillaCerrada}
+      />
+    }
     else if (vistaActiva === 'puntoDeVenta') {
       return <VistaPuntoVenta
         cerrarPlanilla={cerrarPlanilla}
         planilla={planillaActiva}
       />  
+    }
+    else if (vistaActiva === 'planillaCerrada') {
+      return <VistaPlanillaCerrada
+        planilla={planillaActiva}
+        volver={() => setVistaActiva('planillas')}
+      />;
     }
     return <VistaInicio/>
   }
@@ -89,6 +113,7 @@ function App() {
         abrirModalCliente={abrirModalCliente}
         abrirModalPlanilla={abrirModalPlanilla} 
         abrirVistaClientes={abrirVistaClientes}
+        abrirVistaPlanillas={abrirVistaPlanillas}
         volverInicio={volverInicio}
       />
 

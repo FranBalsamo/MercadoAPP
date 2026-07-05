@@ -12,7 +12,7 @@ import java.util.List;
 public class PlanillaDTO {
     private long id;
     private LocalDate fecha;
-    private float IngresoTotal;
+    private float ingresoTotal;
     private float deudaTotal;
     private EstadoPlanilla estadoPlanilla;
     private List<StockProductoDTO> stockProductos;

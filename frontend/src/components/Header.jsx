@@ -1,6 +1,6 @@
 import './Estilos/Header.css';
 
-function Header({ abrirModalProducto, abrirModalCliente, abrirModalPlanilla, abrirVistaClientes, volverInicio }) {
+function Header({ abrirModalProducto, abrirModalCliente, abrirModalPlanilla, abrirVistaClientes, abrirVistaPlanillas, volverInicio }) {
     return (
         <header className="header-principal">
             <nav className="navegacion">
@@ -15,7 +15,7 @@ function Header({ abrirModalProducto, abrirModalCliente, abrirModalPlanilla, abr
                 <div className="nav-item">
                     <span className="nav-titulo">Planillas</span>
                     <div className="dropdown-menu">
-                        <button onClick={() => console.log('Buscado planillas...')}>Ver todos</button>
+                        <button onClick={abrirVistaPlanillas}>Ver todos</button>
                         <button onClick={abrirModalPlanilla}>Nueva Planilla</button>
                     </div>
                 </div>

@@ -5,6 +5,7 @@ import com.franbalsamo.mercadoapp.Repository.BoletaRepository;
 import com.franbalsamo.mercadoapp.Service.exception.RecursoNoEncontradoException;
 import com.franbalsamo.mercadoapp.Service.exception.ReglaNegocioException;
 import com.franbalsamo.mercadoapp.Service.Enum.EstadoPago;
+import com.franbalsamo.mercadoapp.Service.Enum.EstadoPlanilla;
 import com.franbalsamo.mercadoapp.Service.Enum.EstadoRetiro;
 import com.franbalsamo.mercadoapp.Service.mapper.BoletaMapper;
 import com.franbalsamo.mercadoapp.Model.DTO.BoletaDTO;
@@ -77,7 +78,8 @@ public class BoletaService {
             Producto producto = productoService.findById(vDto.getId_producto());
             StockProducto stockProducto = stockProductoService.findByProductoAndPlanilla(producto, planilla);
 
-            if(stockProducto.getStock() < vDto.getCantidad()){
+            float stockDisponible = stockProducto.getStock() - stockProducto.getStock_vendido();
+            if(stockDisponible < vDto.getCantidad()){
                 throw new RecursoNoEncontradoException
                         ("No hay suficiente stock para el producto: " + producto.getNombre());
             }
@@ -165,7 +167,34 @@ public class BoletaService {
         boleta.setEstadoPago(boletaDTO.getEstadoPago());
         boleta.setEstadoRetiro(boletaDTO.getEstadoRetiro());
 
-        return boletaMapper.toDTO(boletaRepository.save(boleta));
+        Boleta boletaGuardada = boletaRepository.save(boleta);
+
+        recalcularTotalesSiCerrada(boletaGuardada.getPlanilla());
+
+        return boletaMapper.toDTO(boletaGuardada);
+    }
+
+    private void recalcularTotalesSiCerrada(Planilla planilla){
+        if(planilla.getEstadoPlanilla() != EstadoPlanilla.CERRADA){
+            return;
+        }
+
+        List<Boleta> boletasDelDia = boletaRepository.findAllByPlanilla(planilla);
+
+        float sumaIngresos = 0;
+        float sumaDeuda = 0;
+
+        for(Boleta b : boletasDelDia){
+            if(b.getEstadoPago() == EstadoPago.PAGADO){
+                sumaIngresos += b.getTotal();
+            }else{
+                sumaDeuda += b.getTotal();
+            }
+        }
+
+        planilla.setIngresoTotal(sumaIngresos);
+        planilla.setDeudaTotal(sumaDeuda);
+        planillaService.updatePlanilla(planilla);
     }
 
     @Transactional

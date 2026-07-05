@@ -77,4 +77,8 @@ public class PlanillaService {
                 .map(planillaMapper::toDTO)
                 .toList();
     }
+
+    public PlanillaDTO findDTOById(long id){
+        return planillaMapper.toDTO(findById(id));
+    }
 }

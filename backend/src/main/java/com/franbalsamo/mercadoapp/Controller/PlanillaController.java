@@ -45,4 +45,9 @@ public class PlanillaController {
         List<PlanillaDTO> listaPlanillas = planillaService.findAll();
         return new ResponseEntity<>(listaPlanillas, HttpStatus.OK);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<PlanillaDTO> findById(@PathVariable long id){
+        return new ResponseEntity<>(planillaService.findDTOById(id), HttpStatus.OK);
+    }
 }

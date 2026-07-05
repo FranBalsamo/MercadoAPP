@@ -152,12 +152,10 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                 // 1. Actualizamos el valor
                 const filaActualizada = { ...fila, [campo]: nuevoValor };
 
-                // 2. Extraemos los números para la matemática
+                // 2. Recalculamos el subtotal de esta fila
                 const cant = Number(filaActualizada.cantidad || 0);
                 const precioU = Number(filaActualizada.precio_unitario || 0);
                 const precioV = Number(filaActualizada.precio_vacio || 0);
-
-                // 3. Recalculamos el subtotal de esta fila
                 filaActualizada.subtotal = (cant * precioU) + (cant * precioV);
 
                 return filaActualizada;
@@ -170,6 +168,34 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
         setCarrito(carrito.filter(item => item.id_fila !== id_fila_borrar));
     };
 
+    // --- STOCK DISPONIBLE POR FILA DEL CARRITO (para marcar en rojo y bloquear el guardado) ---
+    const stockDisponibleParaFila = (fila) => {
+        const stockProductoEnPlanilla = stockProductos.find(p => String(p.id_producto) === String(fila.id_producto));
+        if (!stockProductoEnPlanilla) return null;
+
+        const stockEnBD = stockProductoEnPlanilla.stock - stockProductoEnPlanilla.stock_vendido;
+
+        const cantidadEnOtrasFilas = carrito
+            .filter(item => item.id_fila !== fila.id_fila && String(item.id_producto) === String(fila.id_producto))
+            .reduce((suma, item) => suma + Number(item.cantidad || 0), 0);
+
+        return stockEnBD - cantidadEnOtrasFilas;
+    };
+
+    const filaExcedeStock = (fila) => {
+        const disponible = stockDisponibleParaFila(fila);
+        return disponible !== null && Number(fila.cantidad || 0) > disponible;
+    };
+
+    const mensajesStockExcedido = carrito
+        .filter(filaExcedeStock)
+        .map(fila => {
+            const disponible = stockDisponibleParaFila(fila);
+            return `❌ Stock insuficiente para "${fila.nombre}". Disponible: ${disponible > 0 ? disponible : 0} unidades.`;
+        });
+
+    const hayFilaConStockExcedido = mensajesStockExcedido.length > 0;
+
     const totalBoleta = carrito.reduce((suma, item) => suma + item.subtotal, 0);
 
     const guardarCambios = async (e) => {
@@ -177,6 +203,11 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
 
         if (carrito.length === 0) {
             setErrorVenta('❌ No puedes guardar una boleta sin artículos.');
+            return;
+        }
+
+        if (hayFilaConStockExcedido) {
+            setErrorVenta('❌ Hay productos con una cantidad mayor al stock disponible. Corregilos antes de guardar.');
             return;
         }
 
@@ -332,6 +363,12 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
 
                     {errorVenta && <div style={{ color: '#c0392b', marginBottom: '10px', fontSize: '0.9rem', fontWeight: 'bold' }}>{errorVenta}</div>}
 
+                    {mensajesStockExcedido.map((mensaje, i) => (
+                        <div key={i} style={{ color: '#c0392b', marginBottom: '5px', fontSize: '0.9rem', fontWeight: 'bold' }}>
+                            {mensaje}
+                        </div>
+                    ))}
+
                     {/* TABLA DETALLE DE BOLETAS (AHORA INTERACTIVA) */}
                     <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #ddd', borderRadius: '4px' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.95rem' }}>
@@ -351,7 +388,9 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                                         <td colSpan="6" style={{ padding: '20px', textAlign: 'center', color: '#888' }}>No hay productos.</td>
                                     </tr>
                                 ) : (
-                                    carrito.map(fila => (
+                                    carrito.map(fila => {
+                                        const excedeStockFila = filaExcedeStock(fila);
+                                        return (
                                         <tr key={fila.id_fila} style={{ borderBottom: '1px solid #eee' }}>
 
                                             {/* Nombre del Producto */}
@@ -365,7 +404,11 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                                                     type="number" min="0.5" step="0.5"
                                                     value={fila.cantidad}
                                                     onChange={(e) => actualizarFilaCarrito(fila.id_fila, 'cantidad', e.target.value)}
-                                                    style={{ width: '60px', padding: '4px', borderRadius: '4px', border: '1px solid #ccc', textAlign: 'center', outline: 'none' }}
+                                                    style={{
+                                                        width: '60px', padding: '4px', borderRadius: '4px', textAlign: 'center', outline: 'none',
+                                                        border: excedeStockFila ? '2px solid #e74c3c' : '1px solid #ccc',
+                                                        backgroundColor: excedeStockFila ? '#fadbd8' : 'white'
+                                                    }}
                                                 />
                                             </td>
 
@@ -411,7 +454,8 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                                             </td>
 
                                         </tr>
-                                    ))
+                                        );
+                                    })
                                 )}
                             </tbody>
                         </table>
@@ -443,7 +487,7 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                         <h2 style={{ margin: 0, color: '#2c3e50' }}>Total: {totalBoleta.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</h2>
                         <div>
                             <button className="btn-global btn-secundario" onClick={cerrarModal} style={{ marginRight: '10px' }}>Cancelar</button>
-                            <button className="btn-global btn-primario-green" onClick={guardarCambios} disabled={guardando || cargandoStock}>
+                            <button className="btn-global btn-primario-green" onClick={guardarCambios} disabled={guardando || cargandoStock || hayFilaConStockExcedido}>
                                 {guardando ? 'Guardando...' : 'Guardar Cambios'}
                             </button>
                         </div>

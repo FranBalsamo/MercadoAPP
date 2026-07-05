@@ -27,13 +27,14 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
     const [mostrarAlertaEliminar, setMostrarAlertaEliminar] = useState(false);
     const [boletaAEliminar, setBoletaAEliminar] = useState(null);
     const [avisoEliminar, setAvisoEliminar] = useState(null);
-    
     const [mostrarModalAgregarProducto, setMostrarModalAgregarProducto] = useState(false);
     const [mostrarAlertaCerrarCaja, setMostrarAlertaCerrarCaja] = useState(false);
 
     useEffect(() => {
         const cargaInicial = async () => {
             await sincronizarCatalogo();
+            await sincronizarClientes();
+            await sincronizarBoletasPlanilla();
             setCargando(false);
         };
         cargaInicial();
@@ -51,6 +52,33 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
             console.error("Error al cargar/sincronizar el catálogo:", err);
         }
     };
+
+    const sincronizarClientes = async () => {
+        try {
+            const respuesta = await fetch(`http://localhost:8080/api/clientes/All`);
+            if (respuesta.ok) {
+                const datos = await respuesta.json();
+                setClientesDia(datos);
+                console.log('🔄 Clientes sincronizados: ', datos);
+            }
+        } catch (err) {
+            console.error("Error al cargar/sincronizar los clientes:", err);
+        }
+    };
+
+    const sincronizarBoletasPlanilla = async () => {
+        if(!planilla || !planilla.id) return;
+        try{
+            const respuestaBoletas = await fetch(`http://localhost:8080/api/boleta/planilla/${planilla.id}`);
+            if (respuestaBoletas.ok) {
+                const boletasCargadas = await respuestaBoletas.json();
+                setBoletasDia(boletasCargadas);
+                console.log("🔄 Boletas sincronizadas con éxito desde el servidor.", boletasCargadas);
+            }
+        }catch(err){
+            console.error("Error al cargar las boletas de la planilla:", err);
+        }
+    }
 
     if (!planilla) return <p>Cargando datos de la caja...</p>;
 

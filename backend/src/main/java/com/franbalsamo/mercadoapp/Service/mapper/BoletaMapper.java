@@ -1,7 +1,5 @@
 package com.franbalsamo.mercadoapp.Service.mapper;
 
-import com.franbalsamo.mercadoapp.Service.ClienteService;
-import com.franbalsamo.mercadoapp.Service.VentaService;
 import com.franbalsamo.mercadoapp.Model.Entity.Boleta;
 import com.franbalsamo.mercadoapp.Model.Entity.Venta;
 import com.franbalsamo.mercadoapp.Model.DTO.BoletaDTO;
@@ -16,12 +14,6 @@ public class BoletaMapper {
 
     @Autowired
     private VentaMapper ventaMapper;
-
-    @Autowired
-    private VentaService ventaService;
-
-    @Autowired
-    private ClienteService clienteService;
 
     public BoletaDTO toDTO(Boleta boleta) {
         if (boleta == null) {
@@ -46,8 +38,10 @@ public class BoletaMapper {
     }
 
     /*
-    Este metodo se encarga de mapear el DTO a la entidad solo para los atributos que no son otras entidades.
-    Los atributos que corresponden a entidades (ej. id_cliente -> cliente) se deben hacer a mano.
+     * Este metodo se encarga de mapear el DTO a la entidad solo para los atributos
+     * que no son otras entidades.
+     * Los atributos que corresponden a entidades (ej. id_cliente -> cliente) se
+     * deben hacer a mano.
      */
 
     public Boleta toEntity(BoletaDTO dto) {
@@ -61,7 +55,7 @@ public class BoletaMapper {
         boleta.setEstadoPago(dto.getEstadoPago());
         boleta.setEstadoRetiro(dto.getEstadoRetiro());
 
-        //Mapeo la list<VentaDTO> a list<Venta>
+        // Mapeo la list<VentaDTO> a list<Venta>
         if (dto.getVentas() != null) {
             for (VentaDTO ventaDTO : dto.getVentas()) {
                 Venta venta = ventaMapper.toEntity(ventaDTO);

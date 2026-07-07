@@ -32,11 +32,20 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
 
     useEffect(() => {
         const cargaInicial = async () => {
-            await sincronizarCatalogo();
-            await sincronizarClientes();
-            await sincronizarBoletasPlanilla();
+            await Promise.all([
+                sincronizarCatalogo(),
+                sincronizarClientes(),
+                sincronizarBoletasPlanilla(),
+                sincronizarStock()
+            ]);
             setCargando(false);
         };
+        /*
+        Las 4 llamadas (sincronizarCatalogo, sincronizarClientes, sincronizarBoletasPlanilla, sincronizarStock) 
+        son independientes entre sí — ninguna necesita el resultado de otra — así que Promise.all 
+        las dispara todas a la vez en vez de esperar una tras otra, y cargando pasa a false recién cuando terminan todas. 
+        Resultado: la pantalla tarda lo que tarda la más lenta de las cuatro, no la suma de las cuatro.
+        */
         cargaInicial();
     }, []);
 
@@ -147,17 +156,40 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
     };
 
     const confirmarCierrePlanilla = async () => {
+        // Si no se cargó ninguna boleta, no tiene sentido dejar una planilla cerrada vacía: la eliminamos.
+        if (boletasDia.length === 0) {
+            try {
+                const respuesta = await fetch(`http://localhost:8080/api/planilla/delete/${planilla.id}`, {
+                    method: 'DELETE'
+                });
+
+                if (respuesta.ok) {
+                    console.log("🗑️ Planilla eliminada por no tener boletas cargadas.");
+                    setMostrarAlertaCerrarCaja(false);
+                    cerrarPlanilla();
+                } else {
+                    const mensajeError = await respuesta.text();
+                    console.error("Error al eliminar la planilla vacía:", mensajeError);
+                    alert(mensajeError || "Hubo un error en el servidor al intentar eliminar la planilla.");
+                }
+            } catch (error) {
+                console.error("Error de conexión:", error);
+                alert("Error de conexión al servidor.");
+            }
+            return;
+        }
+
         try {
             const respuesta = await fetch(`http://localhost:8080/api/planilla/close/${planilla.id}`, {
-                method: 'PUT' 
+                method: 'PUT'
             });
 
             if (respuesta.ok) {
                 const planillaCerrada = await respuesta.json();
                 console.log("✅ Planilla cerrada con éxito:", planillaCerrada);
-                
+
                 setMostrarAlertaCerrarCaja(false);
-                cerrarPlanilla(planillaCerrada); 
+                cerrarPlanilla(planillaCerrada);
             } else {
                 console.error("Error al cerrar la planilla");
                 alert("Hubo un error en el servidor al intentar cerrar la planilla.");
@@ -311,11 +343,15 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
             />
 
             {mostrarAlertaCerrarCaja && (
-                <AlertaConfirmacion 
+                <AlertaConfirmacion
                     mensaje={
-                        "⚠️ Estás a punto de CERRAR definitivamente esta Planilla.\n" +
-                        "Al cerrarla, se calcularán los ingresos y deudas totales, y NO se podrán agregar ni eliminar más boletas.\n" +
-                        "¿Estás completamente seguro de realizar el cierre?"
+                        boletasDia.length === 0
+                            ? "⚠️ Esta planilla no tiene boletas cargadas.\n" +
+                            "Al confirmar, se ELIMINARÁ en lugar de cerrarse.\n" +
+                            "¿Estás completamente seguro?"
+                            : "⚠️ Estás a punto de CERRAR definitivamente esta Planilla.\n" +
+                            "Al cerrarla, se calcularán los ingresos y deudas totales, y NO se podrán agregar ni eliminar más boletas.\n" +
+                            "¿Estás completamente seguro de realizar el cierre?"
                     }
                     onConfirmar={confirmarCierrePlanilla}
                     onCancelar={() => setMostrarAlertaCerrarCaja(false)}

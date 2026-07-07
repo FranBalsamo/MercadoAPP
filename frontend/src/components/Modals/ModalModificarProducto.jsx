@@ -2,64 +2,58 @@ import { useState } from 'react'
 import '../Estilos/Modal.css';
 import '../Estilos/Botones.css';
 
-function ModalProducto({ cerrarModal, onProductoAgregado }) {
-    
-    const [nombre, setNombre] = useState('');
-    const [descripcion, setDescripcion] = useState('');
+function ModalModificarProducto({ cerrarModal, producto, onProductoModificado }) {
+
+    const [nombre, setNombre] = useState(producto?.nombre || '');
+    const [descripcion, setDescripcion] = useState(producto?.descripcion || '');
 
     const [error, setError] = useState('');
-
-    const nuevoProducto = {
-        nombre: nombre,
-        descripcion: descripcion
-    }
+    const [guardando, setGuardando] = useState(false);
 
     const handleGuardar = async () => {
-
         if (nombre.trim() === '') {
             setError('❌ El nombre del producto es obligatorio.');
             return;
         }
         setError('');
-        
+        setGuardando(true);
+
         try {
-            console.log('Guardando producto...');
-            console.log('Enviando: ', nuevoProducto);
-            
-            const respuesta = await fetch('http://localhost:8080/api/productos/new', {
-                method: 'POST',
+            const respuesta = await fetch(`http://localhost:8080/api/productos/${producto.id}`, {
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(nuevoProducto)
+                body: JSON.stringify({ nombre, descripcion })
             });
 
             if (respuesta.status === 409 || respuesta.status === 400) {
-                setError('❌ Ya existe un producto con este nombre.')
+                setError('❌ Ya existe un producto con este nombre.');
                 return;
             }
 
             if (!respuesta.ok) {
-                setError('❌ Error en el servidor al intentar guardar.')
+                setError('❌ Error en el servidor al intentar guardar.');
                 return;
             }
-            
-            console.log('Producto guardado con exito!');
-            onProductoAgregado?.();
+
+            onProductoModificado?.();
             cerrarModal();
         } catch (err) {
-            console.log(err);
+            console.error(err);
             setError('❌ Error de conexion con el servidor');
+        } finally {
+            setGuardando(false);
         }
     }
 
-    return(
+    return (
         <div className="modal-overlay">
             <div className="modal-contenido">
 
                 <div className="modal-header">
-                    <h3>📦 Cargar Nuevo Producto</h3>
-                    <button className="btn-cerrar-modal" onClick={cerrarModal}>X</button>   
+                    <h3>✏️ Modificar Producto</h3>
+                    <button className="btn-cerrar-modal" onClick={cerrarModal}>X</button>
                 </div>
 
                 <div className="modal-body">
@@ -94,11 +88,13 @@ function ModalProducto({ cerrarModal, onProductoAgregado }) {
 
                 <div className="modal-footer">
                     <button className="btn-global btn-secundario" onClick={cerrarModal}>Cancelar</button>
-                    <button className="btn-global btn-primario-green" onClick={handleGuardar}>Guardar</button>
+                    <button className="btn-global btn-primario-green" onClick={handleGuardar} disabled={guardando}>
+                        {guardando ? 'Guardando...' : 'Guardar'}
+                    </button>
                 </div>
             </div>
         </div>
     );
 }
 
-export default ModalProducto;
+export default ModalModificarProducto;

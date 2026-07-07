@@ -242,5 +242,9 @@ public class BoletaService {
                 .map(boletaMapper::toDTO)
                 .toList();
     }
+    
+    public List<Boleta> findAllByEstadoPagoAndPlanilla_EstadoPlanilla(EstadoPago estadoPago, EstadoPlanilla estadoPlanilla){
+        return boletaRepository.findAllByEstadoPagoAndPlanilla_EstadoPlanilla(estadoPago, estadoPlanilla);
+    }
 
 }

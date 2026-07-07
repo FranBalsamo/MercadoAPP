@@ -2,6 +2,7 @@ package com.franbalsamo.mercadoapp.Controller;
 
 import com.franbalsamo.mercadoapp.Service.ClienteService;
 import com.franbalsamo.mercadoapp.Model.DTO.ClienteDTO;
+import com.franbalsamo.mercadoapp.Model.DTO.ClienteDeudorDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -55,5 +56,11 @@ public class ClienteController {
     public ResponseEntity<ClienteDTO> findByNombre(@PathVariable String nombre) {
         ClienteDTO clienteEncontrado = clienteService.findByNombre(nombre);
         return new ResponseEntity<>(clienteEncontrado, HttpStatus.OK);
+    }
+
+    @GetMapping("/deudores/{cantidad}")
+    public ResponseEntity<List<ClienteDeudorDTO>> findTopDeudores(@PathVariable int cantidad) {
+        List<ClienteDeudorDTO> topDeudores = clienteService.findTopDeudores(cantidad);
+        return new ResponseEntity<>(topDeudores, HttpStatus.OK);
     }
 }

@@ -1,6 +1,6 @@
 import './Estilos/Header.css';
 
-function Header({ abrirModalProducto, abrirModalCliente, abrirModalPlanilla, abrirVistaClientes, abrirVistaPlanillas, volverInicio }) {
+function Header({ abrirModalProducto, abrirModalCliente, abrirModalPlanilla, abrirVistaClientes, abrirVistaPlanillas, abrirVistaProductos, volverInicio }) {
     return (
         <header className="header-principal">
             <nav className="navegacion">
@@ -23,7 +23,7 @@ function Header({ abrirModalProducto, abrirModalCliente, abrirModalPlanilla, abr
                 <div className="nav-item">
                     <span className="nav-titulo">Productos</span>
                     <div className="dropdown-menu">
-                        <button onClick={() => console.log('Buscando productos...')}>Ver todos</button>
+                        <button onClick={abrirVistaProductos}>Ver todos</button>
                         <button onClick={abrirModalProducto}>Nuevo producto</button>
                     </div>
                 </div>

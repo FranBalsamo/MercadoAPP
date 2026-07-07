@@ -7,6 +7,7 @@ import ModalPlanilla from "./components/Modals/ModalPlanilla";
 import VistaInicio from "./components/Vistas/VistaInicio";
 import VistaPuntoVenta from "./components/Vistas/VistaPuntoVenta";
 import VistaClientes from "./components/Vistas/VistaClientes";
+import VistaProductos from "./components/Vistas/VistaProductos";
 import VistaPlanillas from "./components/Vistas/VistaPlanillas";
 import VistaPlanillaCerrada from "./components/Vistas/VistaPlanillaCerrada";
 
@@ -20,9 +21,16 @@ function App() {
   const [vistaActiva, setVistaActiva] = useState('inicio');
   const [vistaAnterior, setVistaAnterior] = useState('inicio');
   const [planillaActiva, setPlanillaActiva] = useState(null);
+  const [planillaParaResumen, setPlanillaParaResumen] = useState(null);
   const [actualizarClientes, setActualizarClientes] = useState(0);
+  const [actualizarProductos, setActualizarProductos] = useState(0);
+
   const avisarRecargaClientes = () => {
     setActualizarClientes(prev => prev + 1);
+  };
+
+  const avisarRecargaProductos = () => {
+    setActualizarProductos(prev => prev + 1);
   };
 
   const volverInicio = () => {
@@ -36,7 +44,7 @@ function App() {
   }
 
   const abrirPlanillaCerrada = (dtoPlanilla) => {
-    setPlanillaActiva(dtoPlanilla);
+    setPlanillaParaResumen(dtoPlanilla);
     setVistaActiva('planillaCerrada');
   };
 
@@ -57,6 +65,11 @@ function App() {
   const abrirVistaPlanillas = () => {
     setVistaAnterior(vistaActiva);
     setVistaActiva('planillas');
+  }
+
+  const abrirVistaProductos = () => {
+    setVistaAnterior(vistaActiva);
+    setVistaActiva('productos');
   }
 
   const abrirModalPlanilla = () => {
@@ -85,6 +98,12 @@ function App() {
         abrirModalNuevoCliente={abrirModalCliente}
       />
     }
+    else if (vistaActiva === 'productos') {
+      return <VistaProductos
+        senalRecarga={actualizarProductos}
+        abrirModalNuevoProducto={abrirModalProd}
+      />
+    }
     else if (vistaActiva === 'planillas') {
       return <VistaPlanillas
         abrirPlanilla={abrirPlanilla}
@@ -99,11 +118,16 @@ function App() {
     }
     else if (vistaActiva === 'planillaCerrada') {
       return <VistaPlanillaCerrada
-        planilla={planillaActiva}
+        planilla={planillaParaResumen}
         volver={() => setVistaActiva('planillas')}
       />;
     }
-    return <VistaInicio/>
+    return <VistaInicio
+      abrirModalPlanilla={abrirModalPlanilla}
+      abrirPlanilla={abrirPlanilla}
+      abrirPlanillaCerrada={abrirPlanillaCerrada}
+      planilla={planillaActiva}
+    />
   }
 
   return (
@@ -114,13 +138,17 @@ function App() {
         abrirModalPlanilla={abrirModalPlanilla} 
         abrirVistaClientes={abrirVistaClientes}
         abrirVistaPlanillas={abrirVistaPlanillas}
+        abrirVistaProductos={abrirVistaProductos}
         volverInicio={volverInicio}
       />
 
-      
+
       {MostrarVistas()}
-      
-      {mostrarModalProd && <ModalProducto cerrarModal={cerrarModalProd} />}
+
+      {mostrarModalProd && <ModalProducto
+        cerrarModal={cerrarModalProd}
+        onProductoAgregado={avisarRecargaProductos}
+      />}
       {mostrarModalCliente && <ModalCliente
         cerrarModal={cerrarModalCliente}
         onClienteAgregado={avisarRecargaClientes}

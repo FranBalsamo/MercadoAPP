@@ -1,7 +1,5 @@
 package com.franbalsamo.mercadoapp.Service.manager;
 
-
-import com.franbalsamo.mercadoapp.Model.DTO.StockProductoDTO;
 import com.franbalsamo.mercadoapp.Service.Enum.EstadoPago;
 import com.franbalsamo.mercadoapp.Service.Enum.EstadoPlanilla;
 import com.franbalsamo.mercadoapp.Service.BoletaService;
@@ -9,7 +7,6 @@ import com.franbalsamo.mercadoapp.Service.PlanillaService;
 import com.franbalsamo.mercadoapp.Model.Entity.Boleta;
 import com.franbalsamo.mercadoapp.Model.Entity.Planilla;
 import com.franbalsamo.mercadoapp.Model.DTO.PlanillaDTO;
-import com.franbalsamo.mercadoapp.Service.StockProductoService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,12 +22,11 @@ public class CajaManager {
     @Autowired
     private BoletaService boletaService;
 
-
     @Transactional
-    public PlanillaDTO closePlanilla(long id_planilla){
+    public PlanillaDTO closePlanilla(long id_planilla) {
         Planilla planilla = planillaService.findById(id_planilla);
 
-        if(EstadoPlanilla.CERRADA.equals(planilla.getEstadoPlanilla())){
+        if (EstadoPlanilla.CERRADA.equals(planilla.getEstadoPlanilla())) {
             throw new IllegalArgumentException("Esta planilla ya se encuentra cerrada.");
         }
 
@@ -39,10 +35,10 @@ public class CajaManager {
         float sumaIngresos = 0;
         float sumaDeuda = 0;
 
-        for(Boleta boleta: boletasDelDia){
-            if(boleta.getEstadoPago() == EstadoPago.PAGADO){
+        for (Boleta boleta : boletasDelDia) {
+            if (boleta.getEstadoPago() == EstadoPago.PAGADO) {
                 sumaIngresos += boleta.getTotal();
-            }else{
+            } else {
                 sumaDeuda += boleta.getTotal();
             }
         }

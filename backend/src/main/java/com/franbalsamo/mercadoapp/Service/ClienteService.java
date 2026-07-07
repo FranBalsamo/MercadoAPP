@@ -1,18 +1,29 @@
 package com.franbalsamo.mercadoapp.Service;
 
+import com.franbalsamo.mercadoapp.Repository.BoletaRepository;
 import com.franbalsamo.mercadoapp.Repository.ClienteRepository;
+import com.franbalsamo.mercadoapp.Model.Entity.Boleta;
 import com.franbalsamo.mercadoapp.Model.Entity.Cliente;
+import com.franbalsamo.mercadoapp.Model.DTO.ClienteDeudorDTO;
+import com.franbalsamo.mercadoapp.Service.Enum.EstadoPago;
+import com.franbalsamo.mercadoapp.Service.Enum.EstadoPlanilla;
 import com.franbalsamo.mercadoapp.Service.exception.RecursoNoEncontradoException;
 import com.franbalsamo.mercadoapp.Service.mapper.ClienteMapper;
 import com.franbalsamo.mercadoapp.Model.DTO.ClienteDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ClienteService {
     @Autowired
     private ClienteRepository clienteRepository;
+
+    @Autowired
+    private BoletaRepository boletaRepository;
 
     @Autowired
     private ClienteMapper clienteMapper;
@@ -66,5 +77,21 @@ public class ClienteService {
 
     public boolean existsByDocumento(String documento){
         return clienteRepository.existsByDocumento(documento);
+    }
+
+    public List<ClienteDeudorDTO> findTopDeudores(int cantidad){
+        List<Boleta> boletasImpagas = boletaRepository
+                .findAllByEstadoPagoAndPlanilla_EstadoPlanilla(EstadoPago.NO_PAGADO, EstadoPlanilla.CERRADA);
+
+        Map<Cliente, Float> deudaPorCliente = new LinkedHashMap<>();
+        for (Boleta boleta : boletasImpagas) {
+            deudaPorCliente.merge(boleta.getCliente(), boleta.getTotal(), Float::sum);
+        }
+
+        return deudaPorCliente.entrySet().stream()
+                .sorted(Map.Entry.<Cliente, Float>comparingByValue().reversed())
+                .limit(cantidad)
+                .map(entry -> new ClienteDeudorDTO(entry.getKey().getId(), entry.getKey().getNombre(), entry.getValue()))
+                .toList();
     }
 }

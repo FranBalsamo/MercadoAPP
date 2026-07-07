@@ -1,10 +1,13 @@
 package com.franbalsamo.mercadoapp.Service;
 
+import com.franbalsamo.mercadoapp.Repository.BoletaRepository;
 import com.franbalsamo.mercadoapp.Repository.PlanillaRepository;
+import com.franbalsamo.mercadoapp.Model.Entity.Boleta;
 import com.franbalsamo.mercadoapp.Model.Entity.Planilla;
 import com.franbalsamo.mercadoapp.Model.Entity.Producto;
 import com.franbalsamo.mercadoapp.Model.Entity.StockProducto;
 import com.franbalsamo.mercadoapp.Service.exception.RecursoNoEncontradoException;
+import com.franbalsamo.mercadoapp.Service.exception.ReglaNegocioException;
 import com.franbalsamo.mercadoapp.Service.mapper.PlanillaMapper;
 import com.franbalsamo.mercadoapp.Service.mapper.StockProductoMapper;
 import com.franbalsamo.mercadoapp.Model.DTO.PlanillaDTO;
@@ -21,6 +24,9 @@ public class PlanillaService {
     public PlanillaRepository planillaRepository;
 
     @Autowired
+    public BoletaRepository boletaRepository;
+
+    @Autowired
     public ProductoService productoService;
 
     @Autowired
@@ -28,7 +34,6 @@ public class PlanillaService {
 
     @Autowired
     public StockProductoMapper stockProductoMapper;
-
 
     @Transactional
     public PlanillaDTO newPlanilla(PlanillaDTO planillaDTO){
@@ -56,7 +61,6 @@ public class PlanillaService {
         return planillaMapper.toDTO(planillaGuardada);
     }
 
-
     public List<StockProductoDTO> getStockProductos(long id_planilla){
         Planilla planilla = planillaRepository.findById(id_planilla)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontro la planilla con id: " + id_planilla));
@@ -80,5 +84,17 @@ public class PlanillaService {
 
     public PlanillaDTO findDTOById(long id){
         return planillaMapper.toDTO(findById(id));
+    }
+
+    @Transactional
+    public void delete(long id) {
+        Planilla planilla = findById(id);
+
+        List<Boleta> boletas = boletaRepository.findAllByPlanilla(planilla);
+        if(!boletas.isEmpty()){
+            throw new ReglaNegocioException("No se puede eliminar la planilla porque ya tiene boletas cargadas.");
+        }
+
+        planillaRepository.deleteById(id);
     }
 }

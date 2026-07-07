@@ -50,4 +50,10 @@ public class PlanillaController {
     public ResponseEntity<PlanillaDTO> findById(@PathVariable long id){
         return new ResponseEntity<>(planillaService.findDTOById(id), HttpStatus.OK);
     }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<Void> delete(@PathVariable long id){
+        planillaService.delete(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 }

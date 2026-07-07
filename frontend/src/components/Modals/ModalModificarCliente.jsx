@@ -3,23 +3,31 @@ import AlertaConfirmacion from '../Alertas/AlertaConfirmacion';
 import '../Estilos/Modal.css';
 import '../Estilos/Botones.css';
 
-function ModalModificarProducto({ cerrarModal, producto, onProductoModificado }) {
+function ModalModificarCliente({ cerrarModal, cliente, onClienteModificado }) {
 
-    const [nombre, setNombre] = useState(producto?.nombre || '');
-    const [descripcion, setDescripcion] = useState(producto?.descripcion || '');
+    const [nombre, setNombre] = useState(cliente?.nombre || '');
+    const [documento, setDocumento] = useState(cliente?.documento || '');
+    const [direccion, setDireccion] = useState(cliente?.direccion || '');
+    const [telefono, setTelefono] = useState(cliente?.telefono || '');
 
     const [error, setError] = useState('');
     const [guardando, setGuardando] = useState(false);
     const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
 
     const huboModificacion = () => {
-        return nombre.trim() !== (producto?.nombre || '').trim()
-            || descripcion.trim() !== (producto?.descripcion || '').trim();
+        return nombre.trim() !== (cliente?.nombre || '').trim()
+            || documento.trim() !== (cliente?.documento || '').trim()
+            || direccion.trim() !== (cliente?.direccion || '').trim()
+            || telefono.trim() !== (cliente?.telefono || '').trim();
     };
 
     const handleGuardar = () => {
         if (nombre.trim() === '') {
-            setError('❌ El nombre del producto es obligatorio.');
+            setError('❌ El nombre del cliente es obligatorio.');
+            return;
+        }
+        if (documento.trim() === '') {
+            setError('❌ El cuit del cliente es obligatorio.');
             return;
         }
 
@@ -37,12 +45,12 @@ function ModalModificarProducto({ cerrarModal, producto, onProductoModificado })
         setGuardando(true);
 
         try {
-            const respuesta = await fetch(`http://localhost:8080/api/productos/${producto.id}`, {
+            const respuesta = await fetch(`http://localhost:8080/api/clientes/${cliente.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ nombre, descripcion })
+                body: JSON.stringify({ nombre, documento, direccion, telefono })
             });
 
             if (!respuesta.ok) {
@@ -51,11 +59,11 @@ function ModalModificarProducto({ cerrarModal, producto, onProductoModificado })
                 return;
             }
 
-            onProductoModificado?.();
+            onClienteModificado?.();
             cerrarModal();
         } catch (err) {
             console.error(err);
-            setError('❌ Error de conexion con el servidor');
+            setError('❌ Error de conexion con el servidor.');
         } finally {
             setGuardando(false);
         }
@@ -64,9 +72,8 @@ function ModalModificarProducto({ cerrarModal, producto, onProductoModificado })
     return (
         <div className="modal-overlay">
             <div className="modal-contenido">
-
                 <div className="modal-header">
-                    <h3>✏️ Modificar Producto</h3>
+                    <h3>✏️ Modificar Cliente</h3>
                     <button className="btn-cerrar-modal" onClick={cerrarModal}>X</button>
                 </div>
 
@@ -74,30 +81,46 @@ function ModalModificarProducto({ cerrarModal, producto, onProductoModificado })
                     {error && (
                         <div style={{ color: 'red', fontSize: '0.8rem' }}>{error}</div>
                     )}
+
                     <div className="form-group">
-                        <label>Nombre del Producto:</label>
+                        <label>Nombre:</label>
                         <input
                             type="text"
-                            placeholder="Producto"
+                            placeholder="Cliente"
                             value={nombre}
                             onChange={(e) => setNombre(e.target.value)}
-                            maxLength={50}
                             style={{ textTransform: 'capitalize' }}
                         />
                     </div>
+
                     <div className="form-group">
-                        <label>Descripcion:</label>
-                        <textarea
-                            type="textarea"
-                            placeholder="Descripcion"
-                            rows="2"
-                            value={descripcion}
-                            onChange={(e) => setDescripcion(e.target.value)}
-                            maxLength={100}
+                        <label>Cuit:</label>
+                        <input
+                            type="text"
+                            placeholder="Cuit"
+                            value={documento}
+                            onChange={(e) => setDocumento(e.target.value)}
                         />
-                        <small style={{ color: '#888', textAlign: 'right', fontSize: '0.8rem' }}>
-                            {descripcion.length}/100
-                        </small>
+                    </div>
+
+                    <div className="form-group">
+                        <label>Direccion:</label>
+                        <input
+                            type="text"
+                            placeholder="Opcional"
+                            value={direccion}
+                            onChange={(e) => setDireccion(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label>Telefono:</label>
+                        <input
+                            type="text"
+                            placeholder="Opcional"
+                            value={telefono}
+                            onChange={(e) => setTelefono(e.target.value)}
+                        />
                     </div>
                 </div>
 
@@ -111,7 +134,7 @@ function ModalModificarProducto({ cerrarModal, producto, onProductoModificado })
 
             {mostrarConfirmacion && (
                 <AlertaConfirmacion
-                    mensaje={`¿Confirmás guardar los cambios del producto?`}
+                    mensaje={`¿Confirmás guardar los cambios del cliente?`}
                     onConfirmar={confirmarGuardado}
                     onCancelar={() => setMostrarConfirmacion(false)}
                 />
@@ -120,4 +143,4 @@ function ModalModificarProducto({ cerrarModal, producto, onProductoModificado })
     );
 }
 
-export default ModalModificarProducto;
+export default ModalModificarCliente;

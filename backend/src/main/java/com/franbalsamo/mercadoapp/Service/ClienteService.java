@@ -8,6 +8,7 @@ import com.franbalsamo.mercadoapp.Model.DTO.ClienteDeudorDTO;
 import com.franbalsamo.mercadoapp.Service.Enum.EstadoPago;
 import com.franbalsamo.mercadoapp.Service.Enum.EstadoPlanilla;
 import com.franbalsamo.mercadoapp.Service.exception.RecursoNoEncontradoException;
+import com.franbalsamo.mercadoapp.Service.exception.ReglaNegocioException;
 import com.franbalsamo.mercadoapp.Service.mapper.ClienteMapper;
 import com.franbalsamo.mercadoapp.Model.DTO.ClienteDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,10 @@ public class ClienteService {
     public ClienteDTO modificarCliente(ClienteDTO dto){
         Cliente cliente = clienteRepository.findById(dto.getId())
                 .orElseThrow(() -> new RecursoNoEncontradoException("Cliente no encontrado con id: " + dto.getId()));
+
+        if(!cliente.getDocumento().equals(dto.getDocumento()) && clienteRepository.existsByDocumento(dto.getDocumento())){
+            throw new ReglaNegocioException("Ya existe un cliente registrado con el documento: " + dto.getDocumento());
+        }
 
         cliente.setNombre(dto.getNombre());
         cliente.setDocumento(dto.getDocumento());

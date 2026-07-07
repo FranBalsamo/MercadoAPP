@@ -3,6 +3,7 @@ package com.franbalsamo.mercadoapp.Service;
 import com.franbalsamo.mercadoapp.Repository.ProductoRepository;
 import com.franbalsamo.mercadoapp.Model.Entity.Producto;
 import com.franbalsamo.mercadoapp.Service.exception.RecursoNoEncontradoException;
+import com.franbalsamo.mercadoapp.Service.exception.ReglaNegocioException;
 import com.franbalsamo.mercadoapp.Service.mapper.ProductoMapper;
 import com.franbalsamo.mercadoapp.Model.DTO.ProductoDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,12 @@ public class ProductoService {
     public ProductoDTO modificarProducto(ProductoDTO productoDTO){
         Producto producto = productoRepository.findById(productoDTO.getId())
                 .orElseThrow(() -> new RecursoNoEncontradoException("Producto no encontrado con id: " + productoDTO.getId()));
+
+        String nombreNormalizado = productoDTO.getNombre().trim().toLowerCase();
+
+        if(!producto.getNombre().equalsIgnoreCase(nombreNormalizado) && productoRepository.existsByNombre(nombreNormalizado)){
+            throw new ReglaNegocioException("Ya existe un producto con el nombre: " + productoDTO.getNombre().trim());
+        }
 
         producto.setNombre(productoDTO.getNombre());
         producto.setDescripcion(productoDTO.getDescripcion());

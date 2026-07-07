@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ModalModificarCliente from '../Modals/ModalModificarCliente';
 import '../Estilos/Botones.css';
 
 function VistaClientes({senalRecarga, abrirModalNuevoCliente}) {
@@ -8,9 +9,11 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente}) {
 
     // Estados para los filtros
     const [metodoFiltro, setMetodoFiltro] = useState('nombre');
-    const [busqueda, setBusqueda] = useState(''); 
+    const [busqueda, setBusqueda] = useState('');
 
     const [mostrarModalNuevoCliente, setMostrarModalNuevoCliente] = useState(false);
+    const [mostrarModalModificar, setMostrarModalModificar] = useState(false);
+    const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
 
     // --- EFECTOS Y FETCH ---
     useEffect(() => {
@@ -46,6 +49,11 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente}) {
             console.error("Hubo un problema con el fetch:", e);
             setError('Error al conectar con el servidor.');
         }
+    };
+
+    const abrirModificarCliente = (cliente) => {
+        setClienteSeleccionado(cliente);
+        setMostrarModalModificar(true);
     };
 
     // --- LÓGICA DE INTERFAZ ---
@@ -192,6 +200,7 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente}) {
                                         <button
                                             className="btn-global btn-primario"
                                             style={{padding:'4px 4px', fontSize:'0.9rem'}}
+                                            onClick={() => abrirModificarCliente(cliente)}
                                         >
                                             Modificar
                                         </button>
@@ -216,6 +225,17 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente}) {
                     +Nuevo Cliente
                 </button>
             </div>
+
+            {mostrarModalModificar && (
+                <ModalModificarCliente
+                    cliente={clienteSeleccionado}
+                    cerrarModal={() => {
+                        setMostrarModalModificar(false);
+                        setClienteSeleccionado(null);
+                    }}
+                    onClienteModificado={obtenerClientes}
+                />
+            )}
 
         </main>
     );

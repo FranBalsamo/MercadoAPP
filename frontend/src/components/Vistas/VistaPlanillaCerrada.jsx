@@ -188,7 +188,7 @@ function VistaPlanillaCerrada({ planilla, volver }) {
             return [
                 capitalizar(nombreCliente(boleta.id_cliente)),
                 boleta.estadoPago === 'NO_PAGADO' ? 'NO PAGADO' : 'PAGADO',
-                boleta.estadoRetiro,
+                boleta.estadoRetiro === 'NO_RETIRADO' ? 'NO RETIRADO' : 'RETIRADO',
                 productos,
                 formatearMoneda(boleta.total),
             ];
@@ -209,6 +209,11 @@ function VistaPlanillaCerrada({ planilla, volver }) {
                 if (data.section === 'body' && data.column.index === 1) {
                     const esPagado = data.cell.raw === 'PAGADO';
                     data.cell.styles.textColor = esPagado ? [39, 174, 96] : [192, 57, 43];
+                    data.cell.styles.fontStyle = 'bold';
+                }
+                if (data.section === 'body' && data.column.index === 2) {
+                    const esRetirado = data.cell.raw === 'RETIRADO';
+                    data.cell.styles.textColor = esRetirado ? [41, 128, 185] : [192, 57, 43];
                     data.cell.styles.fontStyle = 'bold';
                 }
             },

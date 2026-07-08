@@ -18,6 +18,9 @@ public class ClienteService {
     @Autowired
     private ClienteMapper clienteMapper;
 
+    public Cliente save(Cliente cliente){
+        return clienteRepository.save(cliente);
+    }
     public ClienteDTO saveCliente(ClienteDTO dto){
         Cliente nuevoCliente = clienteMapper.toEntity(dto);
         return clienteMapper.toDTO(clienteRepository.save(nuevoCliente));

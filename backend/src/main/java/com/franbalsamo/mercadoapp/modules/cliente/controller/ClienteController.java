@@ -22,8 +22,8 @@ public class ClienteController {
     private BoletaService boletaService;
 
     @PostMapping("/new")
-    public ResponseEntity<ClienteDTO> newCliente(@RequestBody ClienteDTO clienteDTO){
-        if(clienteService.existsByDocumento(clienteDTO.getDocumento())){
+    public ResponseEntity<ClienteDTO> newCliente(@RequestBody ClienteDTO clienteDTO) {
+        if (clienteService.existsByDocumento(clienteDTO.getDocumento())) {
             return new ResponseEntity<>(HttpStatus.CONFLICT);
         }
 
@@ -32,22 +32,22 @@ public class ClienteController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ClienteDTO> modificarCliente(@PathVariable Long id, @RequestBody ClienteDTO clienteDTO){
+    public ResponseEntity<ClienteDTO> modificarCliente(@PathVariable Long id, @RequestBody ClienteDTO clienteDTO) {
         clienteDTO.setId(id);
         ClienteDTO clienteActualizado = clienteService.modificarCliente(clienteDTO);
         return new ResponseEntity<>(clienteActualizado, HttpStatus.OK);
     }
 
     @GetMapping("/All")
-    public ResponseEntity<List<ClienteDTO>> findAll(){
+    public ResponseEntity<List<ClienteDTO>> findAll() {
         List<ClienteDTO> listaClientes = clienteService.findAll();
-        return new ResponseEntity<>(listaClientes,HttpStatus.OK);
+        return new ResponseEntity<>(listaClientes, HttpStatus.OK);
     }
 
     @GetMapping("All/{FiltroNombre}")
-    public ResponseEntity<List<ClienteDTO>> findAllByNombre(@PathVariable String FiltroNombre){
+    public ResponseEntity<List<ClienteDTO>> findAllByNombre(@PathVariable String FiltroNombre) {
         List<ClienteDTO> listaClientes = clienteService.findAllByFiltroNombre(FiltroNombre);
-        return new ResponseEntity<>(listaClientes,HttpStatus.OK);
+        return new ResponseEntity<>(listaClientes, HttpStatus.OK);
     }
 
     @GetMapping("/buscar/documento/{documento}")

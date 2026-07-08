@@ -1,6 +1,5 @@
 package com.franbalsamo.mercadoapp.modules.boleta.controller;
 
-import com.franbalsamo.mercadoapp.modules.boleta.model.Boleta;
 import com.franbalsamo.mercadoapp.modules.boleta.service.BoletaService;
 import com.franbalsamo.mercadoapp.modules.boleta.model.BoletaDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,9 +43,20 @@ public class BoletaController {
         return new ResponseEntity<>(boletaService.findAllDeudasByCliente(id_cliente), HttpStatus.OK);
     }
 
+    @PutMapping("/pagar_deuda/{listaIds_boletas}/cliente/{id_cliente}")
+    public ResponseEntity<List<BoletaDTO>> pagarBoletasDeudasSeleccionadas(
+            @PathVariable List<Long> listaIds_boletas ,@PathVariable long id_cliente ){
+      return new ResponseEntity<>(boletaService.pagarBoletasDeudasSeleccionadas(listaIds_boletas, id_cliente), HttpStatus.OK);
+    }
+
+    @PutMapping("/pagar_deuda/cliente/{id_cliente}/monto/{monto_pago}")
+    public ResponseEntity<List<BoletaDTO>> pagarBoletasDeudasPagoACuenta(
+            @PathVariable long id_cliente ,@PathVariable float monto_pago ){
+        return new ResponseEntity<>(boletaService.pagarBoletasDeudasPagoACuenta(id_cliente,monto_pago),HttpStatus.OK);
+    }
     @DeleteMapping("/remove/{id}")
     public ResponseEntity<Void> removeBoleta(@PathVariable long id){
         boletaService.removeBoleta(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT); // 204 No Content (no tiene contenido de retorno)
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

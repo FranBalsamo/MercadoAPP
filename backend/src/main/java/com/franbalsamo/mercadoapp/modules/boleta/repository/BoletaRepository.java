@@ -6,6 +6,8 @@ import com.franbalsamo.mercadoapp.modules.planilla.model.Planilla;
 import com.franbalsamo.mercadoapp.modules.boleta.EstadoPago;
 import com.franbalsamo.mercadoapp.modules.planilla.EstadoPlanilla;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -23,4 +25,12 @@ public interface BoletaRepository extends JpaRepository<Boleta, Long> {
             EstadoPago estadoPago,
             EstadoPlanilla planillaEstadoPlanilla);
 
+    @Query("SELECT b FROM Boleta b JOIN FETCH b.planilla " +
+            "WHERE b.cliente = :cliente AND b.estadoPago = :estadoPago AND b.planilla.estadoPlanilla = :estadoPlanilla " +
+            "ORDER BY b.planilla.fecha ASC")
+    List<Boleta> findDeudasOrdenadasPorFechaYenPlanillaCerradas(
+            @Param("cliente") Cliente cliente,
+            @Param("estadoPago") EstadoPago estadoPago,
+            @Param("estadoPlanilla") EstadoPlanilla estadoPlanilla);
+    Boleta findByIdAndCliente(Long idBoleta, Cliente cliente);
 }

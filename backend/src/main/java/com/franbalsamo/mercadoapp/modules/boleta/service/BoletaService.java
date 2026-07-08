@@ -253,10 +253,6 @@ public class BoletaService {
                 .map(boletaMapper::toDTO)
                 .toList();
     }
-    
-    public List<Boleta> findAllByEstadoPagoAndPlanilla_EstadoPlanilla(EstadoPago estadoPago, EstadoPlanilla estadoPlanilla){
-        return boletaRepository.findAllByEstadoPagoAndPlanilla_EstadoPlanilla(estadoPago, estadoPlanilla);
-    }
 
     public List<BoletaDTO> findAllDeudasByCliente(long id_cliente){
         Cliente cliente = clienteService.findById(id_cliente);
@@ -286,4 +282,61 @@ public class BoletaService {
                 .toList();
     }
 
+    @Transactional
+    public List<BoletaDTO> pagarBoletasDeudasSeleccionadas(List<Long> listaIds_boletasDeudas, long id_cliente){
+        /*
+        Este metodo permite pagar las boletas con EstadoPago "NO_PAGADO" que fueron seleccionadas por el usuario.
+         */
+        Cliente cliente = clienteService.findById(id_cliente);
+        List<Boleta> listaBoletasPagadas = new ArrayList<>();
+        for(Long id_boleta : listaIds_boletasDeudas){
+        Boleta boleta = boletaRepository.findByIdAndCliente(id_boleta,cliente);
+        if(boleta == null){
+            throw new RecursoNoEncontradoException("No se encontro la boleta con id: " + id_boleta + " para el cliente con id: " + id_cliente);
+        }
+        boleta.setEstadoPago(EstadoPago.PAGADO);
+        boletaRepository.save(boleta);
+        listaBoletasPagadas.add(boleta);
+        }
+        return listaBoletasPagadas.stream()
+                .map(boletaMapper::toDTO)
+                .toList();
+    }
+
+    @Transactional
+    public List<BoletaDTO> pagarBoletasDeudasPagoACuenta(long id_cliente, float monto_pago){
+        if(monto_pago <= 0)
+            throw new ReglaNegocioException("Monto pago invalido");
+
+        Cliente cliente = clienteService.findById(id_cliente);
+
+        List<Boleta> listaBoletasDeudas = boletaRepository.findDeudasOrdenadasPorFechaYenPlanillaCerradas(
+                cliente,
+                EstadoPago.NO_PAGADO,
+                EstadoPlanilla.CERRADA);
+        List<Boleta> listaBoletasPagadas = new ArrayList<>();
+
+        //Se agrega el saldo a favor del cliente para pagar las deudas.
+        monto_pago += cliente.getSaldo_a_favor();
+        cliente.setSaldo_a_favor(0);
+        for(Boleta boletaDeuda : listaBoletasDeudas){
+            if(boletaDeuda.getTotal() <= monto_pago) {
+                monto_pago -= boletaDeuda.getTotal();
+                boletaDeuda.setEstadoPago(EstadoPago.PAGADO);
+                listaBoletasPagadas.add(boletaDeuda);
+                boletaRepository.save(boletaDeuda);
+            }
+            if(monto_pago <= 0)
+                break;
+        }
+        //Sobro dinero y no es posible pagar una boleta en su totalidad entonces se almacena en saldo a favor
+        if(monto_pago > 0){
+            cliente.setSaldo_a_favor(monto_pago);
+        }
+
+        clienteService.save(cliente);
+        return listaBoletasPagadas.stream()
+                .map(boletaMapper::toDTO)
+                .toList();
+    }
 }

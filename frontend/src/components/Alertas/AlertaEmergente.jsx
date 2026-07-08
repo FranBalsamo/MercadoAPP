@@ -1,15 +1,15 @@
 import { useEffect } from 'react';
 import '../Estilos/AlertaEmergente.css';
 
-function AlertaEmergente({ mensaje, onClose }) {
-    
+function AlertaEmergente({ mensaje, onClose, tipo = 'error' }) {
+
     useEffect(() => {
         if (!mensaje) return;
 
         const temporizador = setTimeout(() => {
             onClose();
         }, 3500); // 3500 milisegundos = 3.5 segundos
-        
+
         return () => clearTimeout(temporizador);
     }, [mensaje, onClose]);
 
@@ -17,8 +17,8 @@ function AlertaEmergente({ mensaje, onClose }) {
 
     return (
         <div className="alerta-emergente-contenedor">
-            <div className="alerta-emergente-contenido">
-                <span style={{ fontSize: '1.2rem' }}>⚠️</span>
+            <div className={`alerta-emergente-contenido ${tipo === 'exito' ? 'exito' : ''}`}>
+                <span style={{ fontSize: '1.2rem' }}>{tipo === 'exito' ? '✅' : '⚠️'}</span>
                 <span>{mensaje}</span>
             </div>
         </div>

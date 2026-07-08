@@ -27,6 +27,10 @@
     line-height: 1.4;
 }
 
+.alerta-emergente-contenido.exito {
+    background-color: #2ecc71; /* Verde de éxito, igual que btn-primario-green */
+}
+
 /* --------------------------------------
 ANIMACIONES (Keyframes)
 -------------------------------------- */

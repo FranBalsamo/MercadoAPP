@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ModalModificarCliente from '../Modals/ModalModificarCliente';
 import '../Estilos/Botones.css';
 
-function VistaClientes({senalRecarga, abrirModalNuevoCliente}) {
+function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCliente}) {
     // --- ESTADOS ---
     const [clientes, setClientes] = useState([]);
     const [error, setError] = useState('');
@@ -196,13 +196,20 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente}) {
                                     <td style={{ padding: '10px 15px', textTransform: 'capitalize', fontWeight: '500' }}>
                                         {cliente.direccion || '-'}
                                     </td>
-                                    <td style={{ padding: '10px 15px', textTransform: 'capitalize', fontWeight: '500' }}>
+                                    <td style={{ padding: '10px 15px', textTransform: 'capitalize', fontWeight: '500', display: 'flex', gap: '8px' }}>
                                         <button
                                             className="btn-global btn-primario"
                                             style={{padding:'4px 4px', fontSize:'0.9rem'}}
                                             onClick={() => abrirModificarCliente(cliente)}
                                         >
                                             Modificar
+                                        </button>
+                                        <button
+                                            className="btn-global btn-peligro"
+                                            style={{padding:'4px 4px', fontSize:'0.9rem'}}
+                                            onClick={() => abrirVistaDeudasCliente(cliente)}
+                                        >
+                                            Ver Deudas
                                         </button>
                                     </td>
                                 </tr>

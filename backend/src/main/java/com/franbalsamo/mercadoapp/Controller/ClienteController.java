@@ -1,5 +1,6 @@
 package com.franbalsamo.mercadoapp.Controller;
 
+import com.franbalsamo.mercadoapp.Service.BoletaService;
 import com.franbalsamo.mercadoapp.Service.ClienteService;
 import com.franbalsamo.mercadoapp.Model.DTO.ClienteDTO;
 import com.franbalsamo.mercadoapp.Model.DTO.ClienteDeudorDTO;
@@ -16,6 +17,9 @@ public class ClienteController {
 
     @Autowired
     private ClienteService clienteService;
+
+    @Autowired
+    private BoletaService boletaService;
 
     @PostMapping("/new")
     public ResponseEntity<ClienteDTO> newCliente(@RequestBody ClienteDTO clienteDTO){
@@ -60,7 +64,7 @@ public class ClienteController {
 
     @GetMapping("/deudores/{cantidad}")
     public ResponseEntity<List<ClienteDeudorDTO>> findTopDeudores(@PathVariable int cantidad) {
-        List<ClienteDeudorDTO> topDeudores = clienteService.findTopDeudores(cantidad);
+        List<ClienteDeudorDTO> topDeudores = boletaService.findTopDeudores(cantidad);
         return new ResponseEntity<>(topDeudores, HttpStatus.OK);
     }
 }

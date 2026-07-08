@@ -10,6 +10,7 @@ import VistaClientes from "./components/Vistas/VistaClientes";
 import VistaProductos from "./components/Vistas/VistaProductos";
 import VistaPlanillas from "./components/Vistas/VistaPlanillas";
 import VistaPlanillaCerrada from "./components/Vistas/VistaPlanillaCerrada";
+import VistaClienteDeudas from "./components/Vistas/VistaClienteDeudas";
 
 import "./App.css";
 
@@ -22,6 +23,7 @@ function App() {
   const [vistaAnterior, setVistaAnterior] = useState('inicio');
   const [planillaActiva, setPlanillaActiva] = useState(null);
   const [planillaParaResumen, setPlanillaParaResumen] = useState(null);
+  const [clienteParaDeudas, setClienteParaDeudas] = useState(null);
   const [actualizarClientes, setActualizarClientes] = useState(0);
   const [actualizarProductos, setActualizarProductos] = useState(0);
 
@@ -72,6 +74,11 @@ function App() {
     setVistaActiva('productos');
   }
 
+  const abrirVistaDeudasCliente = (cliente) => {
+    setClienteParaDeudas(cliente);
+    setVistaActiva('deudasCliente');
+  }
+
   const abrirModalPlanilla = () => {
     setMostrarModalPlanilla(true);
   }
@@ -96,6 +103,13 @@ function App() {
       return <VistaClientes
         senalRecarga={actualizarClientes}
         abrirModalNuevoCliente={abrirModalCliente}
+        abrirVistaDeudasCliente={abrirVistaDeudasCliente}
+      />
+    }
+    else if (vistaActiva === 'deudasCliente') {
+      return <VistaClienteDeudas
+        cliente={clienteParaDeudas}
+        volver={() => setVistaActiva('clientes')}
       />
     }
     else if (vistaActiva === 'productos') {

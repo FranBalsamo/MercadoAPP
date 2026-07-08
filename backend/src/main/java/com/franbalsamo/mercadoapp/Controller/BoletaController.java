@@ -1,5 +1,6 @@
 package com.franbalsamo.mercadoapp.Controller;
 
+import com.franbalsamo.mercadoapp.Model.Entity.Boleta;
 import com.franbalsamo.mercadoapp.Service.BoletaService;
 import com.franbalsamo.mercadoapp.Model.DTO.BoletaDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,11 @@ public class BoletaController {
     @GetMapping("/cliente/{id}")
     public ResponseEntity<List<BoletaDTO>> findAllByCliente(@PathVariable long id){
         return new ResponseEntity<>(boletaService.findByCliente(id), HttpStatus.OK);
+    }
+
+    @GetMapping("/cliente/{id_cliente}/deudas")
+    public ResponseEntity<List<BoletaDTO>> findAllDeudasByCliente(@PathVariable long id_cliente){
+        return new ResponseEntity<>(boletaService.findAllDeudasByCliente(id_cliente), HttpStatus.OK);
     }
 
     @DeleteMapping("/remove/{id}")

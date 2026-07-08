@@ -57,7 +57,15 @@ function VistaPlanillas({ abrirPlanilla, abrirPlanillaCerrada }) {
         } else {
             return planilla.estadoPlanilla === busqueda;
         }
-    }).sort((a, b) => (a.fecha < b.fecha ? 1 : a.fecha > b.fecha ? -1 : 0));
+    }).sort((a, b) => {
+        if (a.fecha !== b.fecha) {
+            return a.fecha < b.fecha ? 1 : -1; // Más reciente primero
+        }
+        if (a.estadoPlanilla !== b.estadoPlanilla) {
+            return a.estadoPlanilla === 'ABIERTA' ? -1 : 1; // Abiertas antes que cerradas
+        }
+        return 0;
+    });
 
     const formatearMoneda = (valor) => {
         return (valor ?? 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
@@ -205,11 +213,11 @@ function VistaPlanillas({ abrirPlanilla, abrirPlanillaCerrada }) {
                                     <td style={{ padding: '10px 15px', textAlign: 'center' }}>
                                         {planilla.estadoPlanilla === 'ABIERTA' ? (
                                             <button
-                                                className="btn-global btn-primario"
+                                                className="btn-global btn-primario-green"
                                                 onClick={() => abrirPlanilla(planilla)}
                                                 style={{ padding: '6px 15px', fontSize: '0.85rem' }}
                                             >
-                                                🟢 Operar POS
+                                                Abrir planilla
                                             </button>
                                         ) : (
                                             <button

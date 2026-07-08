@@ -9,13 +9,16 @@ import com.franbalsamo.mercadoapp.Service.Enum.EstadoPlanilla;
 import com.franbalsamo.mercadoapp.Service.Enum.EstadoRetiro;
 import com.franbalsamo.mercadoapp.Service.mapper.BoletaMapper;
 import com.franbalsamo.mercadoapp.Model.DTO.BoletaDTO;
+import com.franbalsamo.mercadoapp.Model.DTO.ClienteDeudorDTO;
 import com.franbalsamo.mercadoapp.Model.DTO.VentaDTO;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class BoletaService {
@@ -245,6 +248,34 @@ public class BoletaService {
     
     public List<Boleta> findAllByEstadoPagoAndPlanilla_EstadoPlanilla(EstadoPago estadoPago, EstadoPlanilla estadoPlanilla){
         return boletaRepository.findAllByEstadoPagoAndPlanilla_EstadoPlanilla(estadoPago, estadoPlanilla);
+    }
+
+    public List<BoletaDTO> findAllDeudasByCliente(long id_cliente){
+        Cliente cliente = clienteService.findById(id_cliente);
+        List<Boleta> listaBoleta = boletaRepository.
+                findAllByClienteAndEstadoPagoAndPlanilla_EstadoPlanilla(
+                        cliente,
+                        EstadoPago.NO_PAGADO,
+                        EstadoPlanilla.CERRADA);
+        return  listaBoleta.stream()
+                .map(boletaMapper::toDTO)
+                .toList();
+    }
+
+    public List<ClienteDeudorDTO> findTopDeudores(int cantidad){
+        List<Boleta> boletasImpagas = boletaRepository
+                .findAllByEstadoPagoAndPlanilla_EstadoPlanilla(EstadoPago.NO_PAGADO, EstadoPlanilla.CERRADA);
+
+        Map<Cliente, Float> deudaPorCliente = new LinkedHashMap<>();
+        for (Boleta boleta : boletasImpagas) {
+            deudaPorCliente.merge(boleta.getCliente(), boleta.getTotal(), Float::sum);
+        }
+
+        return deudaPorCliente.entrySet().stream()
+                .sorted(Map.Entry.<Cliente, Float>comparingByValue().reversed())
+                .limit(cantidad)
+                .map(entry -> new ClienteDeudorDTO(entry.getKey().getId(), entry.getKey().getNombre(), entry.getValue()))
+                .toList();
     }
 
 }

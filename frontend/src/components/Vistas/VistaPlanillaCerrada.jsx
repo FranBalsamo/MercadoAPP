@@ -1,6 +1,16 @@
 import { useState, useEffect } from 'react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { save } from '@tauri-apps/plugin-dialog';
+import { writeFile } from '@tauri-apps/plugin-fs';
 import ModalModificarBoleta from '../Modals/ModalModificarBoleta';
+import AlertaEmergente from '../Alertas/AlertaEmergente';
 import '../Estilos/Botones.css';
+
+const capitalizar = (texto) => {
+    if (!texto) return '';
+    return texto.replace(/\b\w/g, (letra) => letra.toUpperCase());
+};
 
 function VistaPlanillaCerrada({ planilla, volver }) {
     const [catalogoProductos, setCatalogoProductos] = useState([]);
@@ -18,6 +28,8 @@ function VistaPlanillaCerrada({ planilla, volver }) {
     });
     const [boletaAEditar, setBoletaAEditar] = useState(null);
     const [mostrarModalEditar, setMostrarModalEditar] = useState(false);
+    const [mensajeExport, setMensajeExport] = useState(null);
+    const [tipoExport, setTipoExport] = useState('exito');
 
     useEffect(() => {
         const cargarDatos = async () => {
@@ -107,6 +119,142 @@ function VistaPlanillaCerrada({ planilla, volver }) {
         return configOrden.direccion === 'asc' ? ' ⬇️' : ' ⬆️';
     };
 
+    const exportarPDF = async () => {
+        const doc = new jsPDF();
+        const anchoPagina = doc.internal.pageSize.getWidth();
+
+        doc.setFontSize(16);
+        doc.setTextColor(44, 62, 80);
+        doc.text('MercadoApp', 14, 18);
+        doc.setFontSize(10);
+        doc.setTextColor(127, 127, 127);
+        doc.text('Resumen de planilla cerrada', 14, 24);
+
+        doc.setFontSize(10);
+        doc.setTextColor(85, 85, 85);
+        doc.text(`Fecha planilla: ${planilla.fecha}`, anchoPagina - 14, 15, { align: 'right' });
+        doc.text('Estado: CERRADA', anchoPagina - 14, 20, { align: 'right' });
+        doc.setTextColor(150, 150, 150);
+        doc.text(`Generado: ${new Date().toLocaleString('es-AR')}`, anchoPagina - 14, 25, { align: 'right' });
+
+        doc.setDrawColor(44, 62, 80);
+        doc.setLineWidth(0.5);
+        doc.line(14, 29, anchoPagina - 14, 29);
+
+        const anchoCaja = (anchoPagina - 28 - 10) / 3;
+        const cajas = [
+            { titulo: 'Ingresos totales', valor: formatearMoneda(totalesPlanilla.ingresoTotal), color: [39, 174, 96] },
+            { titulo: 'Deuda pendiente', valor: formatearMoneda(totalesPlanilla.deudaTotal), color: [192, 57, 43] },
+            { titulo: 'Boletas emitidas', valor: String(boletasProcesadas.length), color: [44, 62, 80] },
+        ];
+
+        cajas.forEach((caja, i) => {
+            const x = 14 + i * (anchoCaja + 5);
+            doc.setDrawColor(224, 224, 224);
+            doc.setFillColor(...caja.color);
+            doc.rect(x, 34, 1, 14, 'F');
+            doc.setDrawColor(224, 224, 224);
+            doc.rect(x, 34, anchoCaja, 14);
+            doc.setFontSize(8);
+            doc.setTextColor(127, 127, 127);
+            doc.text(caja.titulo, x + 4, 39);
+            doc.setFontSize(11);
+            doc.setTextColor(...caja.color);
+            doc.text(caja.valor, x + 4, 45);
+        });
+
+        let cursorY = 56;
+
+        const stockSobrante = (totalesPlanilla.stockProductos || [])
+            .map(item => `${capitalizar(nombreProducto(item.id_producto))}: ${item.stock - item.stock_vendido} un.`)
+            .join('   |   ');
+
+        if (stockSobrante) {
+            doc.setFontSize(9);
+            doc.setTextColor(44, 62, 80);
+            doc.text('Stock sobrante al cierre:', 14, cursorY);
+            doc.setFontSize(8);
+            doc.setTextColor(100, 100, 100);
+            const lineasStock = doc.splitTextToSize(stockSobrante, anchoPagina - 28);
+            doc.text(lineasStock, 14, cursorY + 5);
+            cursorY += 5 + lineasStock.length * 4 + 4;
+        }
+
+        const filas = boletasProcesadas.map(boleta => {
+            const productos = (boleta.ventas || [])
+                .map(v => `${v.cantidad}x ${capitalizar(nombreProducto(v.id_producto))} - ${formatearMoneda(v.precio_unitario)} c/u / vacío: ${v.precio_vacio > 0 ? formatearMoneda(v.precio_vacio) : 'suelto'}`)
+                .join('\n');
+
+            return [
+                capitalizar(nombreCliente(boleta.id_cliente)),
+                boleta.estadoPago === 'NO_PAGADO' ? 'NO PAGADO' : 'PAGADO',
+                boleta.estadoRetiro,
+                productos,
+                formatearMoneda(boleta.total),
+            ];
+        });
+
+        autoTable(doc, {
+            startY: cursorY,
+            head: [['Cliente', 'Pago', 'Retiro', 'Productos', 'Total']],
+            body: filas,
+            styles: { fontSize: 8, cellPadding: 3, valign: 'top' },
+            headStyles: { fillColor: [44, 62, 80], textColor: 255 },
+            alternateRowStyles: { fillColor: [250, 250, 250] },
+            columnStyles: {
+                3: { cellWidth: 80 },
+                4: { halign: 'right' },
+            },
+            didParseCell: (data) => {
+                if (data.section === 'body' && data.column.index === 1) {
+                    const esPagado = data.cell.raw === 'PAGADO';
+                    data.cell.styles.textColor = esPagado ? [39, 174, 96] : [192, 57, 43];
+                    data.cell.styles.fontStyle = 'bold';
+                }
+            },
+            didDrawPage: () => {
+                const alturaPagina = doc.internal.pageSize.getHeight();
+                doc.setFontSize(8);
+                doc.setTextColor(180, 180, 180);
+                doc.text('MercadoApp — reporte generado automáticamente', 14, alturaPagina - 10);
+                doc.text(`Página ${doc.internal.getNumberOfPages()}`, anchoPagina - 14, alturaPagina - 10, { align: 'right' });
+            },
+        });
+
+        const totalPlanilla = boletasProcesadas.reduce((acumulado, b) => acumulado + (b.total || 0), 0);
+        doc.setFontSize(11);
+        doc.setTextColor(44, 62, 80);
+        doc.text(`Total planilla: ${formatearMoneda(totalPlanilla)}`, anchoPagina - 14, doc.lastAutoTable.finalY + 8, { align: 'right' });
+
+        const nombreArchivo = `planilla_${planilla.fecha}.pdf`;
+        const esTauri = typeof window !== 'undefined' && window.__TAURI_INTERNALS__;
+
+        if (!esTauri) {
+            doc.save(nombreArchivo);
+            setTipoExport('exito');
+            setMensajeExport(`PDF descargado como "${nombreArchivo}".`);
+            return;
+        }
+
+        try {
+            const rutaElegida = await save({
+                defaultPath: nombreArchivo,
+                filters: [{ name: 'PDF', extensions: ['pdf'] }],
+            });
+
+            if (!rutaElegida) return; // El usuario canceló el diálogo
+
+            const bytesPDF = doc.output('arraybuffer');
+            await writeFile(rutaElegida, new Uint8Array(bytesPDF));
+            setTipoExport('exito');
+            setMensajeExport(`PDF exportado correctamente en: ${rutaElegida}`);
+        } catch (error) {
+            console.error("Error al exportar el PDF:", error);
+            setTipoExport('error');
+            setMensajeExport('Hubo un error al exportar el PDF.');
+        }
+    };
+
     const boletasProcesadas = boletas
         .filter((boleta) => {
             const coincideCliente = !busquedaCliente || nombreCliente(boleta.id_cliente).toLowerCase().includes(busquedaCliente.toLowerCase());
@@ -151,9 +299,14 @@ function VistaPlanillaCerrada({ planilla, volver }) {
                         Fecha: <strong>{planilla.fecha}</strong> | Estado: <span style={{ color: '#c0392b', fontWeight: 'bold' }}>{planilla.estadoPlanilla}</span>
                     </p>
                 </div>
-                <button className="btn-global btn-secundario" onClick={volver} style={{ fontSize: '1rem' }}>
-                    ← Volver al Listado
-                </button>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <button className="btn-global btn-primario" onClick={exportarPDF} style={{ fontSize: '1rem' }}>
+                        📄 Exportar PDF
+                    </button>
+                    <button className="btn-global btn-secundario" onClick={volver} style={{ fontSize: '1rem' }}>
+                        ← Volver al Listado
+                    </button>
+                </div>
             </div>
 
             {/* SECCIÓN 1: MÉTRICAS Y STOCK SOBRANTE */}
@@ -303,7 +456,7 @@ function VistaPlanillaCerrada({ planilla, volver }) {
                                                     {(boleta.ventas || []).map((itemProd, i) => (
                                                         <li key={i} style={{ marginBottom: '3px', textTransform: 'capitalize' }}>
                                                             <strong>{itemProd.cantidad}x</strong> {nombreProducto(itemProd.id_producto)}
-                                                            <span style={{ color: '#7f8c8d', fontSize: '0.85rem' }}> ({formatearMoneda(itemProd.precio_unitario)})</span>
+                                                            <span style={{ color: '#7f8c8d', fontSize: '0.85rem' }}> ({formatearMoneda(itemProd.precio_unitario)} c/u)</span>
                                                             <span style={{ color: '#7f8c8d', fontSize: '0.85rem' }}>
                                                                 {' '}- Vacío: {itemProd.precio_vacio > 0 ? formatearMoneda(itemProd.precio_vacio) : 'suelto'}
                                                             </span>
@@ -350,6 +503,12 @@ function VistaPlanillaCerrada({ planilla, volver }) {
                     onBoletaEditada={handleBoletaEditada}
                 />
             )}
+
+            <AlertaEmergente
+                mensaje={mensajeExport}
+                tipo={tipoExport}
+                onClose={() => setMensajeExport(null)}
+            />
 
         </main>
     );

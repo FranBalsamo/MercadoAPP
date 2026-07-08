@@ -15,5 +15,12 @@ import java.util.List;
 public interface BoletaRepository extends JpaRepository<Boleta, Long> {
     List<Boleta> findAllByPlanilla(Planilla planilla);
     List<Boleta> findAllByCliente(Cliente cliente);
-    List<Boleta> findAllByEstadoPagoAndPlanilla_EstadoPlanilla(EstadoPago estadoPago, EstadoPlanilla estadoPlanilla);
+    List<Boleta> findAllByEstadoPagoAndPlanilla_EstadoPlanilla(
+            EstadoPago estadoPago
+            ,EstadoPlanilla estadoPlanilla);
+    List<Boleta> findAllByClienteAndEstadoPagoAndPlanilla_EstadoPlanilla(
+            Cliente cliente,
+            EstadoPago estadoPago,
+            EstadoPlanilla planillaEstadoPlanilla);
+
 }

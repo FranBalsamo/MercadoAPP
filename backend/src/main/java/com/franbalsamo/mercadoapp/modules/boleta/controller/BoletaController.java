@@ -43,16 +43,16 @@ public class BoletaController {
         return new ResponseEntity<>(boletaService.findAllDeudasByCliente(id_cliente), HttpStatus.OK);
     }
 
-    @PutMapping("/pagar_deuda/{listaIds_boletas}/cliente/{id_cliente}")
-    public ResponseEntity<List<BoletaDTO>> pagarBoletasDeudasSeleccionadas(
+    @PutMapping("/cobrar_deuda/{listaIds_boletas}/cliente/{id_cliente}")
+    public ResponseEntity<List<BoletaDTO>> cobrarBoletasDeudasSeleccionadas(
             @PathVariable List<Long> listaIds_boletas ,@PathVariable long id_cliente ){
-      return new ResponseEntity<>(boletaService.pagarBoletasDeudasSeleccionadas(listaIds_boletas, id_cliente), HttpStatus.OK);
+      return new ResponseEntity<>(boletaService.cobrarBoletasDeudasSeleccionadas(listaIds_boletas, id_cliente), HttpStatus.OK);
     }
 
-    @PutMapping("/pagar_deuda/cliente/{id_cliente}/monto/{monto_pago}")
-    public ResponseEntity<List<BoletaDTO>> pagarBoletasDeudasPagoACuenta(
+    @PutMapping("/cobrar_deuda/cliente/{id_cliente}/monto/{monto_pago}")
+    public ResponseEntity<List<BoletaDTO>> cobrarBoletasDeudasPagoACuenta(
             @PathVariable long id_cliente ,@PathVariable float monto_pago ){
-        return new ResponseEntity<>(boletaService.pagarBoletasDeudasPagoACuenta(id_cliente,monto_pago),HttpStatus.OK);
+        return new ResponseEntity<>(boletaService.cobrarBoletasDeudasPagoACuenta(id_cliente,monto_pago),HttpStatus.OK);
     }
     @DeleteMapping("/remove/{id}")
     public ResponseEntity<Void> removeBoleta(@PathVariable long id){

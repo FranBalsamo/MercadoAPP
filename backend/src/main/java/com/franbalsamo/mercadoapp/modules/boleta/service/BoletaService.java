@@ -24,9 +24,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 public class BoletaService {
@@ -283,12 +285,13 @@ public class BoletaService {
     }
 
     @Transactional
-    public List<BoletaDTO> pagarBoletasDeudasSeleccionadas(List<Long> listaIds_boletasDeudas, long id_cliente){
+    public List<BoletaDTO> cobrarBoletasDeudasSeleccionadas(List<Long> listaIds_boletasDeudas, long id_cliente){
         /*
         Este metodo permite pagar las boletas con EstadoPago "NO_PAGADO" que fueron seleccionadas por el usuario.
          */
         Cliente cliente = clienteService.findById(id_cliente);
         List<Boleta> listaBoletasPagadas = new ArrayList<>();
+        Set<Planilla> planillasAfectadas = new HashSet<>();
         for(Long id_boleta : listaIds_boletasDeudas){
         Boleta boleta = boletaRepository.findByIdAndCliente(id_boleta,cliente);
         if(boleta == null){
@@ -297,14 +300,20 @@ public class BoletaService {
         boleta.setEstadoPago(EstadoPago.PAGADO);
         boletaRepository.save(boleta);
         listaBoletasPagadas.add(boleta);
+        planillasAfectadas.add(boleta.getPlanilla());
         }
+
+        for(Planilla planilla : planillasAfectadas){
+            recalcularTotalesSiCerrada(planilla);
+        }
+
         return listaBoletasPagadas.stream()
                 .map(boletaMapper::toDTO)
                 .toList();
     }
 
     @Transactional
-    public List<BoletaDTO> pagarBoletasDeudasPagoACuenta(long id_cliente, float monto_pago){
+    public List<BoletaDTO> cobrarBoletasDeudasPagoACuenta(long id_cliente, float monto_pago){
         if(monto_pago <= 0)
             throw new ReglaNegocioException("Monto pago invalido");
 
@@ -315,6 +324,7 @@ public class BoletaService {
                 EstadoPago.NO_PAGADO,
                 EstadoPlanilla.CERRADA);
         List<Boleta> listaBoletasPagadas = new ArrayList<>();
+        Set<Planilla> planillasAfectadas = new HashSet<>();
 
         //Se agrega el saldo a favor del cliente para pagar las deudas.
         monto_pago += cliente.getSaldo_a_favor();
@@ -325,6 +335,7 @@ public class BoletaService {
                 boletaDeuda.setEstadoPago(EstadoPago.PAGADO);
                 listaBoletasPagadas.add(boletaDeuda);
                 boletaRepository.save(boletaDeuda);
+                planillasAfectadas.add(boletaDeuda.getPlanilla());
             }
             if(monto_pago <= 0)
                 break;
@@ -335,6 +346,11 @@ public class BoletaService {
         }
 
         clienteService.save(cliente);
+
+        for(Planilla planilla : planillasAfectadas){
+            recalcularTotalesSiCerrada(planilla);
+        }
+
         return listaBoletasPagadas.stream()
                 .map(boletaMapper::toDTO)
                 .toList();

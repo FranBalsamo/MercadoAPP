@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import '../Estilos/Modal.css';
 import '../Estilos/Botones.css';
+import InputMoneda from './InputMoneda';
 
 function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogoProductos, onBoletaEditada }) {
     // --- ESTADOS ---
@@ -12,6 +13,7 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
 
     // Inicializamos con los datos de la boleta
     const [pagado, setPagado] = useState(boleta?.estadoPago || 'NO_PAGADO');
+    const [formaPago, setFormaPago] = useState(boleta?.formaPago || 'EFECTIVO');
     const [retirado, setRetirado] = useState(boleta?.estadoRetiro || 'NO_RETIRADO');
 
     const [guardando, setGuardando] = useState(false);
@@ -221,6 +223,7 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                 id_cliente: boleta.id_cliente,
                 total: totalBoleta,
                 estadoPago: pagado,
+                formaPago: pagado === 'PAGADO' ? formaPago : null,
                 estadoRetiro: retirado,
                 ventas: carrito.map(item => ({
                     id_producto: item.id_producto,
@@ -321,11 +324,15 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                                 </div>
 
                                 <div style={{ flex: '1 1 80px' }}>
-                                    {stockDisponibleActual !== null && (
-                                        <div style={{ color: (stockDisponibleActual > 0 && !excedeStock) ? '#27ae60' : '#c0392b', fontSize: '0.75rem', marginTop: '4px', fontWeight: 'bold' }}>
-                                            {(stockDisponibleActual > 0 && !excedeStock) ? `disp: ${stockDisponibleActual}` : 'Sin Stock'}
-                                        </div>
-                                    )}
+                                    <div style={{
+                                        height: '16px',
+                                        color: (stockDisponibleActual > 0 && !excedeStock) ? '#27ae60' : '#c0392b',
+                                        fontSize: '0.75rem',
+                                        fontWeight: 'bold',
+                                        visibility: stockDisponibleActual !== null ? 'visible' : 'hidden'
+                                    }}>
+                                        {(stockDisponibleActual > 0 && !excedeStock) ? `disp: ${stockDisponibleActual}` : 'Sin Stock'}
+                                    </div>
                                     <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Cantidad:</label>
                                     <input
                                         type="number" min="1" step="0.5" value={cantidad} onChange={(e) => setCantidad(e.target.value)}
@@ -335,16 +342,18 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
 
                                 <div style={{ flex: '1 1 100px' }}>
                                     <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>$ Precio:</label>
-                                    <input
-                                        type="number" min="0" step="0.01" placeholder="0.00" value={precioUnitario} onChange={(e) => setPrecioUnitario(e.target.value)}
+                                    <InputMoneda
+                                        value={precioUnitario}
+                                        onChange={(valor) => setPrecioUnitario(valor)}
                                         style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc', backgroundColor: '#fffbe6' }}
                                     />
                                 </div>
 
                                 <div style={{ flex: '1 1 100px' }}>
                                     <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>$ Vacío:</label>
-                                    <input
-                                        type="number" min="0" step="0.01" placeholder="0.00" value={precioVacio} onChange={(e) => setPrecioVacio(e.target.value)}
+                                    <InputMoneda
+                                        value={precioVacio}
+                                        onChange={(valor) => setPrecioVacio(valor)}
                                         style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
                                     />
                                 </div>
@@ -370,7 +379,7 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                     ))}
 
                     {/* TABLA DETALLE DE BOLETAS (AHORA INTERACTIVA) */}
-                    <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #ddd', borderRadius: '4px' }}>
+                    <div style={{ height: '220px', overflowY: 'auto', border: '1px solid #ddd', borderRadius: '4px' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.95rem' }}>
                             <thead style={{ backgroundColor: '#f4f6f8', position: 'sticky', top: 0 }}>
                                 <tr>
@@ -414,28 +423,20 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
 
                                             {/* Input de Precio Unitario */}
                                             <td style={{ padding: '10px' }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                                                    <span>$</span>
-                                                    <input
-                                                        type="number" min="0" step="0.01"
-                                                        value={fila.precio_unitario}
-                                                        onChange={(e) => actualizarFilaCarrito(fila.id_fila, 'precio_unitario', e.target.value)}
-                                                        style={{ width: '80px', padding: '4px', borderRadius: '4px', border: '1px solid #ccc', outline: 'none' }}
-                                                    />
-                                                </div>
+                                                <InputMoneda
+                                                    value={fila.precio_unitario}
+                                                    onChange={(valor) => actualizarFilaCarrito(fila.id_fila, 'precio_unitario', valor)}
+                                                    style={{ width: '90px', padding: '4px', borderRadius: '4px', border: '1px solid #ccc', outline: 'none' }}
+                                                />
                                             </td>
 
                                             {/* Input de Precio de Vacío */}
                                             <td style={{ padding: '10px', color: '#7f8c8d' }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                                                    <span>$</span>
-                                                    <input
-                                                        type="number" min="0" step="0.01"
-                                                        value={fila.precio_vacio}
-                                                        onChange={(e) => actualizarFilaCarrito(fila.id_fila, 'precio_vacio', e.target.value)}
-                                                        style={{ width: '70px', padding: '4px', borderRadius: '4px', border: '1px solid #ccc', outline: 'none' }}
-                                                    />
-                                                </div>
+                                                <InputMoneda
+                                                    value={fila.precio_vacio}
+                                                    onChange={(valor) => actualizarFilaCarrito(fila.id_fila, 'precio_vacio', valor)}
+                                                    style={{ width: '85px', padding: '4px', borderRadius: '4px', border: '1px solid #ccc', outline: 'none' }}
+                                                />
                                             </td>
 
                                             {/* Subtotal en tiempo real (seguro contra errores) */}
@@ -463,16 +464,31 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                 </div>
 
                 {/* FOOTER */}
-                <div className="modal-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f9f9f9', marginTop: 0 }}>
+                <div className="modal-footer" style={{ display: 'flex', flexDirection: 'column', gap: '12px', backgroundColor: '#f9f9f9', marginTop: 0 }}>
 
-                    <div style={{ display: 'flex', gap: '5px', fontWeight: 'bold' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 'bold' }}>
                         <input
                             id='checkbox_pagado_edit' type="checkbox" checked={pagado === 'PAGADO'}
                             onChange={(e) => setPagado(e.target.checked ? 'PAGADO' : 'NO_PAGADO')}
                         />
-                        <label htmlFor='checkbox_pagado_edit' style={{ cursor: 'pointer', paddingRight: '30px' }}>
+                        <label htmlFor='checkbox_pagado_edit' style={{ cursor: 'pointer', paddingRight: '10px' }}>
                             Pagado
                         </label>
+
+                        <select
+                            value={formaPago}
+                            onChange={(e) => setFormaPago(e.target.value)}
+                            disabled={pagado !== 'PAGADO'}
+                            style={{
+                                padding: '5px 8px', borderRadius: '4px', border: '1px solid #ccc', fontWeight: 'normal', marginRight: '30px',
+                                visibility: pagado === 'PAGADO' ? 'visible' : 'hidden'
+                            }}
+                        >
+                            <option value="EFECTIVO">Efectivo</option>
+                            <option value="MERCADO_PAGO">Mercado Pago</option>
+                            <option value="TRANSFERENCIA_BANCARIA">Transferencia Bancaria</option>
+                            <option value="OTROS">Otros</option>
+                        </select>
 
                         <input
                             id='checkbox_retirado_edit' type="checkbox" checked={retirado === 'RETIRADO'}
@@ -483,7 +499,7 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                         </label>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <h2 style={{ margin: 0, color: '#2c3e50' }}>Total: {totalBoleta.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</h2>
                         <div>
                             <button className="btn-global btn-secundario" onClick={cerrarModal} style={{ marginRight: '10px' }}>Cancelar</button>

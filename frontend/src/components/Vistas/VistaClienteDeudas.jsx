@@ -1,8 +1,20 @@
 import { useState, useEffect } from 'react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { save } from '@tauri-apps/plugin-dialog';
+import { writeFile } from '@tauri-apps/plugin-fs';
 import ModalResumenCobro from '../Modals/ModalResumenCobro';
+import ModalPagoACuenta from '../Modals/ModalPagoACuenta';
+import AlertaEmergente from '../Alertas/AlertaEmergente';
 import '../Estilos/Botones.css';
 
+const capitalizar = (texto) => {
+    if (!texto) return '';
+    return texto.replace(/\b\w/g, (letra) => letra.toUpperCase());
+};
+
 function VistaClienteDeudas({ cliente, volver }) {
+    const [clienteActual, setClienteActual] = useState(cliente);
     const [boletas, setBoletas] = useState([]);
     const [catalogoProductos, setCatalogoProductos] = useState([]);
     const [planillas, setPlanillas] = useState([]);
@@ -12,6 +24,9 @@ function VistaClienteDeudas({ cliente, volver }) {
     const [modoSeleccion, setModoSeleccion] = useState(false);
     const [idsSeleccionados, setIdsSeleccionados] = useState([]);
     const [mostrarResumenCobro, setMostrarResumenCobro] = useState(false);
+    const [mostrarPagoACuenta, setMostrarPagoACuenta] = useState(false);
+    const [mensajeExport, setMensajeExport] = useState(null);
+    const [tipoExport, setTipoExport] = useState('exito');
 
     const cargarDeudas = async () => {
         if (!cliente || !cliente.id) return;
@@ -40,7 +55,18 @@ function VistaClienteDeudas({ cliente, volver }) {
         }
     };
 
+    const refrescarCliente = async () => {
+        if (!cliente || !cliente.documento) return;
+        try {
+            const respuesta = await fetch(`http://localhost:8080/api/clientes/buscar/documento/${cliente.documento}`);
+            if (respuesta.ok) setClienteActual(await respuesta.json());
+        } catch (e) {
+            console.error("Error al refrescar el cliente:", e);
+        }
+    };
+
     useEffect(() => {
+        setClienteActual(cliente);
         cargarDeudas();
     }, [cliente]);
 
@@ -92,7 +118,113 @@ function VistaClienteDeudas({ cliente, volver }) {
         setMostrarResumenCobro(false);
         cancelarSeleccionBoletas();
         setCargando(true);
-        await cargarDeudas();
+        await Promise.all([cargarDeudas(), refrescarCliente()]);
+    };
+
+    const handlePagoConfirmado = async () => {
+        setMostrarPagoACuenta(false);
+        setMostrarMenuPago(false);
+        setCargando(true);
+        await Promise.all([cargarDeudas(), refrescarCliente()]);
+    };
+
+    const exportarPDF = async () => {
+        const doc = new jsPDF();
+        const anchoPagina = doc.internal.pageSize.getWidth();
+
+        doc.setFontSize(16);
+        doc.setTextColor(44, 62, 80);
+        doc.text('MercadoApp', 14, 18);
+        doc.setFontSize(10);
+        doc.setTextColor(127, 127, 127);
+        doc.text('Deudas del cliente', 14, 24);
+
+        doc.setFontSize(10);
+        doc.setTextColor(85, 85, 85);
+        doc.text(capitalizar(clienteActual.nombre), anchoPagina - 14, 15, { align: 'right' });
+        doc.text(`CUIT/L: ${clienteActual.documento}`, anchoPagina - 14, 20, { align: 'right' });
+        doc.setTextColor(150, 150, 150);
+        doc.text(`Generado: ${new Date().toLocaleString('es-AR')}`, anchoPagina - 14, 25, { align: 'right' });
+
+        doc.setDrawColor(44, 62, 80);
+        doc.setLineWidth(0.5);
+        doc.line(14, 29, anchoPagina - 14, 29);
+
+        const anchoCaja = anchoPagina - 28;
+        doc.setFillColor(192, 57, 43);
+        doc.rect(14, 34, 1, 14, 'F');
+        doc.setDrawColor(224, 224, 224);
+        doc.rect(14, 34, anchoCaja, 14);
+        doc.setFontSize(8);
+        doc.setTextColor(127, 127, 127);
+        doc.text('Deuda total', 18, 39);
+        doc.setFontSize(11);
+        doc.setTextColor(192, 57, 43);
+        doc.text(formatearMoneda(totalDeuda), 18, 45);
+
+        const filas = boletasOrdenadas.map(boleta => {
+            const productos = (boleta.ventas || [])
+                .map(v => `${v.cantidad}x ${capitalizar(nombreProducto(v.id_producto))} - ${formatearMoneda(v.precio_unitario)} c/u / vacío: ${v.precio_vacio > 0 ? formatearMoneda(v.precio_vacio) : 'suelto'}`)
+                .join('\n');
+
+            return [
+                fechaPlanilla(boleta.id_planilla),
+                productos,
+                formatearMoneda(boleta.total),
+            ];
+        });
+
+        autoTable(doc, {
+            startY: 56,
+            head: [['Fecha Planilla', 'Productos', 'Total']],
+            body: filas,
+            styles: { fontSize: 8, cellPadding: 3, valign: 'top' },
+            headStyles: { fillColor: [44, 62, 80], textColor: 255 },
+            alternateRowStyles: { fillColor: [250, 250, 250] },
+            columnStyles: {
+                1: { cellWidth: 110 },
+                2: { halign: 'right' },
+            },
+            didDrawPage: () => {
+                const alturaPagina = doc.internal.pageSize.getHeight();
+                doc.setFontSize(8);
+                doc.setTextColor(180, 180, 180);
+                doc.text('MercadoApp — reporte generado automáticamente', 14, alturaPagina - 10);
+                doc.text(`Página ${doc.internal.getNumberOfPages()}`, anchoPagina - 14, alturaPagina - 10, { align: 'right' });
+            },
+        });
+
+        doc.setFontSize(11);
+        doc.setTextColor(44, 62, 80);
+        doc.text(`Total deuda: ${formatearMoneda(totalDeuda)}`, anchoPagina - 14, doc.lastAutoTable.finalY + 8, { align: 'right' });
+
+        const nombreArchivo = `deudas_${(clienteActual.nombre || 'cliente').replace(/\s+/g, '_')}.pdf`;
+        const esTauri = typeof window !== 'undefined' && window.__TAURI_INTERNALS__;
+
+        if (!esTauri) {
+            doc.save(nombreArchivo);
+            setTipoExport('exito');
+            setMensajeExport(`PDF descargado como "${nombreArchivo}".`);
+            return;
+        }
+
+        try {
+            const rutaElegida = await save({
+                defaultPath: nombreArchivo,
+                filters: [{ name: 'PDF', extensions: ['pdf'] }],
+            });
+
+            if (!rutaElegida) return;
+
+            const bytesPDF = doc.output('arraybuffer');
+            await writeFile(rutaElegida, new Uint8Array(bytesPDF));
+            setTipoExport('exito');
+            setMensajeExport(`PDF exportado correctamente en: ${rutaElegida}`);
+        } catch (error) {
+            console.error("Error al exportar el PDF:", error);
+            setTipoExport('error');
+            setMensajeExport('Hubo un error al exportar el PDF.');
+        }
     };
 
     return (
@@ -101,16 +233,21 @@ function VistaClienteDeudas({ cliente, volver }) {
             {/* ENCABEZADO Y BOTÓN VOLVER */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'white', padding: '15px 20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
                 <div>
-                    <h2 style={{ margin: 0, color: '#2c3e50', textTransform: 'capitalize' }}>💰 Deudas de {cliente.nombre}</h2>
+                    <h2 style={{ margin: 0, color: '#2c3e50', textTransform: 'capitalize' }}>💰 Deudas de {clienteActual.nombre}</h2>
                     <p style={{ margin: '5px 0 0 0', color: '#7f8c8d' }}>
-                        CUIT/L: <strong>{cliente.documento}</strong>
-                        {cliente.telefono ? <> | Tel: <strong>{cliente.telefono}</strong></> : null}
-                        {cliente.direccion ? <> | Dirección: <strong>{cliente.direccion}</strong></> : null}
+                        CUIT/L: <strong>{clienteActual.documento}</strong>
+                        {clienteActual.telefono ? <> | Tel: <strong>{clienteActual.telefono}</strong></> : null}
+                        {clienteActual.direccion ? <> | Dirección: <strong>{clienteActual.direccion}</strong></> : null}
                     </p>
                 </div>
-                <button className="btn-global btn-secundario" onClick={volver} style={{ fontSize: '1rem' }}>
-                    ← Volver a Clientes
-                </button>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <button className="btn-global btn-primario" onClick={exportarPDF} style={{ fontSize: '1rem' }}>
+                        📄 Exportar PDF
+                    </button>
+                    <button className="btn-global btn-secundario" onClick={volver} style={{ fontSize: '1rem' }}>
+                        ← Volver a Clientes
+                    </button>
+                </div>
             </div>
 
             {error && <p style={{ color: '#e74c3c', fontWeight: 'bold', margin: 0 }}>{error}</p>}
@@ -127,7 +264,7 @@ function VistaClienteDeudas({ cliente, volver }) {
                 <div style={{ flex: 1, minWidth: '220px', backgroundColor: 'white', padding: '15px', borderRadius: '8px', borderLeft: '5px solid #27ae60', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
                     <span style={{ color: '#7f8c8d', fontSize: '0.9rem' }}>Saldo a Favor</span>
                     <h3 style={{ margin: '5px 0 0 0', fontSize: '1.5rem', color: '#27ae60' }}>
-                        {formatearMoneda(cliente.saldo_a_favor)}
+                        {formatearMoneda(clienteActual.saldo_a_favor)}
                     </h3>
                 </div>
 
@@ -162,7 +299,7 @@ function VistaClienteDeudas({ cliente, volver }) {
                                 🧾 Seleccionar Boletas
                             </button>
                             <button
-                                onClick={() => setMostrarMenuPago(false)}
+                                onClick={() => { setMostrarMenuPago(false); setMostrarPagoACuenta(true); }}
                                 style={{
                                     display: 'block', width: '100%', textAlign: 'left', padding: '12px 16px',
                                     border: 'none', borderTop: '1px solid #eee', backgroundColor: 'transparent', cursor: 'pointer', fontSize: '0.95rem', color: '#2c3e50'
@@ -258,7 +395,7 @@ function VistaClienteDeudas({ cliente, volver }) {
 
             {mostrarResumenCobro && (
                 <ModalResumenCobro
-                    cliente={cliente}
+                    cliente={clienteActual}
                     boletasSeleccionadas={boletasSeleccionadas}
                     nombreProducto={nombreProducto}
                     fechaPlanilla={fechaPlanilla}
@@ -267,6 +404,22 @@ function VistaClienteDeudas({ cliente, volver }) {
                     onCobroConfirmado={handleCobroConfirmado}
                 />
             )}
+
+            {mostrarPagoACuenta && (
+                <ModalPagoACuenta
+                    cliente={clienteActual}
+                    fechaPlanilla={fechaPlanilla}
+                    formatearMoneda={formatearMoneda}
+                    cerrarModal={() => setMostrarPagoACuenta(false)}
+                    onPagoConfirmado={handlePagoConfirmado}
+                />
+            )}
+
+            <AlertaEmergente
+                mensaje={mensajeExport}
+                tipo={tipoExport}
+                onClose={() => setMensajeExport(null)}
+            />
 
         </main>
     );

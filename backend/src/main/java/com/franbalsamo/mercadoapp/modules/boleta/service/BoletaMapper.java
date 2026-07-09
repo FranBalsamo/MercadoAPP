@@ -28,6 +28,7 @@ public class BoletaMapper {
         dto.setTotal(boleta.getTotal());
         dto.setEstadoPago(boleta.getEstadoPago());
         dto.setEstadoRetiro(boleta.getEstadoRetiro());
+        dto.setFormaPago(boleta.getFormaPago());
 
         if (boleta.getVentas() != null) {
             dto.setVentas(boleta.getVentas().stream()
@@ -55,6 +56,9 @@ public class BoletaMapper {
         boleta.setTotal(dto.getTotal());
         boleta.setEstadoPago(dto.getEstadoPago());
         boleta.setEstadoRetiro(dto.getEstadoRetiro());
+        if (dto.getFormaPago() != null) {
+            boleta.setFormaPago(dto.getFormaPago());
+        }
 
         // Mapeo la list<VentaDTO> a list<Venta>
         if (dto.getVentas() != null) {

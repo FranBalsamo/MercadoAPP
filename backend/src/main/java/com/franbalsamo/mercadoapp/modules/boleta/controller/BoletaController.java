@@ -2,6 +2,8 @@ package com.franbalsamo.mercadoapp.modules.boleta.controller;
 
 import com.franbalsamo.mercadoapp.modules.boleta.service.BoletaService;
 import com.franbalsamo.mercadoapp.modules.boleta.model.BoletaDTO;
+import com.franbalsamo.mercadoapp.modules.boleta.model.ResultadoCobroDTO;
+import com.franbalsamo.mercadoapp.modules.boleta.FormaPago;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -44,15 +46,22 @@ public class BoletaController {
     }
 
     @PutMapping("/cobrar_deuda/{listaIds_boletas}/cliente/{id_cliente}")
-    public ResponseEntity<List<BoletaDTO>> cobrarBoletasDeudasSeleccionadas(
-            @PathVariable List<Long> listaIds_boletas ,@PathVariable long id_cliente ){
-      return new ResponseEntity<>(boletaService.cobrarBoletasDeudasSeleccionadas(listaIds_boletas, id_cliente), HttpStatus.OK);
+    public ResponseEntity<ResultadoCobroDTO> cobrarBoletasDeudasSeleccionadas(
+            @PathVariable List<Long> listaIds_boletas,
+            @PathVariable long id_cliente,
+            @RequestParam(defaultValue = "EFECTIVO") FormaPago formaPago,
+            @RequestParam(defaultValue = "false") boolean usarSaldoFavor,
+            @RequestParam(defaultValue = "0") float montoEntregado){
+      return new ResponseEntity<>(boletaService.cobrarBoletasDeudasSeleccionadas(
+              listaIds_boletas, id_cliente, formaPago, usarSaldoFavor, montoEntregado), HttpStatus.OK);
     }
 
     @PutMapping("/cobrar_deuda/cliente/{id_cliente}/monto/{monto_pago}")
     public ResponseEntity<List<BoletaDTO>> cobrarBoletasDeudasPagoACuenta(
-            @PathVariable long id_cliente ,@PathVariable float monto_pago ){
-        return new ResponseEntity<>(boletaService.cobrarBoletasDeudasPagoACuenta(id_cliente,monto_pago),HttpStatus.OK);
+            @PathVariable long id_cliente,
+            @PathVariable float monto_pago,
+            @RequestParam(defaultValue = "EFECTIVO") FormaPago formaPago){
+        return new ResponseEntity<>(boletaService.cobrarBoletasDeudasPagoACuenta(id_cliente,monto_pago,formaPago),HttpStatus.OK);
     }
     @DeleteMapping("/remove/{id}")
     public ResponseEntity<Void> removeBoleta(@PathVariable long id){

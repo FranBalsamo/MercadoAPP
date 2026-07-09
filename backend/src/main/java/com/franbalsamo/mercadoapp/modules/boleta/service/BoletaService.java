@@ -12,7 +12,9 @@ import com.franbalsamo.mercadoapp.shared.exception.ReglaNegocioException;
 import com.franbalsamo.mercadoapp.modules.boleta.EstadoPago;
 import com.franbalsamo.mercadoapp.modules.planilla.EstadoPlanilla;
 import com.franbalsamo.mercadoapp.modules.boleta.EstadoRetiro;
+import com.franbalsamo.mercadoapp.modules.boleta.FormaPago;
 import com.franbalsamo.mercadoapp.modules.boleta.model.BoletaDTO;
+import com.franbalsamo.mercadoapp.modules.boleta.model.ResultadoCobroDTO;
 import com.franbalsamo.mercadoapp.modules.cliente.model.ClienteDeudorDTO;
 import com.franbalsamo.mercadoapp.modules.venta.model.VentaDTO;
 import com.franbalsamo.mercadoapp.modules.cliente.service.ClienteService;
@@ -162,6 +164,9 @@ public class BoletaService {
         nuevaBoleta.setPlanilla(planilla);
         nuevaBoleta.setEstadoRetiro(boletaDTO.getEstadoRetiro());
         nuevaBoleta.setEstadoPago(boletaDTO.getEstadoPago());
+        if(boletaDTO.getFormaPago() != null){
+            nuevaBoleta.setFormaPago(boletaDTO.getFormaPago());
+        }
 
         cargarVentas(boletaDTO, nuevaBoleta);
 
@@ -179,6 +184,9 @@ public class BoletaService {
         modificarVentas(boleta,boletaDTO);
         boleta.setEstadoPago(boletaDTO.getEstadoPago());
         boleta.setEstadoRetiro(boletaDTO.getEstadoRetiro());
+        if(boletaDTO.getFormaPago() != null){
+            boleta.setFormaPago(boletaDTO.getFormaPago());
+        }
 
         Boleta boletaGuardada = boletaRepository.save(boleta);
 
@@ -285,35 +293,61 @@ public class BoletaService {
     }
 
     @Transactional
-    public List<BoletaDTO> cobrarBoletasDeudasSeleccionadas(List<Long> listaIds_boletasDeudas, long id_cliente){
+    public ResultadoCobroDTO cobrarBoletasDeudasSeleccionadas(
+            List<Long> listaIds_boletasDeudas, long id_cliente, FormaPago formaPago,
+            boolean usarSaldoFavor, float montoEntregado){
         /*
         Este metodo permite pagar las boletas con EstadoPago "NO_PAGADO" que fueron seleccionadas por el usuario.
+        El total seleccionado se cubre con el monto entregado y, opcionalmente, el saldo a favor del cliente.
          */
         Cliente cliente = clienteService.findById(id_cliente);
-        List<Boleta> listaBoletasPagadas = new ArrayList<>();
-        Set<Planilla> planillasAfectadas = new HashSet<>();
+        List<Boleta> listaBoletas = new ArrayList<>();
+        float totalSeleccionado = 0;
+
         for(Long id_boleta : listaIds_boletasDeudas){
-        Boleta boleta = boletaRepository.findByIdAndCliente(id_boleta,cliente);
-        if(boleta == null){
-            throw new RecursoNoEncontradoException("No se encontro la boleta con id: " + id_boleta + " para el cliente con id: " + id_cliente);
+            Boleta boleta = boletaRepository.findByIdAndCliente(id_boleta,cliente);
+            if(boleta == null){
+                throw new RecursoNoEncontradoException("No se encontro la boleta con id: " + id_boleta + " para el cliente con id: " + id_cliente);
+            }
+            listaBoletas.add(boleta);
+            totalSeleccionado += boleta.getTotal();
         }
-        boleta.setEstadoPago(EstadoPago.PAGADO);
-        boletaRepository.save(boleta);
-        listaBoletasPagadas.add(boleta);
-        planillasAfectadas.add(boleta.getPlanilla());
+
+        float saldoAplicado = usarSaldoFavor ? cliente.getSaldo_a_favor() : 0;
+        float totalDisponible = montoEntregado + saldoAplicado;
+
+        if(totalDisponible < totalSeleccionado){
+            throw new ReglaNegocioException("Monto insuficiente para cubrir el total seleccionado. Faltan " + (totalSeleccionado - totalDisponible));
+        }
+
+        float vuelto = totalDisponible - totalSeleccionado;
+
+        if(usarSaldoFavor){
+            cliente.setSaldo_a_favor(0);
+            clienteService.save(cliente);
+        }
+
+        Set<Planilla> planillasAfectadas = new HashSet<>();
+        for(Boleta boleta : listaBoletas){
+            boleta.setEstadoPago(EstadoPago.PAGADO);
+            boleta.setFormaPago(formaPago);
+            boletaRepository.save(boleta);
+            planillasAfectadas.add(boleta.getPlanilla());
         }
 
         for(Planilla planilla : planillasAfectadas){
             recalcularTotalesSiCerrada(planilla);
         }
 
-        return listaBoletasPagadas.stream()
+        List<BoletaDTO> boletasDTO = listaBoletas.stream()
                 .map(boletaMapper::toDTO)
                 .toList();
+
+        return new ResultadoCobroDTO(boletasDTO, vuelto);
     }
 
     @Transactional
-    public List<BoletaDTO> cobrarBoletasDeudasPagoACuenta(long id_cliente, float monto_pago){
+    public List<BoletaDTO> cobrarBoletasDeudasPagoACuenta(long id_cliente, float monto_pago, FormaPago formaPago){
         if(monto_pago <= 0)
             throw new ReglaNegocioException("Monto pago invalido");
 
@@ -333,6 +367,7 @@ public class BoletaService {
             if(boletaDeuda.getTotal() <= monto_pago) {
                 monto_pago -= boletaDeuda.getTotal();
                 boletaDeuda.setEstadoPago(EstadoPago.PAGADO);
+                boletaDeuda.setFormaPago(formaPago);
                 listaBoletasPagadas.add(boletaDeuda);
                 boletaRepository.save(boletaDeuda);
                 planillasAfectadas.add(boletaDeuda.getPlanilla());

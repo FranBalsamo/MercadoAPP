@@ -174,7 +174,7 @@ function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBol
                                         </span>
                                     </td>
                                     <td style={{ padding: '12px' }}>
-                                        {formaPagoLegible(boleta.formaPago)}
+                                        {boleta.estadoPago === 'NO_PAGADO' ? '-' : formaPagoLegible(boleta.formaPago)}
                                     </td>
                                     <td style={{ padding: '12px', fontWeight: 'bold', color: '#2c3e50' }}>
                                         {boleta.total.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}

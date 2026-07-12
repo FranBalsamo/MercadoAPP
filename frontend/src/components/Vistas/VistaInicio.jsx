@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
+import CarruselEstadisticas from './CarruselEstadisticas';
 import '../Estilos/Botones.css';
 
 function VistaInicio({ abrirModalPlanilla, abrirPlanilla, abrirPlanillaCerrada, planilla }) {
     const [ultimasPlanillas, setUltimasPlanillas] = useState([]);
+    const [ventasDelMes, setVentasDelMes] = useState(0);
+    const [deudaTotalGeneral, setDeudaTotalGeneral] = useState(0);
     const [cargandoPlanillas, setCargandoPlanillas] = useState(true);
     const [clientesDeudores, setClientesDeudores] = useState([]);
     const [cargandoDeudores, setCargandoDeudores] = useState(true);
@@ -13,11 +16,23 @@ function VistaInicio({ abrirModalPlanilla, abrirPlanilla, abrirPlanillaCerrada, 
                 const respuesta = await fetch('http://localhost:8080/api/planilla/All');
                 if (respuesta.ok) {
                     const datos = await respuesta.json();
-                    const ultimasCerradas = (Array.isArray(datos) ? datos : [])
-                        .filter(p => p.estadoPlanilla === 'CERRADA')
-                        .sort((a, b) => (a.fecha < b.fecha ? 1 : a.fecha > b.fecha ? -1 : 0))
-                        .slice(0, 3);
-                    setUltimasPlanillas(ultimasCerradas);
+                    const planillasCerradas = (Array.isArray(datos) ? datos : [])
+                        .filter(p => p.estadoPlanilla === 'CERRADA');
+
+                    const mesActual = new Date().toISOString().slice(0, 7); // "YYYY-MM"
+                    const totalDelMes = planillasCerradas
+                        .filter(p => p.fecha?.slice(0, 7) === mesActual)
+                        .reduce((acumulado, p) => acumulado + (p.ingresoTotal || 0), 0);
+                    const deudaGeneral = planillasCerradas
+                        .reduce((acumulado, p) => acumulado + (p.deudaTotal || 0), 0);
+
+                    setVentasDelMes(totalDelMes);
+                    setDeudaTotalGeneral(deudaGeneral);
+                    setUltimasPlanillas(
+                        [...planillasCerradas]
+                            .sort((a, b) => (a.fecha < b.fecha ? 1 : a.fecha > b.fecha ? -1 : 0))
+                            .slice(0, 3)
+                    );
                 }
             } catch (error) {
                 console.error("Error al cargar las últimas planillas:", error);
@@ -77,17 +92,20 @@ function VistaInicio({ abrirModalPlanilla, abrirPlanilla, abrirPlanillaCerrada, 
             <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
                 <div style={tarjetaKpiStyle}>
                     <span style={{ color: '#7f8c8d', fontSize: '0.8rem', fontWeight: 'bold', textTransform: 'uppercase' }}>Ventas del mes</span>
-                    <span style={{ color: '#bdc3c7', fontSize: '1.1rem', fontStyle: 'italic' }}>Próximamente</span>
+                    {cargandoPlanillas ? (
+                        <span style={{ color: '#bdc3c7', fontSize: '1.1rem', fontStyle: 'italic' }}>Cargando...</span>
+                    ) : (
+                        <span style={{ color: '#27ae60', fontSize: '1.4rem', fontWeight: 'bold' }}>{formatearMoneda(ventasDelMes)}</span>
+                    )}
                 </div>
 
                 <div style={tarjetaKpiStyle}>
                     <span style={{ color: '#7f8c8d', fontSize: '0.8rem', fontWeight: 'bold', textTransform: 'uppercase' }}>Deuda total</span>
-                    <span style={{ color: '#bdc3c7', fontSize: '1.1rem', fontStyle: 'italic' }}>Próximamente</span>
-                </div>
-
-                <div style={tarjetaKpiStyle}>
-                    <span style={{ color: '#7f8c8d', fontSize: '0.8rem', fontWeight: 'bold', textTransform: 'uppercase' }}>Clientes registrados</span>
-                    <span style={{ color: '#bdc3c7', fontSize: '1.1rem', fontStyle: 'italic' }}>Próximamente</span>
+                    {cargandoPlanillas ? (
+                        <span style={{ color: '#bdc3c7', fontSize: '1.1rem', fontStyle: 'italic' }}>Cargando...</span>
+                    ) : (
+                        <span style={{ color: '#e74c3c', fontSize: '1.4rem', fontWeight: 'bold' }}>{formatearMoneda(deudaTotalGeneral)}</span>
+                    )}
                 </div>
 
                 {planilla !== null ? (
@@ -188,9 +206,9 @@ function VistaInicio({ abrirModalPlanilla, abrirPlanilla, abrirPlanillaCerrada, 
                 </div>
             </div>
 
-            {/* FILA 3: PANEL ANCHO COMPLETO */}
+            {/* FILA 3: CARRUSEL DE ESTADÍSTICAS */}
             <div style={panelStyle}>
-                <h4 style={{ margin: 0, color: '#2c3e50' }}>📝 Notas+</h4>
+                <CarruselEstadisticas />
             </div>
 
         </main>

@@ -11,6 +11,8 @@ import VistaProductos from "./components/Vistas/VistaProductos";
 import VistaPlanillas from "./components/Vistas/VistaPlanillas";
 import VistaPlanillaCerrada from "./components/Vistas/VistaPlanillaCerrada";
 import VistaClienteDeudas from "./components/Vistas/VistaClienteDeudas";
+import VistaEstadisticas from "./components/Vistas/VistaEstadisticas";
+import VistaBuscarBoletas from "./components/Vistas/VistaBuscarBoletas";
 
 import "./App.css";
 
@@ -79,6 +81,16 @@ function App() {
     setVistaActiva('deudasCliente');
   }
 
+  const abrirVistaEstadisticas = () => {
+    setVistaAnterior(vistaActiva);
+    setVistaActiva('estadisticas');
+  }
+
+  const abrirVistaBuscarBoletas = () => {
+    setVistaAnterior(vistaActiva);
+    setVistaActiva('buscarBoletas');
+  }
+
   const abrirModalPlanilla = () => {
     setMostrarModalPlanilla(true);
   }
@@ -136,6 +148,14 @@ function App() {
         volver={() => setVistaActiva('planillas')}
       />;
     }
+    else if (vistaActiva === 'estadisticas') {
+      return <VistaEstadisticas
+        volver={() => setVistaActiva(vistaAnterior)}
+      />
+    }
+    else if (vistaActiva === 'buscarBoletas') {
+      return <VistaBuscarBoletas />
+    }
     return <VistaInicio
       abrirModalPlanilla={abrirModalPlanilla}
       abrirPlanilla={abrirPlanilla}
@@ -153,6 +173,8 @@ function App() {
         abrirVistaClientes={abrirVistaClientes}
         abrirVistaPlanillas={abrirVistaPlanillas}
         abrirVistaProductos={abrirVistaProductos}
+        abrirVistaEstadisticas={abrirVistaEstadisticas}
+        abrirVistaBuscarBoletas={abrirVistaBuscarBoletas}
         volverInicio={volverInicio}
       />
 

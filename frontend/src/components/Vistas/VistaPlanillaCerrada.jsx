@@ -12,6 +12,18 @@ const capitalizar = (texto) => {
     return texto.replace(/\b\w/g, (letra) => letra.toUpperCase());
 };
 
+const NOMBRES_FORMA_PAGO = {
+    EFECTIVO: 'Efectivo',
+    MERCADO_PAGO: 'Mercado Pago',
+    TRANSFERENCIA_BANCARIA: 'Transferencia Bancaria',
+    OTROS: 'Otros',
+};
+
+const formaPagoLegible = (boleta) => {
+    if (boleta.estadoPago === 'NO_PAGADO') return '-';
+    return NOMBRES_FORMA_PAGO[boleta.formaPago] || '-';
+};
+
 function VistaPlanillaCerrada({ planilla, volver }) {
     const [catalogoProductos, setCatalogoProductos] = useState([]);
     const [clientes, setClientes] = useState([]);
@@ -189,6 +201,7 @@ function VistaPlanillaCerrada({ planilla, volver }) {
                 capitalizar(nombreCliente(boleta.id_cliente)),
                 boleta.estadoPago === 'NO_PAGADO' ? 'NO PAGADO' : 'PAGADO',
                 boleta.estadoRetiro === 'NO_RETIRADO' ? 'NO RETIRADO' : 'RETIRADO',
+                formaPagoLegible(boleta),
                 productos,
                 formatearMoneda(boleta.total),
             ];
@@ -196,14 +209,14 @@ function VistaPlanillaCerrada({ planilla, volver }) {
 
         autoTable(doc, {
             startY: cursorY,
-            head: [['Cliente', 'Pago', 'Retiro', 'Productos', 'Total']],
+            head: [['Cliente', 'Pago', 'Retiro', 'Forma de Pago', 'Productos', 'Total']],
             body: filas,
             styles: { fontSize: 8, cellPadding: 3, valign: 'top' },
             headStyles: { fillColor: [44, 62, 80], textColor: 255 },
             alternateRowStyles: { fillColor: [250, 250, 250] },
             columnStyles: {
-                3: { cellWidth: 80 },
-                4: { halign: 'right' },
+                4: { cellWidth: 70 },
+                5: { halign: 'right' },
             },
             didParseCell: (data) => {
                 if (data.section === 'body' && data.column.index === 1) {
@@ -412,7 +425,8 @@ function VistaPlanillaCerrada({ planilla, volver }) {
                                     >
                                         Estado Retiro {obtenerIconoOrden('retiro')}
                                     </th>
-                                    <th style={{ padding: '12px', width: '35%' }}>Productos Vendidos</th>
+                                    <th style={{ padding: '12px', width: '12%' }}>Forma de Pago</th>
+                                    <th style={{ padding: '12px', width: '30%' }}>Productos Vendidos</th>
                                     <th style={{ padding: '12px', textAlign: 'right' }}>Total Boleta</th>
                                     <th style={{ padding: '12px', textAlign: 'center' }}>Acciones</th>
                                 </tr>
@@ -420,7 +434,7 @@ function VistaPlanillaCerrada({ planilla, volver }) {
                             <tbody>
                                 {boletasProcesadas.length === 0 ? (
                                     <tr>
-                                        <td colSpan="6" style={{ textAlign: 'center', padding: '20px', color: '#888' }}>
+                                        <td colSpan="7" style={{ textAlign: 'center', padding: '20px', color: '#888' }}>
                                             {boletas.length === 0
                                                 ? "No se registraron boletas este día."
                                                 : "No se encontró ninguna boleta con esos filtros."}
@@ -453,6 +467,11 @@ function VistaPlanillaCerrada({ planilla, volver }) {
                                                 }}>
                                                     {boleta.estadoRetiro}
                                                 </span>
+                                            </td>
+
+                                            {/* Forma de Pago */}
+                                            <td style={{ padding: '12px', verticalAlign: 'top', fontSize: '0.9rem', color: '#2c3e50' }}>
+                                                {formaPagoLegible(boleta)}
                                             </td>
 
                                             {/* Lista de Productos dentro de la boleta */}

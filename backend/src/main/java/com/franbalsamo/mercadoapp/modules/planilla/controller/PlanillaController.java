@@ -5,10 +5,12 @@ import com.franbalsamo.mercadoapp.modules.planilla.service.PlanillaService;
 import com.franbalsamo.mercadoapp.modules.planilla.model.PlanillaDTO;
 import com.franbalsamo.mercadoapp.modules.stockproducto.model.StockProductoDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -44,6 +46,13 @@ public class PlanillaController {
     public ResponseEntity<List<PlanillaDTO>> findAll(){
         List<PlanillaDTO> listaPlanillas = planillaService.findAll();
         return new ResponseEntity<>(listaPlanillas, HttpStatus.OK);
+    }
+
+    @GetMapping("/rango")
+    public ResponseEntity<List<PlanillaDTO>> findAllByRangoFechas(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta){
+        return new ResponseEntity<>(planillaService.findAllByRangoFechas(desde, hasta), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")

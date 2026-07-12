@@ -1,6 +1,6 @@
 import './Estilos/Header.css';
 
-function Header({ abrirModalProducto, abrirModalCliente, abrirModalPlanilla, abrirVistaClientes, abrirVistaPlanillas, abrirVistaProductos, volverInicio }) {
+function Header({ abrirModalProducto, abrirModalCliente, abrirModalPlanilla, abrirVistaClientes, abrirVistaPlanillas, abrirVistaProductos, abrirVistaEstadisticas, abrirVistaBuscarBoletas, volverInicio }) {
     return (
         <header className="header-principal">
             <nav className="navegacion">
@@ -34,6 +34,20 @@ function Header({ abrirModalProducto, abrirModalCliente, abrirModalPlanilla, abr
                         <button onClick={abrirVistaClientes}>Ver todos</button>
                         <button onClick={abrirModalCliente}>Nuevo cliente</button>
                     </div>
+                </div>
+                {/*Boletas*/}
+                <div className="nav-item">
+                    <span
+                        className="nav-titulo"
+                        onClick={abrirVistaBuscarBoletas}
+                        style={{ cursor: "pointer" }}>Boletas</span>
+                </div>
+                {/*Estadisticas*/}
+                <div className="nav-item">
+                    <span
+                        className="nav-titulo"
+                        onClick={abrirVistaEstadisticas}
+                        style={{ cursor: "pointer" }}>Estadísticas</span>
                 </div>
             </nav>
 

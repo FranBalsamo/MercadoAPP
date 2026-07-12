@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 
@@ -17,6 +18,7 @@ import java.util.List;
 public interface BoletaRepository extends JpaRepository<Boleta, Long> {
     List<Boleta> findAllByPlanilla(Planilla planilla);
     List<Boleta> findAllByCliente(Cliente cliente);
+    List<Boleta> findAllByPlanilla_FechaBetween(LocalDate desde, LocalDate hasta);
     List<Boleta> findAllByEstadoPagoAndPlanilla_EstadoPlanilla(
             EstadoPago estadoPago
             ,EstadoPlanilla estadoPlanilla);
@@ -33,4 +35,21 @@ public interface BoletaRepository extends JpaRepository<Boleta, Long> {
             @Param("estadoPago") EstadoPago estadoPago,
             @Param("estadoPlanilla") EstadoPlanilla estadoPlanilla);
     Boleta findByIdAndCliente(Long idBoleta, Cliente cliente);
+
+    @Query("SELECT b.formaPago, COUNT(b) FROM Boleta b " +
+            "WHERE b.estadoPago = :estadoPago " +
+            "AND b.formaPago IS NOT NULL AND b.planilla.fecha BETWEEN :desde AND :hasta " +
+            "GROUP BY b.formaPago")
+    List<Object[]> countBoletasPorFormaPago(
+            @Param("estadoPago") EstadoPago estadoPago,
+            @Param("desde") LocalDate desde,
+            @Param("hasta") LocalDate hasta);
+
+    @Query("SELECT COUNT(b), COALESCE(SUM(b.total), 0.0) FROM Boleta b " +
+            "WHERE b.estadoPago = :estadoPago " +
+            "AND b.planilla.fecha BETWEEN :desde AND :hasta")
+    List<Object[]> obtenerCantidadYTotalBoletasPagadas(
+            @Param("estadoPago") EstadoPago estadoPago,
+            @Param("desde") LocalDate desde,
+            @Param("hasta") LocalDate hasta);
 }

@@ -25,6 +25,27 @@ ESTILOS BASE (Se aplican a todos los botones)
     /* Quitamos el hundimiento si está deshabilitado */
 }
 
+.btn-flecha-carrusel {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid #ddd;
+    background-color: white;
+    color: #2c3e50;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.btn-flecha-carrusel:hover {
+    background-color: #f4f6f8;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
 .btn-cerrar-modal {
     background-color: transparent;
     color: #eeeeee;

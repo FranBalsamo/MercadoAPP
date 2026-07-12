@@ -15,6 +15,8 @@ import com.franbalsamo.mercadoapp.modules.boleta.EstadoRetiro;
 import com.franbalsamo.mercadoapp.modules.boleta.FormaPago;
 import com.franbalsamo.mercadoapp.modules.boleta.model.BoletaDTO;
 import com.franbalsamo.mercadoapp.modules.boleta.model.ResultadoCobroDTO;
+import com.franbalsamo.mercadoapp.modules.boleta.model.FormaPagoStatDTO;
+import com.franbalsamo.mercadoapp.modules.boleta.model.TicketPromedioDTO;
 import com.franbalsamo.mercadoapp.modules.cliente.model.ClienteDeudorDTO;
 import com.franbalsamo.mercadoapp.modules.venta.model.VentaDTO;
 import com.franbalsamo.mercadoapp.modules.cliente.service.ClienteService;
@@ -25,7 +27,9 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -168,6 +172,10 @@ public class BoletaService {
             nuevaBoleta.setFormaPago(boletaDTO.getFormaPago());
         }
 
+        if(nuevaBoleta.getEstadoPago() == EstadoPago.PAGADO && nuevaBoleta.getFormaPago() == null){
+            throw new ReglaNegocioException("Debe indicar la forma de pago de una boleta marcada como pagada.");
+        }
+
         cargarVentas(boletaDTO, nuevaBoleta);
 
         return boletaMapper.toDTO(boletaRepository.save(nuevaBoleta));
@@ -186,6 +194,10 @@ public class BoletaService {
         boleta.setEstadoRetiro(boletaDTO.getEstadoRetiro());
         if(boletaDTO.getFormaPago() != null){
             boleta.setFormaPago(boletaDTO.getFormaPago());
+        }
+
+        if(boleta.getEstadoPago() == EstadoPago.PAGADO && boleta.getFormaPago() == null){
+            throw new ReglaNegocioException("Debe indicar la forma de pago de una boleta marcada como pagada.");
         }
 
         Boleta boletaGuardada = boletaRepository.save(boleta);
@@ -259,6 +271,13 @@ public class BoletaService {
     public List<BoletaDTO> findByCliente(long id_cliente){
         Cliente cliente = clienteService.findById(id_cliente);
         List<Boleta> listaBoleta = boletaRepository.findAllByCliente(cliente);
+        return listaBoleta.stream()
+                .map(boletaMapper::toDTO)
+                .toList();
+    }
+
+    public List<BoletaDTO> findAllByRangoFechas(LocalDate desde, LocalDate hasta){
+        List<Boleta> listaBoleta = boletaRepository.findAllByPlanilla_FechaBetween(desde, hasta);
         return listaBoleta.stream()
                 .map(boletaMapper::toDTO)
                 .toList();
@@ -392,5 +411,31 @@ public class BoletaService {
         return listaBoletasPagadas.stream()
                 .map(boletaMapper::toDTO)
                 .toList();
+    }
+
+    public List<FormaPagoStatDTO> findDistribucionFormaPago(LocalDate desde, LocalDate hasta){
+        List<Object[]> filas = boletaRepository.countBoletasPorFormaPago(EstadoPago.PAGADO, desde, hasta);
+
+        long totalBoletas = filas.stream().mapToLong(fila -> (Long) fila[1]).sum();
+
+        return filas.stream()
+                .map(fila -> {
+                    FormaPago formaPago = (FormaPago) fila[0];
+                    long cantidad = (Long) fila[1];
+                    float porcentaje = totalBoletas > 0 ? (cantidad * 100f / totalBoletas) : 0f;
+                    return new FormaPagoStatDTO(formaPago, cantidad, porcentaje);
+                })
+                .sorted(Comparator.comparingLong(FormaPagoStatDTO::getCantidad).reversed())
+                .toList();
+    }
+
+    public TicketPromedioDTO calcularTicketPromedio(LocalDate desde, LocalDate hasta){
+        Object[] fila = boletaRepository.obtenerCantidadYTotalBoletasPagadas(EstadoPago.PAGADO, desde, hasta).get(0);
+
+        long cantidadBoletas = (Long) fila[0];
+        float totalFacturado = ((Number) fila[1]).floatValue();
+        float promedio = cantidadBoletas > 0 ? totalFacturado / cantidadBoletas : 0f;
+
+        return new TicketPromedioDTO(cantidadBoletas, totalFacturado, promedio);
     }
 }

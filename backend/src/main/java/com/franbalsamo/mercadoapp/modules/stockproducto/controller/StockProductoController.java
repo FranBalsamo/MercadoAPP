@@ -2,6 +2,7 @@ package com.franbalsamo.mercadoapp.modules.stockproducto.controller;
 
 import com.franbalsamo.mercadoapp.modules.stockproducto.service.StockProductoService;
 import com.franbalsamo.mercadoapp.modules.stockproducto.model.StockProductoDTO;
+import com.franbalsamo.mercadoapp.modules.stockproducto.model.ProductoStockCriticoDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,5 +35,11 @@ public class StockProductoController {
     public ResponseEntity<Void> deleteStock(@PathVariable long id){
         stockProductoService.delete(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @GetMapping("/estadisticas/stock-critico")
+    public ResponseEntity<List<ProductoStockCriticoDTO>> findProductosStockCriticoRecurrente(
+            @RequestParam(defaultValue = "6") int limite){
+        return new ResponseEntity<>(stockProductoService.findProductosStockCriticoRecurrente(limite), HttpStatus.OK);
     }
 }

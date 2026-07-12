@@ -3,12 +3,16 @@ package com.franbalsamo.mercadoapp.modules.boleta.controller;
 import com.franbalsamo.mercadoapp.modules.boleta.service.BoletaService;
 import com.franbalsamo.mercadoapp.modules.boleta.model.BoletaDTO;
 import com.franbalsamo.mercadoapp.modules.boleta.model.ResultadoCobroDTO;
+import com.franbalsamo.mercadoapp.modules.boleta.model.FormaPagoStatDTO;
+import com.franbalsamo.mercadoapp.modules.boleta.model.TicketPromedioDTO;
 import com.franbalsamo.mercadoapp.modules.boleta.FormaPago;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -45,6 +49,13 @@ public class BoletaController {
         return new ResponseEntity<>(boletaService.findAllDeudasByCliente(id_cliente), HttpStatus.OK);
     }
 
+    @GetMapping("/buscar/fecha")
+    public ResponseEntity<List<BoletaDTO>> findAllByRangoFechas(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta){
+        return new ResponseEntity<>(boletaService.findAllByRangoFechas(desde, hasta), HttpStatus.OK);
+    }
+
     @PutMapping("/cobrar_deuda/{listaIds_boletas}/cliente/{id_cliente}")
     public ResponseEntity<ResultadoCobroDTO> cobrarBoletasDeudasSeleccionadas(
             @PathVariable List<Long> listaIds_boletas,
@@ -67,5 +78,19 @@ public class BoletaController {
     public ResponseEntity<Void> removeBoleta(@PathVariable long id){
         boletaService.removeBoleta(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @GetMapping("/estadisticas/forma-pago")
+    public ResponseEntity<List<FormaPagoStatDTO>> findDistribucionFormaPago(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta){
+        return new ResponseEntity<>(boletaService.findDistribucionFormaPago(desde, hasta), HttpStatus.OK);
+    }
+
+    @GetMapping("/estadisticas/ticket-promedio")
+    public ResponseEntity<TicketPromedioDTO> calcularTicketPromedio(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta){
+        return new ResponseEntity<>(boletaService.calcularTicketPromedio(desde, hasta), HttpStatus.OK);
     }
 }

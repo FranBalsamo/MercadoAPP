@@ -2,6 +2,7 @@ package com.franbalsamo.mercadoapp.modules.stockproducto.service;
 
 import com.franbalsamo.mercadoapp.modules.stockproducto.repository.StockProductoRepository;
 import com.franbalsamo.mercadoapp.modules.planilla.model.Planilla;
+import com.franbalsamo.mercadoapp.modules.planilla.EstadoPlanilla;
 import com.franbalsamo.mercadoapp.modules.producto.model.Producto;
 import com.franbalsamo.mercadoapp.modules.stockproducto.model.StockProducto;
 import com.franbalsamo.mercadoapp.shared.exception.RecursoNoEncontradoException;
@@ -9,6 +10,7 @@ import com.franbalsamo.mercadoapp.shared.exception.ReglaNegocioException;
 import com.franbalsamo.mercadoapp.modules.producto.service.ProductoService;
 import com.franbalsamo.mercadoapp.modules.planilla.service.PlanillaService;
 import com.franbalsamo.mercadoapp.modules.stockproducto.model.StockProductoDTO;
+import com.franbalsamo.mercadoapp.modules.stockproducto.model.ProductoStockCriticoDTO;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -80,5 +82,17 @@ public class StockProductoService {
     public StockProducto findByProductoAndPlanilla(Producto producto, Planilla planilla){
         return stockProductoRepository.findByProductoAndPlanilla(producto, planilla)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontro el producto en la planilla"));
+    }
+
+    public List<ProductoStockCriticoDTO> findProductosStockCriticoRecurrente(int limite){
+        List<Object[]> filas = stockProductoRepository.findProductosStockCriticoRecurrente(EstadoPlanilla.CERRADA);
+
+        return filas.stream()
+                .map(fila -> new ProductoStockCriticoDTO(
+                        (Long) fila[0],
+                        (String) fila[1],
+                        (Long) fila[2]))
+                .limit(limite)
+                .toList();
     }
 }

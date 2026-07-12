@@ -4,6 +4,10 @@ import com.franbalsamo.mercadoapp.modules.planilla.model.Planilla;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
+import java.util.List;
+
 @Repository
 public interface PlanillaRepository extends JpaRepository<Planilla, Long> {
+    List<Planilla> findAllByFechaBetween(LocalDate desde, LocalDate hasta);
 }

@@ -45,7 +45,7 @@ public class Boleta {
     private EstadoRetiro estadoRetiro;
 
     @Enumerated(EnumType.STRING)
-    private FormaPago formaPago = FormaPago.EFECTIVO;
+    private FormaPago formaPago;
 
     public Boleta(){}
 

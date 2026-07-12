@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import ModalModificarCliente from '../Modals/ModalModificarCliente';
+import ModalModificarSaldoCliente from '../Modals/ModalModificarSaldoCliente';
 import '../Estilos/Botones.css';
+
+const formatearMoneda = (val) => {
+    return (val ?? 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
+};
 
 function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCliente}) {
     // --- ESTADOS ---
@@ -14,6 +19,8 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCl
     const [mostrarModalNuevoCliente, setMostrarModalNuevoCliente] = useState(false);
     const [mostrarModalModificar, setMostrarModalModificar] = useState(false);
     const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
+    const [mostrarModalSaldo, setMostrarModalSaldo] = useState(false);
+    const [clienteParaSaldo, setClienteParaSaldo] = useState(null);
 
     // --- EFECTOS Y FETCH ---
     useEffect(() => {
@@ -39,6 +46,7 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCl
                     documento: cliente.documento,
                     telefono: cliente.telefono,
                     direccion: cliente.direccion,
+                    saldo_a_favor: cliente.saldo_a_favor,
                 }))
                 : [];
             
@@ -54,6 +62,11 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCl
     const abrirModificarCliente = (cliente) => {
         setClienteSeleccionado(cliente);
         setMostrarModalModificar(true);
+    };
+
+    const abrirModificarSaldo = (cliente) => {
+        setClienteParaSaldo(cliente);
+        setMostrarModalSaldo(true);
     };
 
     // --- LÓGICA DE INTERFAZ ---
@@ -171,13 +184,14 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCl
                             <th style={{ padding: '12px 15px' }}>CUIT/L</th>
                             <th style={{ padding: '12px 15px' }}>Telefono</th>
                             <th style={{ padding: '12px 15px' }}>Direccion</th>
+                            <th style={{ padding: '12px 15px' }}>Saldo del Cliente</th>
                             <th style={{ padding: '12px 15px' }}></th>
                         </tr>
                     </thead>
                     <tbody>
                         {clientesFiltrados.length === 0 ? (
                             <tr>
-                                <td colSpan={5} style={{ padding: '20px', textAlign: 'center', color: '#7f8c8d' }}>
+                                <td colSpan={6} style={{ padding: '20px', textAlign: 'center', color: '#7f8c8d' }}>
                                     {clientes.length === 0 ? "Cargando clientes..." : "No se encontraron clientes con esa búsqueda."}
                                 </td>
                             </tr>
@@ -196,6 +210,9 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCl
                                     <td style={{ padding: '10px 15px', textTransform: 'capitalize', fontWeight: '500' }}>
                                         {cliente.direccion || '-'}
                                     </td>
+                                    <td style={{ padding: '10px 15px', fontWeight: '500', color: cliente.saldo_a_favor > 0 ? '#27ae60' : '#2c3e50' }}>
+                                        {formatearMoneda(cliente.saldo_a_favor)}
+                                    </td>
                                     <td style={{ padding: '10px 15px', textTransform: 'capitalize', fontWeight: '500', display: 'flex', gap: '8px' }}>
                                         <button
                                             className="btn-global btn-primario"
@@ -203,6 +220,13 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCl
                                             onClick={() => abrirModificarCliente(cliente)}
                                         >
                                             Modificar
+                                        </button>
+                                        <button
+                                            className="btn-global btn-secundario"
+                                            style={{padding:'4px 4px', fontSize:'0.9rem'}}
+                                            onClick={() => abrirModificarSaldo(cliente)}
+                                        >
+                                            Modificar Saldo
                                         </button>
                                         <button
                                             className="btn-global btn-peligro"
@@ -241,6 +265,17 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCl
                         setClienteSeleccionado(null);
                     }}
                     onClienteModificado={obtenerClientes}
+                />
+            )}
+
+            {mostrarModalSaldo && (
+                <ModalModificarSaldoCliente
+                    cliente={clienteParaSaldo}
+                    cerrarModal={() => {
+                        setMostrarModalSaldo(false);
+                        setClienteParaSaldo(null);
+                    }}
+                    onSaldoModificado={obtenerClientes}
                 />
             )}
 

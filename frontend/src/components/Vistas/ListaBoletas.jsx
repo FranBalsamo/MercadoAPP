@@ -14,6 +14,16 @@ function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBol
         return clienteEncontrado.nombre;
     }
 
+    const formaPagoLegible = (formaPago) => {
+        const nombres = {
+            EFECTIVO: 'Efectivo',
+            MERCADO_PAGO: 'Mercado Pago',
+            TRANSFERENCIA_BANCARIA: 'Transferencia Bancaria',
+            OTROS: 'Otros',
+        };
+        return nombres[formaPago] || '-';
+    }
+
     const solicitarOrden = (columna) => {
         let direccion = 'asc';
         // Si tocas la misma columna que ya estaba activa, invertimos la dirección
@@ -113,7 +123,6 @@ function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBol
                     <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.95rem' }}>
                         <thead style={{ backgroundColor: '#f4f6f8', position: 'sticky', top: 0 }}>
                             <tr>
-                                <th style={{ padding: '12px', borderBottom: '2px solid #ddd' }}># Boleta</th>
                                 <th
                                     onClick={() => solicitarOrden('nombre')}
                                     style={{ padding: '12px', borderBottom: '2px solid #ddd', cursor: 'pointer', userSelect: 'none' }}
@@ -121,7 +130,6 @@ function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBol
                                 >
                                     Cliente {obtenerIconoOrden('nombre')}
                                 </th>
-                                <th style={{ padding: '12px', borderBottom: '2px solid #ddd' }}>Total</th>
                                 <th
                                     onClick={() => solicitarOrden('pago')}
                                     style={{ padding: '12px', borderBottom: '2px solid #ddd', cursor: 'pointer', userSelect: 'none' }}
@@ -136,18 +144,16 @@ function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBol
                                 >
                                     Retiro {obtenerIconoOrden('retiro')}
                                 </th>
+                                <th style={{ padding: '12px', borderBottom: '2px solid #ddd' }}>Forma de Pago</th>
+                                <th style={{ padding: '12px', borderBottom: '2px solid #ddd' }}>Total</th>
                                 <th style={{ padding: '12px', borderBottom: '2px solid #ddd', textAlign: 'center' }}>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             {boletasProcesadas.map((boleta, index) => (
                                 <tr key={boleta.id || index} style={{ borderBottom: '1px solid #eee', cursor: 'pointer' }}>
-                                    <td style={{ padding: '12px', color: '#888' }}>{boleta.id || index + 1}</td>
                                     <td style={{ padding: '12px', fontWeight: 'bold', textTransform: 'capitalize' }}>
                                         {nombreCliente(boleta.id_cliente)}
-                                    </td>
-                                    <td style={{ padding: '12px', fontWeight: 'bold', color: '#2c3e50' }}>
-                                        {boleta.total.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}
                                     </td>
                                     <td style={{ padding: '12px' }}>
                                         <span style={{
@@ -166,6 +172,12 @@ function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBol
                                         }}>
                                             {boleta.estadoRetiro}
                                         </span>
+                                    </td>
+                                    <td style={{ padding: '12px' }}>
+                                        {formaPagoLegible(boleta.formaPago)}
+                                    </td>
+                                    <td style={{ padding: '12px', fontWeight: 'bold', color: '#2c3e50' }}>
+                                        {boleta.total.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}
                                     </td>
                                     <td style={{ padding: '12px', textAlign: 'center', display: 'flex', gap: '15px', justifyContent: 'center', alignItems: 'center' }}>
                                         <button

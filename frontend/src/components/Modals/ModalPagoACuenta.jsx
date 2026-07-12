@@ -102,7 +102,7 @@ function ModalPagoACuenta({ cliente, fechaPlanilla, formatearMoneda, cerrarModal
                             </span>
                             {resultado.sobrante > 0 ? (
                                 <span style={{ color: '#27ae60', fontWeight: 'bold' }}>
-                                    💰 Sobraron {formatearMoneda(resultado.sobrante)}, guardados como saldo a favor del cliente.
+                                    💰 Sobraron {formatearMoneda(resultado.sobrante)}, guardados como saldo del cliente.
                                 </span>
                             ) : (
                                 <span style={{ color: '#7f8c8d' }}>No sobró dinero de este pago.</span>
@@ -134,8 +134,8 @@ function ModalPagoACuenta({ cliente, fechaPlanilla, formatearMoneda, cerrarModal
                     </p>
                     <p style={{ margin: 0, color: '#7f8c8d', fontSize: '0.85rem' }}>
                         {cliente.saldo_a_favor > 0
-                            ? `Este cliente ya tiene ${formatearMoneda(cliente.saldo_a_favor)} de saldo a favor: se va a sumar automáticamente al monto que ingreses acá para cubrir sus boletas impagas más antiguas primero. Si sobra dinero (o no alcanza para cubrir ninguna), la diferencia se guarda como saldo a favor.`
-                            : 'El monto se aplicará a las boletas impagas más antiguas primero. Si sobra dinero (o no alcanza para cubrir ninguna), se guarda como saldo a favor.'}
+                            ? `Este cliente ya tiene ${formatearMoneda(cliente.saldo_a_favor)} de saldo: se va a sumar automáticamente al monto que ingreses acá para cubrir sus boletas impagas más antiguas primero. Si sobra dinero (o no alcanza para cubrir ninguna), la diferencia se guarda como saldo del cliente.`
+                            : 'El monto se aplicará a las boletas impagas más antiguas primero. Si sobra dinero (o no alcanza para cubrir ninguna), se guarda como saldo del cliente.'}
                     </p>
 
                     {error && <div style={{ color: 'red', fontSize: '0.85rem' }}>{error}</div>}

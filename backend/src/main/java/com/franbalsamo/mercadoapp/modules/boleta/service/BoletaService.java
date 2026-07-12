@@ -63,7 +63,7 @@ public class BoletaService {
             float stockDisponible = stockProducto.getStock() - stockProducto.getStock_vendido();
 
             if(stockDisponible < vDto.getCantidad()){
-                throw new RecursoNoEncontradoException("No hay suficiente stock para el producto: " + producto.getNombre());
+                throw new RecursoNoEncontradoException("No hay suficiente inventario para el producto: " + producto.getNombre());
             }
 
             stockProducto.setStock_vendido(stockProducto.getStock_vendido() + vDto.getCantidad());
@@ -96,7 +96,7 @@ public class BoletaService {
             float stockDisponible = stockProducto.getStock() - stockProducto.getStock_vendido();
             if(stockDisponible < vDto.getCantidad()){
                 throw new RecursoNoEncontradoException
-                        ("No hay suficiente stock para el producto: " + producto.getNombre());
+                        ("No hay suficiente inventario para el producto: " + producto.getNombre());
             }
 
             //stockProducto.setStock(stockProducto.getStock() - vDto.getCantidad());
@@ -313,7 +313,9 @@ public class BoletaService {
             totalSeleccionado += boleta.getTotal();
         }
 
-        float saldoAplicado = usarSaldoFavor ? cliente.getSaldo_a_favor() : 0;
+        //El saldo aplicado se limita a lo que realmente hace falta, para no perder el sobrante como "vuelto".
+        float saldoDisponible = cliente.getSaldo_a_favor();
+        float saldoAplicado = usarSaldoFavor ? Math.min(saldoDisponible, totalSeleccionado) : 0;
         float totalDisponible = montoEntregado + saldoAplicado;
 
         if(totalDisponible < totalSeleccionado){
@@ -323,7 +325,7 @@ public class BoletaService {
         float vuelto = totalDisponible - totalSeleccionado;
 
         if(usarSaldoFavor){
-            cliente.setSaldo_a_favor(0);
+            cliente.setSaldo_a_favor(saldoDisponible - saldoAplicado);
             clienteService.save(cliente);
         }
 
@@ -364,16 +366,17 @@ public class BoletaService {
         monto_pago += cliente.getSaldo_a_favor();
         cliente.setSaldo_a_favor(0);
         for(Boleta boletaDeuda : listaBoletasDeudas){
-            if(boletaDeuda.getTotal() <= monto_pago) {
-                monto_pago -= boletaDeuda.getTotal();
-                boletaDeuda.setEstadoPago(EstadoPago.PAGADO);
-                boletaDeuda.setFormaPago(formaPago);
-                listaBoletasPagadas.add(boletaDeuda);
-                boletaRepository.save(boletaDeuda);
-                planillasAfectadas.add(boletaDeuda.getPlanilla());
-            }
-            if(monto_pago <= 0)
+            //Si el monto no alcanza para cubrir esta boleta, se corta aca: el resto queda como saldo a favor
+            //y las siguientes boletas (mas nuevas) no se tocan, para no dejar deudas viejas sin pagar por error.
+            if(boletaDeuda.getTotal() > monto_pago) {
                 break;
+            }
+            monto_pago -= boletaDeuda.getTotal();
+            boletaDeuda.setEstadoPago(EstadoPago.PAGADO);
+            boletaDeuda.setFormaPago(formaPago);
+            listaBoletasPagadas.add(boletaDeuda);
+            boletaRepository.save(boletaDeuda);
+            planillasAfectadas.add(boletaDeuda.getPlanilla());
         }
         //Sobro dinero y no es posible pagar una boleta en su totalidad entonces se almacena en saldo a favor
         if(monto_pago > 0){

@@ -323,7 +323,7 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                 <AlertaConfirmacion 
                     mensaje={
                         "⚠️ Estás a punto de eliminar permanentemente la Boleta #" + boletaAEliminar?.id + ".\n" +
-                        "Esta acción devolverá los artículos al stock y no se puede deshacer.\n" +
+                        "Esta acción devolverá los artículos al inventario y no se puede deshacer.\n" +
                         "¿Estás completamente seguro?"
                     }
                     onConfirmar={confirmarEliminacionBoleta}

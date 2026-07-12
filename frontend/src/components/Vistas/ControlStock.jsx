@@ -30,7 +30,7 @@ function ControlStock({ stockProductos, catalogoProductos, cargando, abrirModifi
             flexDirection: 'column'
         }}>
             <div className="controlStock-header" style={{display:'flex', flexDirection:'row', justifyContent:'space-between' }}>
-                <h3 style={{ marginTop: 0, padding: '5px' }}>📦 Stock Hoy</h3>
+                <h3 style={{ marginTop: 0, padding: '5px' }}>📦 Inventario Hoy</h3>
                 <button 
                     className="btn-global btn-primario"
                     onClick={abrirModificarStock}

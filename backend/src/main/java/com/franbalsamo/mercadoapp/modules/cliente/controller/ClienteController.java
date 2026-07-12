@@ -62,6 +62,12 @@ public class ClienteController {
         return new ResponseEntity<>(clienteEncontrado, HttpStatus.OK);
     }
 
+    @PutMapping("/{id}/saldo/{nuevoSaldo}")
+    public ResponseEntity<ClienteDTO> modificarSaldo(@PathVariable long id, @PathVariable float nuevoSaldo) {
+        ClienteDTO clienteActualizado = clienteService.modificarSaldo(id, nuevoSaldo);
+        return new ResponseEntity<>(clienteActualizado, HttpStatus.OK);
+    }
+
     @GetMapping("/deudores/{cantidad}")
     public ResponseEntity<List<ClienteDeudorDTO>> findTopDeudores(@PathVariable int cantidad) {
         List<ClienteDeudorDTO> topDeudores = boletaService.findTopDeudores(cantidad);

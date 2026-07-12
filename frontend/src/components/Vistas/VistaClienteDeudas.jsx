@@ -13,6 +13,39 @@ const capitalizar = (texto) => {
     return texto.replace(/\b\w/g, (letra) => letra.toUpperCase());
 };
 
+function PuntoInformativo({ texto }) {
+    const [mostrar, setMostrar] = useState(false);
+
+    return (
+        <span
+            style={{ position: 'relative', display: 'inline-flex' }}
+            onMouseEnter={() => setMostrar(true)}
+            onMouseLeave={() => setMostrar(false)}
+        >
+            <span
+                style={{
+                    cursor: 'help', color: '#95a5a6', fontSize: '0.75rem', fontWeight: 'bold',
+                    border: '1px solid #95a5a6', borderRadius: '50%', width: '15px', height: '15px',
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center'
+                }}
+            >
+                i
+            </span>
+
+            {mostrar && (
+                <div style={{
+                    position: 'absolute', bottom: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)',
+                    backgroundColor: '#2c3e50', color: 'white', padding: '8px 12px', borderRadius: '6px',
+                    fontSize: '0.8rem', fontWeight: '400', whiteSpace: 'normal', width: '220px', textAlign: 'left',
+                    lineHeight: '1.4', boxShadow: '0 4px 10px rgba(0,0,0,0.15)', zIndex: 20
+                }}>
+                    {texto}
+                </div>
+            )}
+        </span>
+    );
+}
+
 function VistaClienteDeudas({ cliente, volver }) {
     const [clienteActual, setClienteActual] = useState(cliente);
     const [boletas, setBoletas] = useState([]);
@@ -93,6 +126,7 @@ function VistaClienteDeudas({ cliente, volver }) {
     });
 
     const totalDeuda = boletas.reduce((acumulado, boleta) => acumulado + (boleta.total || 0), 0);
+    const deudaActual = Math.max(0, totalDeuda - (clienteActual.saldo_a_favor || 0));
 
     const boletasSeleccionadas = boletas.filter(b => idsSeleccionados.includes(b.id));
     const totalSeleccionado = boletasSeleccionadas.reduce((acumulado, boleta) => acumulado + (boleta.total || 0), 0);
@@ -112,6 +146,12 @@ function VistaClienteDeudas({ cliente, volver }) {
         setIdsSeleccionados(prev =>
             prev.includes(id_boleta) ? prev.filter(id => id !== id_boleta) : [...prev, id_boleta]
         );
+    };
+
+    const todasSeleccionadas = boletasOrdenadas.length > 0 && idsSeleccionados.length === boletasOrdenadas.length;
+
+    const alternarSeleccionarTodas = () => {
+        setIdsSeleccionados(todasSeleccionadas ? [] : boletasOrdenadas.map(b => b.id));
     };
 
     const handleCobroConfirmado = async () => {
@@ -150,21 +190,29 @@ function VistaClienteDeudas({ cliente, volver }) {
         doc.setLineWidth(0.5);
         doc.line(14, 29, anchoPagina - 14, 29);
 
-        const anchoCaja = anchoPagina - 28;
-        doc.setFillColor(192, 57, 43);
-        doc.rect(14, 34, 1, 14, 'F');
-        doc.setDrawColor(224, 224, 224);
-        doc.rect(14, 34, anchoCaja, 14);
-        doc.setFontSize(8);
-        doc.setTextColor(127, 127, 127);
-        doc.text('Deuda total', 18, 39);
-        doc.setFontSize(11);
-        doc.setTextColor(192, 57, 43);
-        doc.text(formatearMoneda(totalDeuda), 18, 45);
+        const anchoCaja = (anchoPagina - 28 - 5) / 2;
+        const cajas = [
+            { titulo: 'Deuda actual', valor: formatearMoneda(deudaActual), color: [192, 57, 43] },
+            { titulo: 'Saldo del Cliente', valor: formatearMoneda(clienteActual.saldo_a_favor), color: [39, 174, 96] },
+        ];
+
+        cajas.forEach((caja, i) => {
+            const x = 14 + i * (anchoCaja + 5);
+            doc.setFillColor(...caja.color);
+            doc.rect(x, 34, 1, 14, 'F');
+            doc.setDrawColor(224, 224, 224);
+            doc.rect(x, 34, anchoCaja, 14);
+            doc.setFontSize(8);
+            doc.setTextColor(127, 127, 127);
+            doc.text(caja.titulo, x + 4, 39);
+            doc.setFontSize(11);
+            doc.setTextColor(...caja.color);
+            doc.text(caja.valor, x + 4, 45);
+        });
 
         const filas = boletasOrdenadas.map(boleta => {
             const productos = (boleta.ventas || [])
-                .map(v => `${v.cantidad}x ${capitalizar(nombreProducto(v.id_producto))} - ${formatearMoneda(v.precio_unitario)} c/u / vacío: ${v.precio_vacio > 0 ? formatearMoneda(v.precio_vacio) : 'suelto'}`)
+                .map(v => `${v.cantidad}x ${capitalizar(nombreProducto(v.id_producto))} - ${formatearMoneda(v.precio_unitario)} c/u / vacío: ${v.precio_vacio > 0 ? formatearMoneda(v.precio_vacio) : 'Sin Vacio'}`)
                 .join('\n');
 
             return [
@@ -196,7 +244,7 @@ function VistaClienteDeudas({ cliente, volver }) {
 
         doc.setFontSize(11);
         doc.setTextColor(44, 62, 80);
-        doc.text(`Total deuda: ${formatearMoneda(totalDeuda)}`, anchoPagina - 14, doc.lastAutoTable.finalY + 8, { align: 'right' });
+        doc.text(`Deuda actual: ${formatearMoneda(deudaActual)}`, anchoPagina - 14, doc.lastAutoTable.finalY + 8, { align: 'right' });
 
         const nombreArchivo = `deudas_${(clienteActual.nombre || 'cliente').replace(/\s+/g, '_')}.pdf`;
         const esTauri = typeof window !== 'undefined' && window.__TAURI_INTERNALS__;
@@ -255,16 +303,32 @@ function VistaClienteDeudas({ cliente, volver }) {
             {/* CAJITAS DE DEUDA / SALDO A FAVOR + ACCIÓN DE PAGO */}
             <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'stretch' }}>
                 <div style={{ flex: 1, minWidth: '220px', backgroundColor: 'white', padding: '15px', borderRadius: '8px', borderLeft: '5px solid #e74c3c', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                    <span style={{ color: '#7f8c8d', fontSize: '0.9rem' }}>Deuda Total</span>
+                    <span style={{ color: '#7f8c8d', fontSize: '0.9rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        Deuda Total
+                        <PuntoInformativo texto="Suma de todas las boletas del cliente que todavía están sin pagar." />
+                    </span>
                     <h3 style={{ margin: '5px 0 0 0', fontSize: '1.5rem', color: '#e74c3c' }}>
                         {formatearMoneda(totalDeuda)}
                     </h3>
                 </div>
 
                 <div style={{ flex: 1, minWidth: '220px', backgroundColor: 'white', padding: '15px', borderRadius: '8px', borderLeft: '5px solid #27ae60', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                    <span style={{ color: '#7f8c8d', fontSize: '0.9rem' }}>Saldo a Favor</span>
+                    <span style={{ color: '#7f8c8d', fontSize: '0.9rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        Saldo del Cliente
+                        <PuntoInformativo texto="Dinero que el cliente entregó de más y todavía no se usó para pagar deudas. Se descuenta automáticamente del próximo cobro." />
+                    </span>
                     <h3 style={{ margin: '5px 0 0 0', fontSize: '1.5rem', color: '#27ae60' }}>
                         {formatearMoneda(clienteActual.saldo_a_favor)}
+                    </h3>
+                </div>
+
+                <div style={{ flex: 1, minWidth: '220px', backgroundColor: 'white', padding: '15px', borderRadius: '8px', borderLeft: '5px solid #c0392b', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                    <span style={{ color: '#7f8c8d', fontSize: '0.9rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        Deuda Actual
+                        <PuntoInformativo texto="Deuda Total menos el Saldo del Cliente. Es lo que realmente falta cobrar." />
+                    </span>
+                    <h3 style={{ margin: '5px 0 0 0', fontSize: '1.5rem', color: '#c0392b' }}>
+                        {formatearMoneda(deudaActual)}
                     </h3>
                 </div>
 
@@ -319,9 +383,20 @@ function VistaClienteDeudas({ cliente, volver }) {
                     backgroundColor: '#fffbe6', border: '1px solid #f1c40f', borderRadius: '8px',
                     padding: '12px 20px'
                 }}>
-                    <span style={{ fontWeight: 'bold', color: '#2c3e50' }}>
-                        {idsSeleccionados.length} boleta(s) seleccionada(s) — Total a Cobrar: <span style={{ color: '#27ae60' }}>{formatearMoneda(totalSeleccionado)}</span>
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', color: '#2c3e50', cursor: 'pointer' }}>
+                            <input
+                                type="checkbox"
+                                checked={todasSeleccionadas}
+                                onChange={alternarSeleccionarTodas}
+                                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                            />
+                            Seleccionar Todos
+                        </label>
+                        <span style={{ fontWeight: 'bold', color: '#2c3e50' }}>
+                            {idsSeleccionados.length} boleta(s) seleccionada(s) — Total a Cobrar: <span style={{ color: '#27ae60' }}>{formatearMoneda(totalSeleccionado)}</span>
+                        </span>
+                    </div>
                     <div style={{ display: 'flex', gap: '10px' }}>
                         <button className="btn-global btn-secundario" onClick={cancelarSeleccionBoletas}>
                             Cancelar
@@ -381,7 +456,7 @@ function VistaClienteDeudas({ cliente, volver }) {
                                                 <strong>{itemProd.cantidad}x</strong> {nombreProducto(itemProd.id_producto)}
                                                 <span style={{ color: '#7f8c8d', fontSize: '0.85rem' }}> (c/u: {formatearMoneda(itemProd.precio_unitario)})</span>
                                                 <span style={{ color: '#7f8c8d', fontSize: '0.85rem' }}>
-                                                    {' '}- Vacío: {itemProd.precio_vacio > 0 ? formatearMoneda(itemProd.precio_vacio) : 'suelto'}
+                                                    {' '}- Vacío: {itemProd.precio_vacio > 0 ? formatearMoneda(itemProd.precio_vacio) : 'Sin Vacio'}
                                                 </span>
                                             </li>
                                         ))}

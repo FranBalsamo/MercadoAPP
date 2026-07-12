@@ -52,7 +52,7 @@ public class StockProductoService {
 
         for(StockProductoDTO stocKProductoDTO : listaStockProductoDTO){
             if(stocKProductoDTO.getStock() < 0){
-                throw new ReglaNegocioException("Error: El stock no puede ser negativo");
+                throw new ReglaNegocioException("Error: El inventario no puede ser negativo");
             }
         }
 

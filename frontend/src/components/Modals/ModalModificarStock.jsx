@@ -29,11 +29,11 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos, onStock
                         : [];
                     setStockProductos(stockProductosFormateados);
                 } else {
-                    setError('❌ No se pudo sincronizar el stock con el servidor.');
+                    setError('❌ No se pudo sincronizar el inventario con el servidor.');
                 }
             } catch (err) {
                 console.error(err);
-                setError('❌ Error de conexión al verificar el stock.');
+                setError('❌ Error de conexión al verificar el inventario.');
             }
         };
         obtenerStockDeLaPlanilla();
@@ -124,7 +124,7 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos, onStock
             return;
         }
         if (!planilla || !planilla.id) {
-            setError('❌ No se pudo identificar la planilla para actualizar el stock.');
+            setError('❌ No se pudo identificar la planilla para actualizar el inventario.');
             return;
         }
 
@@ -156,7 +156,7 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos, onStock
             });
             
             if (!respuesta.ok) {
-                throw new Error('Error al actualizar el stock en el servidor.');
+                throw new Error('Error al actualizar el inventario en el servidor.');
             }
             await onStockActualizado();
             cerrarModal();
@@ -171,7 +171,7 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos, onStock
             <div className="modal-contenido" style={{ width: '95%', maxWidth: '500px', maxHeight: '700px', height:'95%' }}>
 
                 <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ margin: 0 }}>✏️ Modificar Stock</h3>
+                    <h3 style={{ margin: 0 }}>✏️ Modificar Inventario</h3>
                     <button className="btn-cerrar-modal" onClick={cerrarModal}>×</button>
                 </div>
 
@@ -275,7 +275,7 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos, onStock
             {mostrarAlertaEliminar && (
                 <AlertaConfirmacion 
                     mensaje={
-                        `⚠️ Estás a punto de eliminar "${itemAEliminar?.nombre}" del control de stock.\n` +
+                        `⚠️ Estás a punto de eliminar "${itemAEliminar?.nombre}" del control de inventario.\n` +
                         `Esta acción es inmediata y no se puede deshacer.\n\n` +
                         `¿Estás seguro de continuar?`
                     }

@@ -75,4 +75,17 @@ public class ClienteService {
     public boolean existsByDocumento(String documento){
         return clienteRepository.existsByDocumento(documento);
     }
+
+    public ClienteDTO modificarSaldo(long id, float nuevoSaldo){
+        if(nuevoSaldo < 0){
+            throw new ReglaNegocioException("El saldo del cliente no puede ser negativo");
+        }
+
+        Cliente cliente = clienteRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Cliente no encontrado con id: " + id));
+
+        cliente.setSaldo_a_favor(nuevoSaldo);
+
+        return clienteMapper.toDTO(clienteRepository.save(cliente));
+    }
 }

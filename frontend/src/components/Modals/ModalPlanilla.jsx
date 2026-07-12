@@ -121,7 +121,7 @@ function ModalPlanilla({cerrarModal, onPlanillaCreada}) {
                         </div>
                     )}
 
-                    <p>Cargar el stock incial para el dia de hoy:</p>
+                    <p>Cargar el inventario inicial para el día de hoy:</p>
 
                     {stockDiario.map((fila,index) => (
                         <div key={fila.id_fila} style={{display: 'flex', gap: '10px', marginBotton: '10px'}}>
@@ -158,7 +158,7 @@ function ModalPlanilla({cerrarModal, onPlanillaCreada}) {
                             <input
                                 type="number"
                                 style={{flex: 1, padding: '8px' }}
-                                placeholder="stock"
+                                placeholder="inventario"
                                 value={fila.stock}
                                 onChange={(e) => actualizarFila(index, 'stock', e.target.value)}
                                 min="1"

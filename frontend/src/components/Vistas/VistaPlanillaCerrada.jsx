@@ -172,7 +172,7 @@ function VistaPlanillaCerrada({ planilla, volver }) {
         if (stockSobrante) {
             doc.setFontSize(9);
             doc.setTextColor(44, 62, 80);
-            doc.text('Stock sobrante al cierre:', 14, cursorY);
+            doc.text('Inventario sobrante al cierre:', 14, cursorY);
             doc.setFontSize(8);
             doc.setTextColor(100, 100, 100);
             const lineasStock = doc.splitTextToSize(stockSobrante, anchoPagina - 28);
@@ -182,7 +182,7 @@ function VistaPlanillaCerrada({ planilla, volver }) {
 
         const filas = boletasProcesadas.map(boleta => {
             const productos = (boleta.ventas || [])
-                .map(v => `${v.cantidad}x ${capitalizar(nombreProducto(v.id_producto))} - ${formatearMoneda(v.precio_unitario)} c/u / vacío: ${v.precio_vacio > 0 ? formatearMoneda(v.precio_vacio) : 'suelto'}`)
+                .map(v => `${v.cantidad}x ${capitalizar(nombreProducto(v.id_producto))} - ${formatearMoneda(v.precio_unitario)} c/u / vacío: ${v.precio_vacio > 0 ? formatearMoneda(v.precio_vacio) : 'Sin Vacio'}`)
                 .join('\n');
 
             return [
@@ -335,7 +335,7 @@ function VistaPlanillaCerrada({ planilla, volver }) {
 
                 {/* Cajita de Stock Sobrante del Día */}
                 <div style={{ flex: 2, minWidth: '300px', backgroundColor: 'white', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                    <h4 style={{ margin: '0 0 10px 0', color: '#2c3e50' }}>📦 Stock que sobró al cierre del día</h4>
+                    <h4 style={{ margin: '0 0 10px 0', color: '#2c3e50' }}>📦 Inventario de Cierre de Planilla</h4>
                     <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', maxHeight: '80px', overflowY: 'auto' }}>
                         {(totalesPlanilla.stockProductos || []).map(item => {
                             const sobrante = item.stock - item.stock_vendido;
@@ -463,7 +463,7 @@ function VistaPlanillaCerrada({ planilla, volver }) {
                                                             <strong>{itemProd.cantidad}x</strong> {nombreProducto(itemProd.id_producto)}
                                                             <span style={{ color: '#7f8c8d', fontSize: '0.85rem' }}> ({formatearMoneda(itemProd.precio_unitario)} c/u)</span>
                                                             <span style={{ color: '#7f8c8d', fontSize: '0.85rem' }}>
-                                                                {' '}- Vacío: {itemProd.precio_vacio > 0 ? formatearMoneda(itemProd.precio_vacio) : 'suelto'}
+                                                                {' '}- Vacío: {itemProd.precio_vacio > 0 ? formatearMoneda(itemProd.precio_vacio) : 'Sin Vacio'}
                                                             </span>
                                                         </li>
                                                     ))}
@@ -481,9 +481,9 @@ function VistaPlanillaCerrada({ planilla, volver }) {
                                                     className="btn-global btn-primario"
                                                     onClick={() => abrirEdicionBoleta(boleta)}
                                                     style={{ fontSize: '0.85rem', padding: '4px 10px' }}
-                                                    title="Editar Boleta"
+                                                    title="Modificar Boleta"
                                                 >
-                                                    Editar
+                                                    Modificar
                                                 </button>
                                             </td>
                                         </tr>

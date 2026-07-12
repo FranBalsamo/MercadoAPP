@@ -42,11 +42,11 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
                     setStockProductos(stockProductosFormateados);
                     console.log('Stock actualizado para la boleta:', stockProductosFormateados);
                 } else {
-                    setErrorVenta('❌ No se pudo sincronizar el stock con el servidor.');
+                    setErrorVenta('❌ No se pudo sincronizar el inventario con el servidor.');
                 }
             } catch (error) {
                 console.error(error);
-                setErrorVenta('❌ Error de conexión al verificar el stock.');
+                setErrorVenta('❌ Error de conexión al verificar el inventario.');
             } finally {
                 setCargandoStock(false);
             }
@@ -91,9 +91,9 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
 
         if (cantidadReal > stockFinalDisponible) {
             if (stockYaEnCarrito > 0) {
-                setErrorVenta(`❌ Stock insuficiente. Ya tienes ${stockYaEnCarrito} en el carrito y solo quedan ${stockFinalDisponible} disponibles.`);
+                setErrorVenta(`❌ Inventario insuficiente. Ya tienes ${stockYaEnCarrito} en el carrito y solo quedan ${stockFinalDisponible} disponibles.`);
             } else {
-                setErrorVenta(`❌ Stock insuficiente. Solo quedan ${stockFinalDisponible} unidades.`);
+                setErrorVenta(`❌ Inventario insuficiente. Solo quedan ${stockFinalDisponible} unidades.`);
             }
             return;
         }
@@ -256,7 +256,7 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
                     {/* BLOQUEO VISUAL MIENTRAS CARGA EL STOCK */}
                     {cargandoStock ? (
                         <div style={{ padding: '30px', textAlign: 'center', backgroundColor: '#f9f9f9', borderRadius: '8px', border: '1px solid #ddd', marginBottom: '20px' }}>
-                            <h4 style={{ color: '#3498db', margin: 0 }}>🔄 Sincronizando stock en vivo...</h4>
+                            <h4 style={{ color: '#3498db', margin: 0 }}>🔄 Sincronizando inventario en vivo...</h4>
                             <p style={{ fontSize: '0.9rem', color: '#7f8c8d', marginTop: '5px' }}>Por favor, espera un segundo.</p>
                         </div>
                     ) : (
@@ -293,7 +293,7 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
                                         fontWeight: 'bold',
                                         visibility: stockDisponibleActual !== null ? 'visible' : 'hidden'
                                     }}>
-                                        {(stockDisponibleActual > 0 && !excedeStock) ? `disponible: ${stockDisponibleActual}` : 'Sin Stock'}
+                                        {(stockDisponibleActual > 0 && !excedeStock) ? `disponible: ${stockDisponibleActual}` : 'Sin Inventario'}
                                     </div>
                                     <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Cantidad:</label>
                                     <input

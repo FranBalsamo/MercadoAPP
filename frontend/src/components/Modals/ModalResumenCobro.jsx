@@ -5,7 +5,6 @@ import '../Estilos/Botones.css';
 function ModalResumenCobro({ cliente, boletasSeleccionadas, nombreProducto, fechaPlanilla, formatearMoneda, cerrarModal, onCobroConfirmado }) {
     const [formaPago, setFormaPago] = useState('EFECTIVO');
     const [usarSaldoFavor, setUsarSaldoFavor] = useState(false);
-    const [montoEntregadoCentavos, setMontoEntregadoCentavos] = useState(0);
     const [confirmando, setConfirmando] = useState(false);
     const [error, setError] = useState('');
     const [resultado, setResultado] = useState(null);
@@ -14,22 +13,10 @@ function ModalResumenCobro({ cliente, boletasSeleccionadas, nombreProducto, fech
 
     const saldoFavorDisponible = cliente.saldo_a_favor || 0;
     const saldoAplicado = usarSaldoFavor ? saldoFavorDisponible : 0;
-    const montoEntregado = montoEntregadoCentavos / 100;
-    const montoEntregadoFormateado = montoEntregadoCentavos > 0 ? formatearMoneda(montoEntregado) : '';
-    const totalDisponible = montoEntregado + saldoAplicado;
-    const diferencia = totalDisponible - total;
-
-    const handleMontoChange = (e) => {
-        const soloDigitos = e.target.value.replace(/\D/g, '');
-        setMontoEntregadoCentavos(soloDigitos ? parseInt(soloDigitos, 10) : 0);
-    };
+    // El monto entregado se calcula solo: se asume que se cobró exactamente lo que el saldo a favor no cubre.
+    const montoEntregado = Math.max(0, total - saldoAplicado);
 
     const handleConfirmar = async () => {
-        if (diferencia < 0) {
-            setError(`❌ Falta cubrir ${formatearMoneda(-diferencia)} para completar el total seleccionado.`);
-            return;
-        }
-
         setConfirmando(true);
         setError('');
 
@@ -144,44 +131,29 @@ function ModalResumenCobro({ cliente, boletasSeleccionadas, nombreProducto, fech
                                     checked={usarSaldoFavor}
                                     onChange={(e) => setUsarSaldoFavor(e.target.checked)}
                                 />
-                                Usar el saldo a favor disponible ({formatearMoneda(saldoFavorDisponible)}) como parte del pago
+                                Usar el saldo del cliente disponible ({formatearMoneda(saldoFavorDisponible)}) como parte del pago
                             </label>
                         )}
 
-                        <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
-                            <div className="form-group" style={{ flex: 1, minWidth: '160px' }}>
-                                <label>Monto entregado:</label>
-                                <input
-                                    type="text"
-                                    inputMode="numeric"
-                                    placeholder={formatearMoneda(0)}
-                                    value={montoEntregadoFormateado}
-                                    onChange={handleMontoChange}
-                                />
-                            </div>
-
-                            <div className="form-group" style={{ flex: 1, minWidth: '160px' }}>
-                                <label>Forma de pago:</label>
-                                <select
-                                    value={formaPago}
-                                    onChange={(e) => setFormaPago(e.target.value)}
-                                    style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
-                                >
-                                    <option value="EFECTIVO">Efectivo</option>
-                                    <option value="MERCADO_PAGO">Mercado Pago</option>
-                                    <option value="TRANSFERENCIA_BANCARIA">Transferencia Bancaria</option>
-                                    <option value="OTROS">Otros</option>
-                                </select>
-                            </div>
+                        <div className="form-group" style={{ maxWidth: '260px' }}>
+                            <label>Forma de pago:</label>
+                            <select
+                                value={formaPago}
+                                onChange={(e) => setFormaPago(e.target.value)}
+                                style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
+                            >
+                                <option value="EFECTIVO">Efectivo</option>
+                                <option value="MERCADO_PAGO">Mercado Pago</option>
+                                <option value="TRANSFERENCIA_BANCARIA">Transferencia Bancaria</option>
+                                <option value="OTROS">Otros</option>
+                            </select>
                         </div>
 
-                        <div style={{ fontSize: '0.9rem', color: diferencia < 0 ? '#c0392b' : '#27ae60', fontWeight: 'bold' }}>
-                            {diferencia < 0
-                                ? `Falta ${formatearMoneda(-diferencia)} para cubrir el total.`
-                                : diferencia > 0
-                                    ? `Vuelto: ${formatearMoneda(diferencia)}`
-                                    : 'Cubre el total exacto.'}
-                        </div>
+                        {usarSaldoFavor && (
+                            <div style={{ fontSize: '0.9rem', color: '#7f8c8d' }}>
+                                Se descuentan {formatearMoneda(saldoAplicado)} del saldo del cliente. Resta cobrar {formatearMoneda(montoEntregado)}.
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -189,7 +161,7 @@ function ModalResumenCobro({ cliente, boletasSeleccionadas, nombreProducto, fech
                     <h3 style={{ margin: 0, color: '#2c3e50' }}>Total: {formatearMoneda(total)}</h3>
                     <div style={{ display: 'flex', gap: '10px' }}>
                         <button className="btn-global btn-secundario" onClick={cerrarModal} disabled={confirmando}>Cancelar</button>
-                        <button className="btn-global btn-primario-green" onClick={handleConfirmar} disabled={confirmando || diferencia < 0}>
+                        <button className="btn-global btn-primario-green" onClick={handleConfirmar} disabled={confirmando}>
                             {confirmando ? 'Cobrando...' : 'Confirmar'}
                         </button>
                     </div>

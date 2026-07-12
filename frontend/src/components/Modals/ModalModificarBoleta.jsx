@@ -78,11 +78,11 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                         : [];
                     setStockProductos(stockProductosFormateados);
                 } else {
-                    setErrorVenta('❌ No se pudo sincronizar el stock con el servidor.');
+                    setErrorVenta('❌ No se pudo sincronizar el inventario con el servidor.');
                 }
             } catch (error) {
                 console.error(error);
-                setErrorVenta('❌ Error de conexión al verificar el stock.');
+                setErrorVenta('❌ Error de conexión al verificar el inventario.');
             } finally {
                 setCargandoStock(false);
             }
@@ -124,7 +124,7 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
         const stockFinalDisponible = stockEnBD - stockYaEnCarrito;
 
         if (cantidadReal > stockFinalDisponible) {
-            setErrorVenta(`❌ Stock insuficiente. Solo quedan ${stockFinalDisponible} unidades extras.`);
+            setErrorVenta(`❌ Inventario insuficiente. Solo quedan ${stockFinalDisponible} unidades extras.`);
             return;
         }
 
@@ -193,7 +193,7 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
         .filter(filaExcedeStock)
         .map(fila => {
             const disponible = stockDisponibleParaFila(fila);
-            return `❌ Stock insuficiente para "${fila.nombre}". Disponible: ${disponible > 0 ? disponible : 0} unidades.`;
+            return `❌ Inventario insuficiente para "${fila.nombre}". Disponible: ${disponible > 0 ? disponible : 0} unidades.`;
         });
 
     const hayFilaConStockExcedido = mensajesStockExcedido.length > 0;
@@ -209,7 +209,7 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
         }
 
         if (hayFilaConStockExcedido) {
-            setErrorVenta('❌ Hay productos con una cantidad mayor al stock disponible. Corregilos antes de guardar.');
+            setErrorVenta('❌ Hay productos con una cantidad mayor al inventario disponible. Corregilos antes de guardar.');
             return;
         }
 
@@ -331,7 +331,7 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                                         fontWeight: 'bold',
                                         visibility: stockDisponibleActual !== null ? 'visible' : 'hidden'
                                     }}>
-                                        {(stockDisponibleActual > 0 && !excedeStock) ? `disp: ${stockDisponibleActual}` : 'Sin Stock'}
+                                        {(stockDisponibleActual > 0 && !excedeStock) ? `disp: ${stockDisponibleActual}` : 'Sin Inventario'}
                                     </div>
                                     <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Cantidad:</label>
                                     <input

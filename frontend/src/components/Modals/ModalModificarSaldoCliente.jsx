@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import AlertaConfirmacion from '../Alertas/AlertaConfirmacion';
+import { HiOutlinePencilSquare } from 'react-icons/hi2';
 import '../Estilos/Modal.css';
 import '../Estilos/Botones.css';
 
@@ -38,7 +39,7 @@ function ModalModificarSaldoCliente({ cerrarModal, cliente, onSaldoModificado })
 
             if (!respuesta.ok) {
                 const mensajeError = await respuesta.text();
-                setError(mensajeError ? `❌ ${mensajeError}` : '❌ Error en el servidor al intentar guardar.');
+                setError(mensajeError ? mensajeError : 'Error en el servidor al intentar guardar.');
                 return;
             }
 
@@ -47,7 +48,7 @@ function ModalModificarSaldoCliente({ cerrarModal, cliente, onSaldoModificado })
             cerrarModal();
         } catch (err) {
             console.error(err);
-            setError('❌ Error de conexion con el servidor.');
+            setError('Error de conexion con el servidor.');
         } finally {
             setGuardando(false);
         }
@@ -57,17 +58,17 @@ function ModalModificarSaldoCliente({ cerrarModal, cliente, onSaldoModificado })
         <div className="modal-overlay">
             <div className="modal-contenido">
                 <div className="modal-header">
-                    <h3>✏️ Modificar Saldo del Cliente</h3>
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlinePencilSquare /> Modificar Saldo del Cliente</h3>
                     <button className="btn-cerrar-modal" onClick={cerrarModal}>X</button>
                 </div>
 
                 <div className="modal-body">
-                    <p style={{ margin: 0, color: '#7f8c8d' }}>
-                        Cliente: <strong style={{ textTransform: 'capitalize', color: '#2c3e50' }}>{cliente?.nombre}</strong>
+                    <p style={{ margin: 0, color: 'var(--text-secondary)' }}>
+                        Cliente: <strong style={{ textTransform: 'capitalize', color: 'var(--text-primary)' }}>{cliente?.nombre}</strong>
                     </p>
 
                     {error && (
-                        <div style={{ color: 'red', fontSize: '0.8rem' }}>{error}</div>
+                        <div style={{ color: 'var(--danger)', fontSize: '0.8rem' }}>{error}</div>
                     )}
 
                     <div className="form-group">

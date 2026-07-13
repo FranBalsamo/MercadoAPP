@@ -20,11 +20,11 @@ function ModalPlanilla({cerrarModal, onPlanillaCreada}) {
                     const datos = await respuesta.json(); //convierte la respuesta de Java a un arreglo de JavaScript
                     setProductosDB(datos);
                 } else {
-                    setError('❌ Error al cargar la lista de productos del servidor.');
+                    setError('Error al cargar la lista de productos del servidor.');
                 }
             } catch (err) {
                 console.log(err);
-                setError('❌ No se pudo establecer conexion con el servidor');
+                setError('No se pudo establecer conexion con el servidor');
             }
         }
         
@@ -50,7 +50,7 @@ function ModalPlanilla({cerrarModal, onPlanillaCreada}) {
     const handleGuardar = async () => {
 
         if (stockDiario.length === 0) {
-            setError('❌ Debes cargar al menos un producto para abrir la planilla.');
+            setError('Debes cargar al menos un producto para abrir la planilla.');
             return;
         }
         for (let i = 0; i < stockDiario.length; i++) {
@@ -58,12 +58,12 @@ function ModalPlanilla({cerrarModal, onPlanillaCreada}) {
             const numeroFila = i + 1;
             
             if (!fila.id_producto || fila.id_producto === '') {
-                setError(`❌ Faltó seleccionar un producto en la fila ${numeroFila}.`);
+                setError(`Faltó seleccionar un producto en la fila ${numeroFila}.`);
                 return;
             }
             const cantidad = parseInt(fila.stock); //parseInt() sirve para covertir a numero
             if (!fila.stock || isNaN(cantidad) || cantidad < 1) {
-                setError(`❌ La cantidad debe ser al menos 1 en la fila ${numeroFila}.`);
+                setError(`La cantidad debe ser al menos 1 en la fila ${numeroFila}.`);
                 return;
             }
         }
@@ -94,11 +94,12 @@ function ModalPlanilla({cerrarModal, onPlanillaCreada}) {
                 onPlanillaCreada(planillaCreada); 
 
             } else {
-                setError('❌ Error en el servidor al intentar abrir la planilla.');
+                const mensajeError = await respuesta.text();
+                setError(mensajeError ? mensajeError : 'Error en el servidor al intentar abrir la planilla.');
             }
         } catch (err) {
             console.log(err);
-            setError('❌ Error al intentar conectar con el servidor.')
+            setError('Error al intentar conectar con el servidor.')
         }
         
     };
@@ -116,7 +117,7 @@ function ModalPlanilla({cerrarModal, onPlanillaCreada}) {
 
                 <div className="modal-body">
                     {error && (
-                        <div style={{ backgroundColor: '#ffcccc', color: '#cc0000', padding: '10px', borderRadius: '4px', fontSize: '0.9rem', marginBottom: '15px' }}>
+                        <div style={{ backgroundColor: 'var(--danger-soft)', color: 'var(--danger-soft-text)', padding: '10px', borderRadius: 'var(--radius-sm)', fontSize: '0.9rem', marginBottom: '15px' }}>
                             {error}
                         </div>
                     )}
@@ -126,8 +127,8 @@ function ModalPlanilla({cerrarModal, onPlanillaCreada}) {
                     {stockDiario.map((fila,index) => (
                         <div key={fila.id_fila} style={{display: 'flex', gap: '10px', marginBotton: '10px'}}>
 
-                            <select 
-                                style={{flex: 2, padding: '8px', textTransform:'capitalize'}}
+                            <select
+                                style={{ flex: 2, padding: '8px', textTransform:'capitalize', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
                                 values={fila.id_producto}
                                 onChange={(e) => actualizarFila(index, 'id_producto', e.target.value)}
                             >
@@ -157,7 +158,7 @@ function ModalPlanilla({cerrarModal, onPlanillaCreada}) {
                             
                             <input
                                 type="number"
-                                style={{flex: 1, padding: '8px' }}
+                                style={{ flex: 1, padding: '8px', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
                                 placeholder="inventario"
                                 value={fila.stock}
                                 onChange={(e) => actualizarFila(index, 'stock', e.target.value)}

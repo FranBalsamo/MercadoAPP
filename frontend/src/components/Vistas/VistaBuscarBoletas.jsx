@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import ModalBuscarCliente from '../Modals/ModalBuscarCliente';
+import { formatearFechaVisual } from '../../utils/formatoFecha';
+import { HiOutlineMagnifyingGlass, HiOutlineTicket } from 'react-icons/hi2';
 import '../Estilos/Botones.css';
 
 const NOMBRES_FORMA_PAGO = {
@@ -21,7 +23,7 @@ function VistaBuscarBoletas() {
     const [desde, setDesde] = useState('');
     const [hasta, setHasta] = useState('');
     const [filtroPago, setFiltroPago] = useState('');
-    const [filtroRetiro, setFiltroRetiro] = useState('');
+    const [filtroEntrega, setFiltroEntrega] = useState('');
 
     const [boletas, setBoletas] = useState([]);
     const [catalogoProductos, setCatalogoProductos] = useState([]);
@@ -125,28 +127,28 @@ function VistaBuscarBoletas() {
         setDesde('');
         setHasta('');
         setFiltroPago('');
-        setFiltroRetiro('');
+        setFiltroEntrega('');
     };
 
     const boletasFiltradas = boletas.filter(boleta =>
         (!filtroPago || boleta.estadoPago === filtroPago) &&
-        (!filtroRetiro || boleta.estadoRetiro === filtroRetiro)
+        (!filtroEntrega || boleta.estadoEntrega === filtroEntrega)
     );
 
     return (
-        <main style={{ padding: '20px', backgroundColor: '#f4f6f8', minHeight: 'calc(100vh - 70px)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <main style={{ padding: '20px', backgroundColor: 'var(--bg)', minHeight: '100vh', display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-            <div style={{ backgroundColor: 'white', padding: '15px 20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                <h2 style={{ margin: 0, color: '#2c3e50' }}>🔎 Buscar Boletas</h2>
+            <div style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '15px 20px', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)' }}>
+                <h2 style={{ margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlineMagnifyingGlass /> Buscar Boletas</h2>
             </div>
 
             {/* FILTROS */}
-            <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            <div style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '20px', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', display: 'flex', flexDirection: 'column', gap: '15px' }}>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
-                    <h4 style={{ margin: 0, color: '#2c3e50', fontSize: '1rem' }}>Filtrar por:</h4>
+                    <h4 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '1rem' }}>Filtrar por:</h4>
 
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', color: 'var(--text-secondary)' }}>
                         <input
                             type="radio"
                             name="metodoFiltroBoletas"
@@ -156,7 +158,7 @@ function VistaBuscarBoletas() {
                         Cliente
                     </label>
 
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', color: 'var(--text-secondary)' }}>
                         <input
                             type="radio"
                             name="metodoFiltroBoletas"
@@ -169,7 +171,7 @@ function VistaBuscarBoletas() {
                     <select
                         value={filtroPago}
                         onChange={(e) => setFiltroPago(e.target.value)}
-                        style={{ border: '1px solid #ccc', borderRadius: '8px', padding: '8px 12px', outline: 'none', fontSize: '0.95rem', marginLeft: 'auto' }}
+                        style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', outline: 'none', fontSize: '0.95rem', marginLeft: 'auto', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
                     >
                         <option value="">Todos los pagos</option>
                         <option value="PAGADO">Pagadas</option>
@@ -177,13 +179,13 @@ function VistaBuscarBoletas() {
                     </select>
 
                     <select
-                        value={filtroRetiro}
-                        onChange={(e) => setFiltroRetiro(e.target.value)}
-                        style={{ border: '1px solid #ccc', borderRadius: '8px', padding: '8px 12px', outline: 'none', fontSize: '0.95rem' }}
+                        value={filtroEntrega}
+                        onChange={(e) => setFiltroEntrega(e.target.value)}
+                        style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', outline: 'none', fontSize: '0.95rem', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
                     >
-                        <option value="">Todos los retiros</option>
-                        <option value="RETIRADO">Retiradas</option>
-                        <option value="NO_RETIRADO">No Retiradas</option>
+                        <option value="">Todas las entregas</option>
+                        <option value="ENTREGADO">Entregadas</option>
+                        <option value="NO_ENTREGADO">No Entregadas</option>
                     </select>
                 </div>
 
@@ -193,7 +195,7 @@ function VistaBuscarBoletas() {
                             {clienteSeleccionado ? 'Cambiar Cliente' : 'Seleccionar Cliente'}
                         </button>
                         {clienteSeleccionado && (
-                            <span style={{ textTransform: 'capitalize', fontWeight: 'bold', color: '#2c3e50' }}>
+                            <span style={{ textTransform: 'capitalize', fontWeight: 'bold', color: 'var(--text-primary)' }}>
                                 {clienteSeleccionado.nombre}
                             </span>
                         )}
@@ -214,34 +216,34 @@ function VistaBuscarBoletas() {
                     </div>
                 )}
 
-                {error && <p style={{ color: '#e74c3c', fontWeight: 'bold', margin: 0, fontSize: '0.9rem' }}>{error}</p>}
+                {error && <p style={{ color: 'var(--danger)', fontWeight: 'bold', margin: 0, fontSize: '0.9rem' }}>{error}</p>}
             </div>
 
             {/* RESULTADOS */}
-            <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', flexGrow: 1 }}>
-                <h3 style={{ marginTop: 0, color: '#2c3e50', borderBottom: '2px solid #eee', paddingBottom: '10px' }}>
-                    🧾 Boletas Encontradas
+            <div style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '20px', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', flexGrow: 1 }}>
+                <h3 style={{ marginTop: 0, color: 'var(--text-primary)', borderBottom: '1px solid var(--border)', paddingBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <HiOutlineTicket /> Boletas Encontradas
                 </h3>
 
                 {cargando ? (
-                    <p style={{ textAlign: 'center', color: '#888' }}>Buscando...</p>
+                    <p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>Buscando...</p>
                 ) : !busquedaRealizada ? (
-                    <p style={{ textAlign: 'center', color: '#888', padding: '20px' }}>
+                    <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px' }}>
                         Elegí un cliente o un rango de fechas para empezar a buscar.
                     </p>
                 ) : boletasFiltradas.length === 0 ? (
-                    <p style={{ textAlign: 'center', color: '#888', padding: '20px' }}>
+                    <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px' }}>
                         No se encontraron boletas con esos filtros.
                     </p>
                 ) : (
                     <div style={{ overflowX: 'auto' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.95rem' }}>
-                            <thead style={{ backgroundColor: '#2c3e50', color: 'white' }}>
+                            <thead style={{ backgroundColor: 'var(--surface-inverse)', color: 'var(--text-on-inverse)' }}>
                                 <tr>
                                     <th style={{ padding: '12px' }}>Fecha</th>
                                     <th style={{ padding: '12px' }}>Cliente</th>
                                     <th style={{ padding: '12px' }}>Estado Pago</th>
-                                    <th style={{ padding: '12px' }}>Estado Retiro</th>
+                                    <th style={{ padding: '12px' }}>Estado Entrega</th>
                                     <th style={{ padding: '12px' }}>Forma de Pago</th>
                                     <th style={{ padding: '12px', width: '30%' }}>Productos Vendidos</th>
                                     <th style={{ padding: '12px', textAlign: 'right' }}>Total Boleta</th>
@@ -249,48 +251,48 @@ function VistaBuscarBoletas() {
                             </thead>
                             <tbody>
                                 {boletasFiltradas.map((boleta, idx) => (
-                                    <tr key={boleta.id} style={{ borderBottom: '1px solid #eee', backgroundColor: idx % 2 === 0 ? '#fff' : '#fafafa' }}>
-                                        <td style={{ padding: '12px', verticalAlign: 'top', fontWeight: 'bold', color: '#2c3e50' }}>
-                                            {fechaPlanilla(boleta.id_planilla)}
+                                    <tr key={boleta.id} style={{ borderBottom: '1px solid var(--border)', backgroundColor: idx % 2 === 0 ? 'var(--surface)' : 'var(--surface-2)' }}>
+                                        <td style={{ padding: '12px', verticalAlign: 'top', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                                            {formatearFechaVisual(fechaPlanilla(boleta.id_planilla))}
                                         </td>
-                                        <td style={{ padding: '12px', verticalAlign: 'top', fontWeight: 'bold', textTransform: 'capitalize' }}>
+                                        <td style={{ padding: '12px', verticalAlign: 'top', fontWeight: 'bold', textTransform: 'capitalize', color: 'var(--text-primary)' }}>
                                             {nombreCliente(boleta.id_cliente)}
                                         </td>
                                         <td style={{ padding: '12px', verticalAlign: 'top' }}>
                                             <span style={{
-                                                padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold',
-                                                backgroundColor: boleta.estadoPago === 'PAGADO' ? '#d4efdf' : '#fadbd8',
-                                                color: boleta.estadoPago === 'PAGADO' ? '#27ae60' : '#c0392b'
+                                                padding: '4px 8px', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontWeight: 'bold',
+                                                backgroundColor: boleta.estadoPago === 'PAGADO' ? 'var(--success-soft)' : 'var(--danger-soft)',
+                                                color: boleta.estadoPago === 'PAGADO' ? 'var(--success-soft-text)' : 'var(--danger-soft-text)'
                                             }}>
                                                 {boleta.estadoPago}
                                             </span>
                                         </td>
                                         <td style={{ padding: '12px', verticalAlign: 'top' }}>
                                             <span style={{
-                                                padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold',
-                                                backgroundColor: boleta.estadoRetiro === 'RETIRADO' ? '#d6eaf8' : '#fadbd8',
-                                                color: boleta.estadoRetiro === 'RETIRADO' ? '#2980b9' : '#c0392b'
+                                                padding: '4px 8px', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontWeight: 'bold',
+                                                backgroundColor: boleta.estadoEntrega === 'ENTREGADO' ? 'var(--info-soft)' : 'var(--danger-soft)',
+                                                color: boleta.estadoEntrega === 'ENTREGADO' ? 'var(--info-soft-text)' : 'var(--danger-soft-text)'
                                             }}>
-                                                {boleta.estadoRetiro}
+                                                {boleta.estadoEntrega}
                                             </span>
                                         </td>
-                                        <td style={{ padding: '12px', verticalAlign: 'top', fontSize: '0.9rem', color: '#2c3e50' }}>
+                                        <td style={{ padding: '12px', verticalAlign: 'top', fontSize: '0.9rem', color: 'var(--text-primary)' }}>
                                             {formaPagoLegible(boleta)}
                                         </td>
                                         <td style={{ padding: '12px', verticalAlign: 'top' }}>
-                                            <ul style={{ margin: 0, paddingLeft: '15px', listStyleType: 'square', color: '#34495e' }}>
+                                            <ul style={{ margin: 0, paddingLeft: '15px', listStyleType: 'square', color: 'var(--text-secondary)' }}>
                                                 {(boleta.ventas || []).map((itemProd, i) => (
                                                     <li key={i} style={{ marginBottom: '3px', textTransform: 'capitalize' }}>
                                                         <strong>{itemProd.cantidad}x</strong> {nombreProducto(itemProd.id_producto)}
-                                                        <span style={{ color: '#7f8c8d', fontSize: '0.85rem' }}> ({formatearMoneda(itemProd.precio_unitario)} c/u)</span>
-                                                        <span style={{ color: '#7f8c8d', fontSize: '0.85rem' }}>
+                                                        <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}> ({formatearMoneda(itemProd.precio_unitario)} c/u)</span>
+                                                        <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                                                             {' '}- Vacío: {itemProd.precio_vacio > 0 ? formatearMoneda(itemProd.precio_vacio) : 'Sin Vacio'}
                                                         </span>
                                                     </li>
                                                 ))}
                                             </ul>
                                         </td>
-                                        <td style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold', fontSize: '1.05rem', color: '#2c3e50', verticalAlign: 'top' }}>
+                                        <td style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold', fontSize: '1.05rem', color: 'var(--text-primary)', verticalAlign: 'top' }}>
                                             {formatearMoneda(boleta.total)}
                                         </td>
                                     </tr>

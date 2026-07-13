@@ -27,7 +27,7 @@ public class BoletaMapper {
         dto.setId_planilla(boleta.getPlanilla() != null ? boleta.getPlanilla().getId() : 0);
         dto.setTotal(boleta.getTotal());
         dto.setEstadoPago(boleta.getEstadoPago());
-        dto.setEstadoRetiro(boleta.getEstadoRetiro());
+        dto.setEstadoEntrega(boleta.getEstadoEntrega());
         dto.setFormaPago(boleta.getFormaPago());
 
         if (boleta.getVentas() != null) {
@@ -55,7 +55,7 @@ public class BoletaMapper {
         boleta.setId(dto.getId());
         boleta.setTotal(dto.getTotal());
         boleta.setEstadoPago(dto.getEstadoPago());
-        boleta.setEstadoRetiro(dto.getEstadoRetiro());
+        boleta.setEstadoEntrega(dto.getEstadoEntrega());
         if (dto.getFormaPago() != null) {
             boleta.setFormaPago(dto.getFormaPago());
         }

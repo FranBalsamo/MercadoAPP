@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import '../Estilos/Modal.css';
 import '../Estilos/Botones.css';
 import InputMoneda from './InputMoneda';
+import { HiOutlinePencilSquare, HiOutlineUserCircle, HiOutlineArrowPath } from 'react-icons/hi2';
 
 function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogoProductos, onBoletaEditada }) {
     // --- ESTADOS ---
@@ -14,7 +15,7 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
     // Inicializamos con los datos de la boleta
     const [pagado, setPagado] = useState(boleta?.estadoPago || 'NO_PAGADO');
     const [formaPago, setFormaPago] = useState(boleta?.formaPago || 'EFECTIVO');
-    const [retirado, setRetirado] = useState(boleta?.estadoRetiro || 'NO_RETIRADO');
+    const [entregado, setEntregado] = useState(boleta?.estadoEntrega || 'NO_ENTREGADO');
 
     const [guardando, setGuardando] = useState(false);
     const [errorVenta, setErrorVenta] = useState('');
@@ -78,11 +79,11 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                         : [];
                     setStockProductos(stockProductosFormateados);
                 } else {
-                    setErrorVenta('❌ No se pudo sincronizar el inventario con el servidor.');
+                    setErrorVenta('No se pudo sincronizar el inventario con el servidor.');
                 }
             } catch (error) {
                 console.error(error);
-                setErrorVenta('❌ Error de conexión al verificar el inventario.');
+                setErrorVenta('Error de conexión al verificar el inventario.');
             } finally {
                 setCargandoStock(false);
             }
@@ -94,7 +95,7 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
         setErrorVenta('');
 
         if (!idProducto || cantidad < 1) {
-            setErrorVenta('❌ Selecciona un producto y una cantidad mayor a 0.');
+            setErrorVenta('Selecciona un producto y una cantidad mayor a 0.');
             return;
         }
 
@@ -103,7 +104,7 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
         const cantidadReal = parseFloat(cantidad);
 
         if (precioReal <= 0) {
-            setErrorVenta('❌ El precio del producto debe ser mayor a 0.');
+            setErrorVenta('El precio del producto debe ser mayor a 0.');
             return;
         }
 
@@ -111,7 +112,7 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
         const stockProductoEnPlanilla = stockProductos.find(p => String(p.id_producto) === String(idProducto));
 
         if (!stockProductoEnPlanilla) {
-            setErrorVenta('❌ Este producto no fue cargado en la planilla de hoy.');
+            setErrorVenta('Este producto no fue cargado en la planilla de hoy.');
             return;
         }
 
@@ -124,7 +125,7 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
         const stockFinalDisponible = stockEnBD - stockYaEnCarrito;
 
         if (cantidadReal > stockFinalDisponible) {
-            setErrorVenta(`❌ Inventario insuficiente. Solo quedan ${stockFinalDisponible} unidades extras.`);
+            setErrorVenta(`Inventario insuficiente. Solo quedan ${stockFinalDisponible} unidades extras.`);
             return;
         }
 
@@ -193,7 +194,7 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
         .filter(filaExcedeStock)
         .map(fila => {
             const disponible = stockDisponibleParaFila(fila);
-            return `❌ Inventario insuficiente para "${fila.nombre}". Disponible: ${disponible > 0 ? disponible : 0} unidades.`;
+            return `Inventario insuficiente para "${fila.nombre}". Disponible: ${disponible > 0 ? disponible : 0} unidades.`;
         });
 
     const hayFilaConStockExcedido = mensajesStockExcedido.length > 0;
@@ -204,12 +205,12 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
         e.preventDefault();
 
         if (carrito.length === 0) {
-            setErrorVenta('❌ No puedes guardar una boleta sin artículos.');
+            setErrorVenta('No puedes guardar una boleta sin artículos.');
             return;
         }
 
         if (hayFilaConStockExcedido) {
-            setErrorVenta('❌ Hay productos con una cantidad mayor al inventario disponible. Corregilos antes de guardar.');
+            setErrorVenta('Hay productos con una cantidad mayor al inventario disponible. Corregilos antes de guardar.');
             return;
         }
 
@@ -224,7 +225,7 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                 total: totalBoleta,
                 estadoPago: pagado,
                 formaPago: pagado === 'PAGADO' ? formaPago : null,
-                estadoRetiro: retirado,
+                estadoEntrega: entregado,
                 ventas: carrito.map(item => ({
                     id_producto: item.id_producto,
                     cantidad: Number(item.cantidad),
@@ -254,7 +255,7 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
 
         } catch (err) {
             console.error("Error al modificar boleta:", err);
-            setErrorVenta('❌ Ocurrió un error al intentar actualizar la boleta.');
+            setErrorVenta('Ocurrió un error al intentar actualizar la boleta.');
         } finally {
             setGuardando(false);
         }
@@ -283,31 +284,31 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
             <div className="modal-contenido" style={{ width: '95%', maxWidth: '800px' }}>
 
                 <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ margin: 0 }}>✏️ Editar Boleta #{boleta?.id}</h3>
+                    <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlinePencilSquare /> Editar Boleta #{boleta?.id}</h3>
                     <button className="btn-cerrar-modal" onClick={cerrarModal}>X</button>
                 </div>
 
                 <div className="modal-body" style={{ marginTop: '10px' }}>
 
                     {/* DATOS DEL CLIENTE */}
-                    <div style={{ backgroundColor: '#e8f4f8', padding: '10px 15px', borderRadius: '8px', marginBottom: '15px', border: '1px solid #bce8f1' }}>
-                        <div><strong style={{ color: '#31708f' }}>👤 Cliente:</strong> <span style={{ textTransform: 'capitalize' }}>{cliente || 'Desconocido'}</span></div>
+                    <div style={{ backgroundColor: 'var(--info-soft)', padding: '10px 15px', borderRadius: 'var(--radius-md)', marginBottom: '15px', border: '1px solid var(--border)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><strong style={{ color: 'var(--info-soft-text)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}><HiOutlineUserCircle /> Cliente:</strong> <span style={{ textTransform: 'capitalize' }}>{cliente || 'Desconocido'}</span></div>
                     </div>
 
                     {cargandoStock ? (
-                        <div style={{ padding: '30px', textAlign: 'center', backgroundColor: '#f9f9f9', borderRadius: '8px', border: '1px solid #ddd', marginBottom: '20px' }}>
-                            <h4 style={{ color: '#3498db', margin: 0 }}>🔄 Cargando datos...</h4>
+                        <div style={{ padding: '30px', textAlign: 'center', backgroundColor: 'var(--surface-2)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', marginBottom: '20px' }}>
+                            <h4 style={{ color: 'var(--info)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlineArrowPath /> Cargando datos...</h4>
                         </div>
                     ) : (
                         <>
                             {/* SELECTOR Y CARGA MANUAL DE PRECIOS */}
-                            <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', marginBottom: '10px', backgroundColor: '#f9f9f9', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', flexWrap: 'wrap' }}>
+                            <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', marginBottom: '10px', backgroundColor: 'var(--surface-2)', padding: '10px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', flexWrap: 'wrap' }}>
                                 <div style={{ flex: '2 1 200px' }}>
                                     <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Producto:</label>
                                     <select
                                         value={idProducto}
                                         onChange={(e) => setIdProducto(e.target.value)}
-                                        style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc', textTransform: 'capitalize' }}
+                                        style={{ width: '100%', padding: '8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', textTransform: 'capitalize', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
                                     >
                                         <option value="">-- Seleccionar --</option>
                                         {stockProductos.map(item => {
@@ -326,7 +327,7 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                                 <div style={{ flex: '1 1 80px' }}>
                                     <div style={{
                                         height: '16px',
-                                        color: (stockDisponibleActual > 0 && !excedeStock) ? '#27ae60' : '#c0392b',
+                                        color: (stockDisponibleActual > 0 && !excedeStock) ? 'var(--success)' : 'var(--danger)',
                                         fontSize: '0.75rem',
                                         fontWeight: 'bold',
                                         visibility: stockDisponibleActual !== null ? 'visible' : 'hidden'
@@ -336,7 +337,7 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                                     <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Cantidad:</label>
                                     <input
                                         type="number" min="1" step="0.5" value={cantidad} onChange={(e) => setCantidad(e.target.value)}
-                                        style={{ width: '100%', padding: '8px', borderRadius: '4px', border: excedeStock ? '2px solid #e74c3c' : '1px solid #ccc', backgroundColor: excedeStock ? '#fadbd8' : 'white', outline: 'none' }}
+                                        style={{ width: '100%', padding: '8px', borderRadius: 'var(--radius-sm)', border: excedeStock ? '2px solid var(--danger)' : '1px solid var(--border)', backgroundColor: excedeStock ? 'var(--danger-soft)' : 'var(--surface)', color: 'var(--text-primary)', outline: 'none' }}
                                     />
                                 </div>
 
@@ -345,7 +346,7 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                                     <InputMoneda
                                         value={precioUnitario}
                                         onChange={(valor) => setPrecioUnitario(valor)}
-                                        style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc', backgroundColor: '#fffbe6' }}
+                                        style={{ width: '100%', padding: '8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', backgroundColor: 'var(--warning-soft)', color: 'var(--text-primary)' }}
                                     />
                                 </div>
 
@@ -354,7 +355,7 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                                     <InputMoneda
                                         value={precioVacio}
                                         onChange={(valor) => setPrecioVacio(valor)}
-                                        style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+                                        style={{ width: '100%', padding: '8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
                                     />
                                 </div>
 
@@ -362,7 +363,7 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                                     className='btn-global btn-primario'
                                     onClick={agregarAlCarrito}
                                     disabled={excedeStock || !idProducto || !stockDisponibleActual}
-                                    style={{ padding: '9px 20px', color: 'white', cursor: (excedeStock || !idProducto) ? 'not-allowed' : 'pointer'}}
+                                    style={{ padding: '9px 20px', cursor: (excedeStock || !idProducto) ? 'not-allowed' : 'pointer'}}
                                 >
                                     + Agregar
                                 </button>
@@ -370,40 +371,40 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                         </>
                     )}
 
-                    {errorVenta && <div style={{ color: '#c0392b', marginBottom: '10px', fontSize: '0.9rem', fontWeight: 'bold' }}>{errorVenta}</div>}
+                    {errorVenta && <div style={{ color: 'var(--danger)', marginBottom: '10px', fontSize: '0.9rem', fontWeight: 'bold' }}>{errorVenta}</div>}
 
                     {mensajesStockExcedido.map((mensaje, i) => (
-                        <div key={i} style={{ color: '#c0392b', marginBottom: '5px', fontSize: '0.9rem', fontWeight: 'bold' }}>
+                        <div key={i} style={{ color: 'var(--danger)', marginBottom: '5px', fontSize: '0.9rem', fontWeight: 'bold' }}>
                             {mensaje}
                         </div>
                     ))}
 
                     {/* TABLA DETALLE DE BOLETAS (AHORA INTERACTIVA) */}
-                    <div style={{ height: '220px', overflowY: 'auto', border: '1px solid #ddd', borderRadius: '4px' }}>
+                    <div style={{ height: '220px', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.95rem' }}>
-                            <thead style={{ backgroundColor: '#f4f6f8', position: 'sticky', top: 0 }}>
+                            <thead style={{ backgroundColor: 'var(--surface-inverse)', color: 'var(--text-on-inverse)', position: 'sticky', top: 0 }}>
                                 <tr>
-                                    <th style={{ padding: '10px', borderBottom: '2px solid #ddd' }}>Producto</th>
-                                    <th style={{ padding: '10px', borderBottom: '2px solid #ddd' }}>Cant.</th>
-                                    <th style={{ padding: '10px', borderBottom: '2px solid #ddd' }}>$ Precio</th>
-                                    <th style={{ padding: '10px', borderBottom: '2px solid #ddd' }}>$ Vacío</th>
-                                    <th style={{ padding: '10px', borderBottom: '2px solid #ddd' }}>Subtotal</th>
-                                    <th style={{ padding: '10px', borderBottom: '2px solid #ddd' }} />
+                                    <th style={{ padding: '10px' }}>Producto</th>
+                                    <th style={{ padding: '10px' }}>Cant.</th>
+                                    <th style={{ padding: '10px' }}>$ Precio</th>
+                                    <th style={{ padding: '10px' }}>$ Vacío</th>
+                                    <th style={{ padding: '10px' }}>Subtotal</th>
+                                    <th style={{ padding: '10px' }} />
                                 </tr>
                             </thead>
                             <tbody>
                                 {carrito.length === 0 ? (
                                     <tr>
-                                        <td colSpan="6" style={{ padding: '20px', textAlign: 'center', color: '#888' }}>No hay productos.</td>
+                                        <td colSpan="6" style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)' }}>No hay productos.</td>
                                     </tr>
                                 ) : (
                                     carrito.map(fila => {
                                         const excedeStockFila = filaExcedeStock(fila);
                                         return (
-                                        <tr key={fila.id_fila} style={{ borderBottom: '1px solid #eee' }}>
+                                        <tr key={fila.id_fila} style={{ borderBottom: '1px solid var(--border)' }}>
 
                                             {/* Nombre del Producto */}
-                                            <td style={{ padding: '10px', fontWeight: 'bold', textTransform: 'capitalize' }}>
+                                            <td style={{ padding: '10px', fontWeight: 'bold', textTransform: 'capitalize', color: 'var(--text-primary)' }}>
                                                 {fila.nombre}
                                             </td>
 
@@ -414,9 +415,10 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                                                     value={fila.cantidad}
                                                     onChange={(e) => actualizarFilaCarrito(fila.id_fila, 'cantidad', e.target.value)}
                                                     style={{
-                                                        width: '60px', padding: '4px', borderRadius: '4px', textAlign: 'center', outline: 'none',
-                                                        border: excedeStockFila ? '2px solid #e74c3c' : '1px solid #ccc',
-                                                        backgroundColor: excedeStockFila ? '#fadbd8' : 'white'
+                                                        width: '60px', padding: '4px', borderRadius: 'var(--radius-sm)', textAlign: 'center', outline: 'none',
+                                                        border: excedeStockFila ? '2px solid var(--danger)' : '1px solid var(--border)',
+                                                        backgroundColor: excedeStockFila ? 'var(--danger-soft)' : 'var(--surface)',
+                                                        color: 'var(--text-primary)'
                                                     }}
                                                 />
                                             </td>
@@ -426,21 +428,21 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                                                 <InputMoneda
                                                     value={fila.precio_unitario}
                                                     onChange={(valor) => actualizarFilaCarrito(fila.id_fila, 'precio_unitario', valor)}
-                                                    style={{ width: '90px', padding: '4px', borderRadius: '4px', border: '1px solid #ccc', outline: 'none' }}
+                                                    style={{ width: '90px', padding: '4px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', outline: 'none', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
                                                 />
                                             </td>
 
                                             {/* Input de Precio de Vacío */}
-                                            <td style={{ padding: '10px', color: '#7f8c8d' }}>
+                                            <td style={{ padding: '10px', color: 'var(--text-secondary)' }}>
                                                 <InputMoneda
                                                     value={fila.precio_vacio}
                                                     onChange={(valor) => actualizarFilaCarrito(fila.id_fila, 'precio_vacio', valor)}
-                                                    style={{ width: '85px', padding: '4px', borderRadius: '4px', border: '1px solid #ccc', outline: 'none' }}
+                                                    style={{ width: '85px', padding: '4px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', outline: 'none', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
                                                 />
                                             </td>
 
                                             {/* Subtotal en tiempo real (seguro contra errores) */}
-                                            <td style={{ padding: '10px', fontWeight: 'bold', color: '#27ae60' }}>
+                                            <td style={{ padding: '10px', fontWeight: 'bold', color: 'var(--success)' }}>
                                                 {Number(fila.subtotal || 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}
                                             </td>
 
@@ -464,7 +466,7 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                 </div>
 
                 {/* FOOTER */}
-                <div className="modal-footer" style={{ display: 'flex', flexDirection: 'column', gap: '12px', backgroundColor: '#f9f9f9', marginTop: 0 }}>
+                <div className="modal-footer" style={{ display: 'flex', flexDirection: 'column', gap: '12px', backgroundColor: 'var(--surface-2)', marginTop: 0 }}>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 'bold' }}>
                         <input
@@ -480,7 +482,8 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                             onChange={(e) => setFormaPago(e.target.value)}
                             disabled={pagado !== 'PAGADO'}
                             style={{
-                                padding: '5px 8px', borderRadius: '4px', border: '1px solid #ccc', fontWeight: 'normal', marginRight: '30px',
+                                padding: '5px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', fontWeight: 'normal', marginRight: '30px',
+                                backgroundColor: 'var(--surface)', color: 'var(--text-primary)',
                                 visibility: pagado === 'PAGADO' ? 'visible' : 'hidden'
                             }}
                         >
@@ -491,16 +494,16 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                         </select>
 
                         <input
-                            id='checkbox_retirado_edit' type="checkbox" checked={retirado === 'RETIRADO'}
-                            onChange={(e) => setRetirado(e.target.checked ? 'RETIRADO' : 'NO_RETIRADO')}
+                            id='checkbox_entregado_edit' type="checkbox" checked={entregado === 'ENTREGADO'}
+                            onChange={(e) => setEntregado(e.target.checked ? 'ENTREGADO' : 'NO_ENTREGADO')}
                         />
-                        <label htmlFor='checkbox_retirado_edit' style={{ cursor: 'pointer' }}>
-                            Retirado
+                        <label htmlFor='checkbox_entregado_edit' style={{ cursor: 'pointer' }}>
+                            Entregado
                         </label>
                     </div>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h2 style={{ margin: 0, color: '#2c3e50' }}>Total: {totalBoleta.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</h2>
+                        <h2 style={{ margin: 0, color: 'var(--text-primary)' }}>Total: {totalBoleta.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</h2>
                         <div>
                             <button className="btn-global btn-secundario" onClick={cerrarModal} style={{ marginRight: '10px' }}>Cancelar</button>
                             <button className="btn-global btn-primario-green" onClick={guardarCambios} disabled={guardando || cargandoStock || hayFilaConStockExcedido}>

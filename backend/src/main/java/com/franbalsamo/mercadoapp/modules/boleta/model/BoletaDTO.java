@@ -1,7 +1,7 @@
 package com.franbalsamo.mercadoapp.modules.boleta.model;
 
 import com.franbalsamo.mercadoapp.modules.boleta.EstadoPago;
-import com.franbalsamo.mercadoapp.modules.boleta.EstadoRetiro;
+import com.franbalsamo.mercadoapp.modules.boleta.EstadoEntrega;
 import com.franbalsamo.mercadoapp.modules.boleta.FormaPago;
 import com.franbalsamo.mercadoapp.modules.venta.model.VentaDTO;
 import lombok.Getter;
@@ -17,7 +17,7 @@ public class BoletaDTO {
     private long id_cliente;
     private float total;
     private EstadoPago estadoPago;
-    private EstadoRetiro estadoRetiro;
+    private EstadoEntrega estadoEntrega;
     private FormaPago formaPago;
     private List<VentaDTO> ventas;
 

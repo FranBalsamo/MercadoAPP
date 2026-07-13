@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { HiOutlineExclamationTriangle } from 'react-icons/hi2';
 
 const capitalizar = (texto) => texto ? texto.replace(/\b\w/g, (letra) => letra.toUpperCase()) : '';
 
@@ -32,36 +33,36 @@ function ProductosStockCritico({ limite = 6 }) {
 
     return (
         <div>
-            <h4 style={{ margin: '0 0 5px 0', color: '#2c3e50' }}>⚠️ Productos con inventario crítico recurrente</h4>
-            <p style={{ margin: '0 0 15px 0', color: '#7f8c8d', fontSize: '0.85rem' }}>
+            <h4 style={{ margin: '0 0 5px 0', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlineExclamationTriangle /> Productos con inventario crítico recurrente</h4>
+            <p style={{ margin: '0 0 15px 0', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
                 Cantidad de planillas cerradas en las que el producto terminó agotado (inventario disponible en 0).
             </p>
 
-            {error && <p style={{ color: '#e74c3c', fontSize: '0.9rem' }}>{error}</p>}
+            {error && <p style={{ color: 'var(--danger)', fontSize: '0.9rem' }}>{error}</p>}
 
             {cargando ? (
-                <p style={{ textAlign: 'center', color: '#888', fontSize: '0.9rem' }}>Cargando...</p>
+                <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Cargando...</p>
             ) : productos.length === 0 ? (
-                <p style={{ textAlign: 'center', color: '#888', fontSize: '0.9rem' }}>Ningún producto se quedó sin inventario todavía.</p>
+                <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Ningún producto se quedó sin inventario todavía.</p>
             ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {productos.map(p => (
                         <div key={p.idProducto} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <span style={{
-                                width: '120px', fontSize: '0.85rem', color: '#2c3e50', textTransform: 'capitalize', flexShrink: 0,
+                                width: '120px', fontSize: '0.85rem', color: 'var(--text-primary)', textTransform: 'capitalize', flexShrink: 0,
                                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
                             }} title={capitalizar(p.nombre)}>
                                 {capitalizar(p.nombre)}
                             </span>
-                            <div style={{ flexGrow: 1, backgroundColor: '#f4f6f8', borderRadius: '4px', overflow: 'hidden', height: '18px' }}>
+                            <div style={{ flexGrow: 1, backgroundColor: 'var(--surface-2)', borderRadius: 'var(--radius-sm)', overflow: 'hidden', height: '18px' }}>
                                 <div style={{
                                     width: `${(p.vecesAgotado / maximo) * 100}%`,
                                     height: '100%',
-                                    backgroundColor: '#e74c3c',
-                                    borderRadius: '4px'
+                                    backgroundColor: 'var(--danger)',
+                                    borderRadius: 'var(--radius-sm)'
                                 }} />
                             </div>
-                            <strong style={{ fontSize: '0.85rem', color: '#c0392b', minWidth: '20px', textAlign: 'right' }}>{p.vecesAgotado}</strong>
+                            <strong style={{ fontSize: '0.85rem', color: 'var(--danger)', minWidth: '20px', textAlign: 'right' }}>{p.vecesAgotado}</strong>
                         </div>
                     ))}
                 </div>

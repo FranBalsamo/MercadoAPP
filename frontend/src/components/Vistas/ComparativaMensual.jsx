@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { HiOutlineCalendarDays } from 'react-icons/hi2';
 import { formatearFechaLocal } from '../../utils/rangoFechas';
 
 const formatearMoneda = (valor) => (valor ?? 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
@@ -63,39 +64,39 @@ function ComparativaMensual() {
     const renderIndicador = (variacion) => {
         const positivo = variacion >= 0;
         return (
-            <span style={{ color: positivo ? '#27ae60' : '#e74c3c', fontSize: '0.8rem', fontWeight: 'bold' }}>
+            <span style={{ color: positivo ? 'var(--success)' : 'var(--danger)', fontSize: '0.8rem', fontWeight: 'bold' }}>
                 {positivo ? '▲' : '▼'} {Math.abs(variacion).toFixed(1)}%
             </span>
         );
     };
 
     const filas = datos ? [
-        { titulo: 'Ingresos', actual: datos.actual.ingresos, anterior: datos.anterior.ingresos, color: '#27ae60' },
-        { titulo: 'Deuda', actual: datos.actual.deuda, anterior: datos.anterior.deuda, color: '#e74c3c' },
-        { titulo: 'Planillas cerradas', actual: datos.actual.planillas, anterior: datos.anterior.planillas, color: '#3498db', esNumero: true },
+        { titulo: 'Ingresos', actual: datos.actual.ingresos, anterior: datos.anterior.ingresos, color: 'var(--success)' },
+        { titulo: 'Deuda', actual: datos.actual.deuda, anterior: datos.anterior.deuda, color: 'var(--danger)' },
+        { titulo: 'Planillas cerradas', actual: datos.actual.planillas, anterior: datos.anterior.planillas, color: 'var(--info)', esNumero: true },
     ] : [];
 
     return (
         <div>
-            <h4 style={{ margin: '0 0 15px 0', color: '#2c3e50' }}>📅 Mes actual vs. mes anterior</h4>
+            <h4 style={{ margin: '0 0 15px 0', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlineCalendarDays /> Mes actual vs. mes anterior</h4>
 
-            {error && <p style={{ color: '#e74c3c', fontSize: '0.9rem' }}>{error}</p>}
+            {error && <p style={{ color: 'var(--danger)', fontSize: '0.9rem' }}>{error}</p>}
 
             {cargando ? (
-                <p style={{ textAlign: 'center', color: '#888', fontSize: '0.9rem' }}>Cargando...</p>
+                <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Cargando...</p>
             ) : (
                 <div style={{ display: 'flex', gap: '30px', flexWrap: 'wrap' }}>
                     {filas.map(fila => {
                         const variacion = calcularVariacion(fila.actual, fila.anterior);
                         return (
                             <div key={fila.titulo} style={{ flex: 1, minWidth: '160px' }}>
-                                <span style={{ color: '#7f8c8d', fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 'bold' }}>{fila.titulo}</span>
+                                <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 'bold' }}>{fila.titulo}</span>
                                 <h3 style={{ margin: '4px 0 0 0', color: fila.color }}>
                                     {fila.esNumero ? fila.actual : formatearMoneda(fila.actual)}
                                 </h3>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
                                     {renderIndicador(variacion)}
-                                    <span style={{ fontSize: '0.75rem', color: '#bbb' }}>
+                                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                                         vs {fila.esNumero ? fila.anterior : formatearMoneda(fila.anterior)} el mes pasado
                                     </span>
                                 </div>

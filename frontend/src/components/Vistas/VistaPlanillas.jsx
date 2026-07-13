@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { formatearFechaVisual } from '../../utils/formatoFecha';
+import { HiOutlineDocumentText } from 'react-icons/hi2';
 import '../Estilos/Botones.css';
 
 function VistaPlanillas({ abrirPlanilla, abrirPlanillaCerrada }) {
@@ -74,8 +76,8 @@ function VistaPlanillas({ abrirPlanilla, abrirPlanillaCerrada }) {
     return (
         <main style={{
             padding: '20px',
-            backgroundColor: '#f4f6f8',
-            height: 'calc(100vh - 70px)',
+            backgroundColor: 'var(--bg)',
+            height: '100vh',
             display: 'flex',
             flexDirection: 'column',
             gap: '15px',
@@ -87,16 +89,16 @@ function VistaPlanillas({ abrirPlanilla, abrirPlanillaCerrada }) {
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 padding: '15px 20px',
-                border: '1px solid #ddd',
-                borderRadius: '10px',
-                backgroundColor: '#fff',
-                boxShadow: '0 2px 4px #0001'
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-lg)',
+                backgroundColor: 'var(--surface)',
+                boxShadow: 'var(--shadow-sm)'
             }}>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '20px', width: '70%' }}>
-                    <h3 style={{ fontSize: '1rem', margin: 0, color: '#2c3e50' }}>Filtrar por:</h3>
+                    <h3 style={{ fontSize: '1rem', margin: 0, color: 'var(--text-primary)' }}>Filtrar por:</h3>
 
-                    <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.95rem' }}>
+                    <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.95rem', color: 'var(--text-secondary)' }}>
                         <input
                             type="radio"
                             name="filtroPlanilla"
@@ -109,7 +111,7 @@ function VistaPlanillas({ abrirPlanilla, abrirPlanillaCerrada }) {
                         Fecha
                     </label>
 
-                    <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.95rem' }}>
+                    <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.95rem', color: 'var(--text-secondary)' }}>
                         <input
                             type="radio"
                             name="filtroPlanilla"
@@ -130,11 +132,13 @@ function VistaPlanillas({ abrirPlanilla, abrirPlanillaCerrada }) {
                             onChange={(e) => setBusqueda(e.target.value)}
                             style={{
                                 flex: 1,
-                                border: '1px solid #ccc',
-                                borderRadius: '8px',
+                                border: '1px solid var(--border)',
+                                borderRadius: 'var(--radius-sm)',
                                 padding: '8px 12px',
                                 outline: 'none',
-                                fontSize: '0.95rem'
+                                fontSize: '0.95rem',
+                                backgroundColor: 'var(--surface)',
+                                color: 'var(--text-primary)'
                             }}
                         />
                     ) : (
@@ -143,11 +147,13 @@ function VistaPlanillas({ abrirPlanilla, abrirPlanillaCerrada }) {
                             onChange={(e) => setBusqueda(e.target.value)}
                             style={{
                                 flex: 1,
-                                border: '1px solid #ccc',
-                                borderRadius: '8px',
+                                border: '1px solid var(--border)',
+                                borderRadius: 'var(--radius-sm)',
                                 padding: '8px 12px',
                                 outline: 'none',
-                                fontSize: '0.95rem'
+                                fontSize: '0.95rem',
+                                backgroundColor: 'var(--surface)',
+                                color: 'var(--text-primary)'
                             }}
                         >
                             <option value="">Todas</option>
@@ -157,24 +163,24 @@ function VistaPlanillas({ abrirPlanilla, abrirPlanillaCerrada }) {
                     )}
                 </div>
 
-                <h3 style={{ fontSize: '1.2rem', margin: 0, color: '#2c3e50' }}>🧾 Lista Planillas</h3>
+                <h3 style={{ fontSize: '1.2rem', margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlineDocumentText /> Lista Planillas</h3>
             </div>
 
-            {error && <p style={{ color: '#e74c3c', fontWeight: 'bold', margin: 0 }}>{error}</p>}
+            {error && <p style={{ color: 'var(--danger)', fontWeight: 'bold', margin: 0 }}>{error}</p>}
 
             {/* 2. CONTENEDOR DE LA TABLA (Maneja el Scroll) */}
             <div style={{
                 flex: 1,
                 overflowY: 'auto',
-                backgroundColor: '#fff',
-                border: '1px solid #ddd',
-                borderRadius: '10px',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                backgroundColor: 'var(--surface)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-lg)',
+                boxShadow: 'var(--shadow-sm)',
                 marginBottom: '0px'
             }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                    <thead style={{ backgroundColor: '#2c3e50', position: 'sticky', top: 0, zIndex: 1 }}>
-                        <tr style={{ color: '#fff' }}>
+                    <thead style={{ backgroundColor: 'var(--surface-inverse)', position: 'sticky', top: 0, zIndex: 1 }}>
+                        <tr style={{ color: 'var(--text-on-inverse)' }}>
                             <th style={{ padding: '12px 15px' }}>Fecha Planilla</th>
                             <th style={{ padding: '12px 15px' }}>Estado</th>
                             <th style={{ padding: '12px 15px' }}>Ingreso Total</th>
@@ -185,29 +191,29 @@ function VistaPlanillas({ abrirPlanilla, abrirPlanillaCerrada }) {
                     <tbody>
                         {planillasFiltradas.length === 0 ? (
                             <tr>
-                                <td colSpan={4} style={{ padding: '20px', textAlign: 'center', color: '#7f8c8d' }}>
+                                <td colSpan={4} style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)' }}>
                                     {planillas.length === 0 ? "Cargando planillas..." : "No se encontraron planillas con esa búsqueda."}
                                 </td>
                             </tr>
                         ) : (
                             planillasFiltradas.map((planilla) => (
-                                <tr key={planilla.id} style={{ borderBottom: '1px solid #eee' }}>
-                                    <td style={{ padding: '10px 15px', fontWeight: '500' }}>
-                                        {planilla.fecha}
+                                <tr key={planilla.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                                    <td style={{ padding: '10px 15px', fontWeight: '500', color: 'var(--text-primary)' }}>
+                                        {formatearFechaVisual(planilla.fecha)}
                                     </td>
                                     <td style={{ padding: '10px 15px' }}>
                                         <span style={{
-                                            padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold',
-                                            backgroundColor: planilla.estadoPlanilla === 'ABIERTA' ? '#d4efdf' : '#fadbd8',
-                                            color: planilla.estadoPlanilla === 'ABIERTA' ? '#27ae60' : '#c0392b'
+                                            padding: '4px 8px', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontWeight: 'bold',
+                                            backgroundColor: planilla.estadoPlanilla === 'ABIERTA' ? 'var(--success-soft)' : 'var(--danger-soft)',
+                                            color: planilla.estadoPlanilla === 'ABIERTA' ? 'var(--success-soft-text)' : 'var(--danger-soft-text)'
                                         }}>
                                             {planilla.estadoPlanilla}
                                         </span>
                                     </td>
-                                    <td style={{ padding: '10px 15px', fontWeight: '500' }}>
+                                    <td style={{ padding: '10px 15px', fontWeight: '500', color: 'var(--text-primary)' }}>
                                         {formatearMoneda(planilla.ingresoTotal)}
                                     </td>
-                                    <td style={{ padding: '10px 15px', fontWeight: '500' }}>
+                                    <td style={{ padding: '10px 15px', fontWeight: '500', color: 'var(--text-primary)' }}>
                                         {formatearMoneda(planilla.deudaTotal)}
                                     </td>
                                     <td style={{ padding: '10px 15px', textAlign: 'center' }}>
@@ -223,7 +229,7 @@ function VistaPlanillas({ abrirPlanilla, abrirPlanillaCerrada }) {
                                             <button
                                                 className="btn-global btn-secundario"
                                                 onClick={() => abrirPlanillaCerrada(planilla)}
-                                                style={{ padding: '6px 15px', fontSize: '0.85rem', backgroundColor: '#e8f8f5', color: '#16a085', border: '1px solid #a3e4d7' }}
+                                                style={{ padding: '6px 15px', fontSize: '0.85rem' }}
                                             >
                                                 Ver Resumen
                                             </button>

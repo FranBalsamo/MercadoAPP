@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { HiOutlinePencilSquare } from 'react-icons/hi2';
 import '../Estilos/Modal.css';
 import '../Estilos/FormEditarStock.css';
 import AlertaConfirmacion from '../Alertas/AlertaConfirmacion';
@@ -29,11 +30,11 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos, onStock
                         : [];
                     setStockProductos(stockProductosFormateados);
                 } else {
-                    setError('❌ No se pudo sincronizar el inventario con el servidor.');
+                    setError('No se pudo sincronizar el inventario con el servidor.');
                 }
             } catch (err) {
                 console.error(err);
-                setError('❌ Error de conexión al verificar el inventario.');
+                setError('Error de conexión al verificar el inventario.');
             }
         };
         obtenerStockDeLaPlanilla();
@@ -61,11 +62,11 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos, onStock
 
     const backgroundColorInput = (valorActualizado, disponibleReal) => {
         if (valorActualizado === '') {
-            return '#f663'
+            return 'var(--danger-soft)'
         }else if (Number(valorActualizado) === disponibleReal) {
-            return '#ffff';
+            return 'var(--surface)';
         }
-        return '#fffbe6';
+        return 'var(--warning-soft)';
     };
 
     const stockOrdenado = [...stockProductos]
@@ -80,7 +81,7 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos, onStock
 
     const solicitarEliminacion = (itemStock) => {
         if (itemStock.stock_vendido > 0) {
-            setError(`❌ No se puede eliminar "${itemStock.nombre}" porque ya tiene ${itemStock.stock_vendido} venta(s) registrada(s).`);
+            setError(`No se puede eliminar "${itemStock.nombre}" porque ya tiene ${itemStock.stock_vendido} venta(s) registrada(s).`);
             return; 
         }
         setError('');
@@ -108,23 +109,23 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos, onStock
                 await onStockActualizado();
                 
             } else {
-                setError('❌ Error del servidor al intentar eliminar el producto.');
+                setError('Error del servidor al intentar eliminar el producto.');
                 setMostrarAlertaEliminar(false);
             }
         } catch (error) {
             console.error("Error de conexión:", error);
-            setError('❌ Error de conexión al intentar eliminar el producto.');
+            setError('Error de conexión al intentar eliminar el producto.');
             setMostrarAlertaEliminar(false);
         }
     };
 
     const guardarCambiosStock = async () => {
         if (hayInputsVacios) {
-            setError('❌ No se pueden guardar cambios con campos vacíos.');
+            setError('No se pueden guardar cambios con campos vacíos.');
             return;
         }
         if (!planilla || !planilla.id) {
-            setError('❌ No se pudo identificar la planilla para actualizar el inventario.');
+            setError('No se pudo identificar la planilla para actualizar el inventario.');
             return;
         }
 
@@ -162,7 +163,7 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos, onStock
             cerrarModal();
         } catch (err) { 
             console.error(err);
-            setError('❌ Error al intentar guardar los cambios en el servidor.');
+            setError('Error al intentar guardar los cambios en el servidor.');
         }
     };
 
@@ -171,34 +172,34 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos, onStock
             <div className="modal-contenido" style={{ width: '95%', maxWidth: '500px', maxHeight: '700px', height:'95%' }}>
 
                 <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ margin: 0 }}>✏️ Modificar Inventario</h3>
+                    <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlinePencilSquare /> Modificar Inventario</h3>
                     <button className="btn-cerrar-modal" onClick={cerrarModal}>×</button>
                 </div>
 
                 <div className="modal-body" style={{height:'100%'}}>
                     {(error || hayInputsVacios) && (
-                        <p style={{ color: '#c0392b', fontWeight: 'bold', margin: '0', padding: '10px', backgroundColor: '#fadbd8', borderRadius: '4px' }}>
-                            {error || "❌ Los campos no pueden estar vacíos!"}
+                        <p style={{ color: 'var(--danger-soft-text)', fontWeight: 'bold', margin: '0', padding: '10px', backgroundColor: 'var(--danger-soft)', borderRadius: 'var(--radius-sm)' }}>
+                            {error || "Los campos no pueden estar vacíos!"}
                         </p>
                     )}
 
-                    <p style={{ color: '#7f8c8d', fontSize: '0.95rem', marginBottom: '3px' }}>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', marginBottom: '3px' }}>
                         Ajusta la cantidad disponible de los productos necesarios.
                     </p>
 
-                    <div style={{maxHeight:'400px', overflowY: 'auto', border: '1px solid #fff',boxShadow:'4px 4px 10px #0002', borderRadius: '6px' }}>
+                    <div style={{maxHeight:'400px', overflowY: 'auto', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)', borderRadius: 'var(--radius-sm)' }}>
                         <table style={{height:'80%',width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                            <thead style={{ backgroundColor: '#f4f6f8', position: 'sticky', top: 0, zIndex: 1 }}>
+                            <thead style={{ backgroundColor: 'var(--surface-inverse)', color: 'var(--text-on-inverse)', position: 'sticky', top: 0, zIndex: 1 }}>
                                 <tr>
-                                    <th style={{ padding: '12px', borderBottom: '2px solid #ccc' }}>Producto</th>
-                                    <th style={{ padding: '12px', borderBottom: '2px solid #ccc', width: '150px', textAlign: 'center' }}>Cant. Disponible</th>
-                                    <th style={{ padding: '12px', borderBottom: '2px solid #ccc'}}> </th>
+                                    <th style={{ padding: '12px' }}>Producto</th>
+                                    <th style={{ padding: '12px', width: '150px', textAlign: 'center' }}>Cant. Disponible</th>
+                                    <th style={{ padding: '12px' }}> </th>
                                 </tr>
                             </thead>
                             <tbody style={{height:'250px'}}>
                                 {stockOrdenado.length === 0 ? (
                                     <tr>
-                                        <td colSpan="3" style={{ padding: '20px', textAlign: 'center', color: '#888' }}>
+                                        <td colSpan="3" style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)' }}>
                                             Cargando inventario...
                                         </td>
                                     </tr>
@@ -208,13 +209,14 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos, onStock
                                         const valorAVisualizar = nuevosStocks[item.id_producto] !== undefined
                                             ? nuevosStocks[item.id_producto]
                                             : disponibleReal;
-                                        
+
                                         return (
-                                            <tr key={item.id_producto} style={{borderBottom: '1px solid #eee'}}>
+                                            <tr key={item.id_producto} style={{borderBottom: '1px solid var(--border)'}}>
                                                 <td style={{
                                                     padding: '10px',
                                                     textTransform: 'capitalize',
                                                     fontWeight: '500',
+                                                    color: 'var(--text-primary)',
                                                 }}>
                                                     {item.nombre}
                                                 </td>
@@ -227,14 +229,14 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos, onStock
                                                         style={{
                                                             width: '100%',
                                                             padding: '8px',
-                                                            borderRadius: '4px',
+                                                            borderRadius: 'var(--radius-sm)',
                                                             border: '1px solid',
-                                                            borderColor: valorAVisualizar === ''? '#c32b' : '#ccc',
+                                                            borderColor: valorAVisualizar === ''? 'var(--danger)' : 'var(--border)',
                                                             outline: 'none',
                                                             textAlign: 'center',
                                                             fontWeight: 'bold',
-                                                            color: valorAVisualizar ==='' ? '#c32b' : '#2c3e50',
-                                                            backgroundColor: backgroundColorInput(valorAVisualizar, disponibleReal), 
+                                                            color: valorAVisualizar ==='' ? 'var(--danger)' : 'var(--text-primary)',
+                                                            backgroundColor: backgroundColorInput(valorAVisualizar, disponibleReal),
                                                         }}
                                                     />
                                                 </td>
@@ -275,7 +277,7 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos, onStock
             {mostrarAlertaEliminar && (
                 <AlertaConfirmacion 
                     mensaje={
-                        `⚠️ Estás a punto de eliminar "${itemAEliminar?.nombre}" del control de inventario.\n` +
+                        `Estás a punto de eliminar "${itemAEliminar?.nombre}" del control de inventario.\n` +
                         `Esta acción es inmediata y no se puede deshacer.\n\n` +
                         `¿Estás seguro de continuar?`
                     }

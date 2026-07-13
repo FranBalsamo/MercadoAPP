@@ -48,6 +48,13 @@ public class PlanillaController {
         return new ResponseEntity<>(listaPlanillas, HttpStatus.OK);
     }
 
+    @GetMapping("/abierta")
+    public ResponseEntity<PlanillaDTO> findAbierta(){
+        return planillaService.findAbierta()
+                .map(planillaDTO -> new ResponseEntity<>(planillaDTO, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NO_CONTENT));
+    }
+
     @GetMapping("/rango")
     public ResponseEntity<List<PlanillaDTO>> findAllByRangoFechas(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { HiOutlineCube } from 'react-icons/hi2';
 import '../Estilos/Modal.css';
 import '../Estilos/Botones.css';
 
@@ -17,7 +18,7 @@ function ModalProducto({ cerrarModal, onProductoAgregado }) {
     const handleGuardar = async () => {
 
         if (nombre.trim() === '') {
-            setError('❌ El nombre del producto es obligatorio.');
+            setError('El nombre del producto es obligatorio.');
             return;
         }
         setError('');
@@ -35,12 +36,12 @@ function ModalProducto({ cerrarModal, onProductoAgregado }) {
             });
 
             if (respuesta.status === 409 || respuesta.status === 400) {
-                setError('❌ Ya existe un producto con este nombre.')
+                setError('Ya existe un producto con este nombre.')
                 return;
             }
 
             if (!respuesta.ok) {
-                setError('❌ Error en el servidor al intentar guardar.')
+                setError('Error en el servidor al intentar guardar.')
                 return;
             }
             
@@ -49,7 +50,7 @@ function ModalProducto({ cerrarModal, onProductoAgregado }) {
             cerrarModal();
         } catch (err) {
             console.log(err);
-            setError('❌ Error de conexion con el servidor');
+            setError('Error de conexion con el servidor');
         }
     }
 
@@ -58,13 +59,13 @@ function ModalProducto({ cerrarModal, onProductoAgregado }) {
             <div className="modal-contenido">
 
                 <div className="modal-header">
-                    <h3>📦 Cargar Nuevo Producto</h3>
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlineCube /> Cargar Nuevo Producto</h3>
                     <button className="btn-cerrar-modal" onClick={cerrarModal}>X</button>   
                 </div>
 
                 <div className="modal-body">
                     {error && (
-                        <div style={{ color: 'red', fontSize: '0.8rem' }}>{error}</div>
+                        <div style={{ color: 'var(--danger)', fontSize: '0.8rem' }}>{error}</div>
                     )}
                     <div className="form-group">
                         <label>Nombre del Producto:</label>
@@ -86,7 +87,7 @@ function ModalProducto({ cerrarModal, onProductoAgregado }) {
                             onChange={(e) => setDescripcion(e.target.value)}
                             maxLength={100}
                         />
-                        <small style={{ color: '#888', textAlign: 'right', fontSize: '0.8rem' }}>
+                        <small style={{ color: 'var(--text-muted)', textAlign: 'right', fontSize: '0.8rem' }}>
                             {descripcion.length}/100
                         </small>
                     </div>

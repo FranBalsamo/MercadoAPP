@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { formatearFechaVisual } from '../../utils/formatoFecha';
+import { HiOutlineCheckCircle, HiOutlineTicket, HiOutlineBanknotes, HiOutlineCalendarDays } from 'react-icons/hi2';
 import '../Estilos/Modal.css';
 import '../Estilos/Botones.css';
 
@@ -34,7 +36,7 @@ function ModalResumenCobro({ cliente, boletasSeleccionadas, nombreProducto, fech
 
             if (!respuesta.ok) {
                 const mensajeError = await respuesta.text();
-                setError(mensajeError ? `❌ ${mensajeError}` : '❌ Error en el servidor al intentar cobrar las boletas.');
+                setError(mensajeError ? mensajeError : 'Error en el servidor al intentar cobrar las boletas.');
                 return;
             }
 
@@ -42,7 +44,7 @@ function ModalResumenCobro({ cliente, boletasSeleccionadas, nombreProducto, fech
             setResultado(datos);
         } catch (err) {
             console.error(err);
-            setError('❌ Error de conexion con el servidor.');
+            setError('Error de conexion con el servidor.');
         } finally {
             setConfirmando(false);
         }
@@ -57,20 +59,20 @@ function ModalResumenCobro({ cliente, boletasSeleccionadas, nombreProducto, fech
             <div className="modal-overlay">
                 <div className="modal-contenido" style={{ width: '95%', maxWidth: '500px' }}>
                     <div className="modal-header">
-                        <h3>✅ Cobro Procesado</h3>
+                        <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlineCheckCircle /> Cobro Procesado</h3>
                         <button className="btn-cerrar-modal" onClick={handleAceptarResultado}>X</button>
                     </div>
 
                     <div className="modal-body">
-                        <p style={{ margin: 0, color: '#2c3e50' }}>
+                        <p style={{ margin: 0, color: 'var(--text-primary)' }}>
                             Se cobraron {resultado.boletas.length} boleta(s) por un total de <strong>{formatearMoneda(total)}</strong>.
                         </p>
                         {resultado.vuelto > 0 ? (
-                            <span style={{ color: '#27ae60', fontWeight: 'bold' }}>
-                                💵 Vuelto a entregar: {formatearMoneda(resultado.vuelto)}
+                            <span style={{ color: 'var(--success)', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                <HiOutlineBanknotes /> Vuelto a entregar: {formatearMoneda(resultado.vuelto)}
                             </span>
                         ) : (
-                            <span style={{ color: '#7f8c8d' }}>No hay vuelto para entregar.</span>
+                            <span style={{ color: 'var(--text-secondary)' }}>No hay vuelto para entregar.</span>
                         )}
                     </div>
 
@@ -89,33 +91,33 @@ function ModalResumenCobro({ cliente, boletasSeleccionadas, nombreProducto, fech
             <div className="modal-contenido" style={{ width: '95%', maxWidth: '700px' }}>
 
                 <div className="modal-header">
-                    <h3>🧾 Resumen de Cobro</h3>
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlineTicket /> Resumen de Cobro</h3>
                     <button className="btn-cerrar-modal" onClick={cerrarModal}>X</button>
                 </div>
 
                 <div className="modal-body">
-                    <p style={{ margin: 0, color: '#7f8c8d' }}>
-                        Cliente: <strong style={{ textTransform: 'capitalize', color: '#2c3e50' }}>{cliente.nombre}</strong>
+                    <p style={{ margin: 0, color: 'var(--text-secondary)' }}>
+                        Cliente: <strong style={{ textTransform: 'capitalize', color: 'var(--text-primary)' }}>{cliente.nombre}</strong>
                     </p>
 
-                    {error && <div style={{ color: '#c0392b', fontWeight: 'bold', fontSize: '0.9rem' }}>{error}</div>}
+                    {error && <div style={{ color: 'var(--danger)', fontWeight: 'bold', fontSize: '0.9rem' }}>{error}</div>}
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         {boletasSeleccionadas.map((boleta) => (
-                            <div key={boleta.id} style={{ border: '1px solid #eee', borderRadius: '8px', padding: '12px' }}>
+                            <div key={boleta.id} style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '12px' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                    <span style={{ fontWeight: 'bold', color: '#2c3e50' }}>
-                                        📅 {fechaPlanilla(boleta.id_planilla)}
+                                    <span style={{ fontWeight: 'bold', color: 'var(--text-primary)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                        <HiOutlineCalendarDays /> {formatearFechaVisual(fechaPlanilla(boleta.id_planilla))}
                                     </span>
-                                    <span style={{ fontWeight: 'bold', color: '#c0392b' }}>
+                                    <span style={{ fontWeight: 'bold', color: 'var(--danger)' }}>
                                         {formatearMoneda(boleta.total)}
                                     </span>
                                 </div>
-                                <ul style={{ margin: 0, paddingLeft: '20px', listStyleType: 'square', color: '#34495e' }}>
+                                <ul style={{ margin: 0, paddingLeft: '20px', listStyleType: 'square', color: 'var(--text-secondary)' }}>
                                     {(boleta.ventas || []).map((itemProd, i) => (
                                         <li key={i} style={{ textTransform: 'capitalize', fontSize: '0.9rem' }}>
                                             <strong>{itemProd.cantidad}x</strong> {nombreProducto(itemProd.id_producto)}
-                                            <span style={{ color: '#7f8c8d', fontSize: '0.85rem' }}> (c/u: {formatearMoneda(itemProd.precio_unitario)})</span>
+                                            <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}> (c/u: {formatearMoneda(itemProd.precio_unitario)})</span>
                                         </li>
                                     ))}
                                 </ul>
@@ -123,7 +125,7 @@ function ModalResumenCobro({ cliente, boletasSeleccionadas, nombreProducto, fech
                         ))}
                     </div>
 
-                    <div style={{ borderTop: '1px solid #eee', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div style={{ borderTop: '1px solid var(--border)', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         {saldoFavorDisponible > 0 && (
                             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                                 <input
@@ -140,7 +142,7 @@ function ModalResumenCobro({ cliente, boletasSeleccionadas, nombreProducto, fech
                             <select
                                 value={formaPago}
                                 onChange={(e) => setFormaPago(e.target.value)}
-                                style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
+                                style={{ padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
                             >
                                 <option value="EFECTIVO">Efectivo</option>
                                 <option value="MERCADO_PAGO">Mercado Pago</option>
@@ -150,7 +152,7 @@ function ModalResumenCobro({ cliente, boletasSeleccionadas, nombreProducto, fech
                         </div>
 
                         {usarSaldoFavor && (
-                            <div style={{ fontSize: '0.9rem', color: '#7f8c8d' }}>
+                            <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
                                 Se descuentan {formatearMoneda(saldoAplicado)} del saldo del cliente. Resta cobrar {formatearMoneda(montoEntregado)}.
                             </div>
                         )}
@@ -158,7 +160,7 @@ function ModalResumenCobro({ cliente, boletasSeleccionadas, nombreProducto, fech
                 </div>
 
                 <div className="modal-footer" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ margin: 0, color: '#2c3e50' }}>Total: {formatearMoneda(total)}</h3>
+                    <h3 style={{ margin: 0, color: 'var(--text-primary)' }}>Total: {formatearMoneda(total)}</h3>
                     <div style={{ display: 'flex', gap: '10px' }}>
                         <button className="btn-global btn-secundario" onClick={cerrarModal} disabled={confirmando}>Cancelar</button>
                         <button className="btn-global btn-primario-green" onClick={handleConfirmar} disabled={confirmando}>

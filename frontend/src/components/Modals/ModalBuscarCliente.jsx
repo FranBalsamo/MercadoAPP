@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { HiOutlineMagnifyingGlass, HiOutlineArrowRight } from 'react-icons/hi2';
 import '../Estilos/Modal.css';
 import '../Estilos/Botones.css';
 
@@ -24,7 +25,7 @@ function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
             const respuesta = await fetch(url);
             if (!respuesta.ok) {
                 setClientes([]);
-                setError('❌ No se pudieron cargar los clientes.');
+                setError('No se pudieron cargar los clientes.');
                 return;
             }
 
@@ -32,7 +33,7 @@ function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
             setClientes(Array.isArray(datos) ? datos : []);
         } catch (err) {
             console.error(err);
-            setError('❌ Error al conectar con la API de clientes.');
+            setError('Error al conectar con la API de clientes.');
             setClientes([]);
         } finally {
             setBuscando(false);
@@ -47,7 +48,7 @@ function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
 
     const handleBuscarDocumento = async () => {
         if (busquedaDocumento.trim() === '') {
-            setError('❌ Ingresa un CUIT para buscar.');
+            setError('Ingresa un CUIT para buscar.');
             return;
         }
 
@@ -59,7 +60,7 @@ function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
             const respuesta = await fetch(url);
 
             if (!respuesta.ok) {
-                setError('❌ Cliente no encontrado por CUIT.');
+                setError('Cliente no encontrado por CUIT.');
                 return;
             }
 
@@ -68,7 +69,7 @@ function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
             cerrarModal();
         } catch (err) {
             console.error(err);
-            setError('❌ Error al conectar con el servidor.');
+            setError('Error al conectar con el servidor.');
         } finally {
             setBuscando(false);
         }
@@ -91,14 +92,14 @@ function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
             <div className="modal-contenido" style={{ width: '90%', maxWidth: metodoBusqueda === 'nombre' ? '900px' : '400px', minHeight: metodoBusqueda === 'nombre' ? '500px' : '250px' }}>
                 
                 <div className="modal-header">
-                    <h3>🔍 Buscar Cliente</h3>
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlineMagnifyingGlass /> Buscar Cliente</h3>
                     <button className="btn-cerrar-modal" onClick={cerrarModal}>X</button>
                 </div>
 
                 <div className="modal-body">
                     {/* CARTEL DE ERROR */}
                     {error && (
-                        <div style={{ backgroundColor: '#ffcccc', color: '#cc0000', padding: '10px', borderRadius: '4px', fontSize: '0.9rem', marginBottom: '15px' }}>
+                        <div style={{ backgroundColor: 'var(--danger-soft)', color: 'var(--danger-soft-text)', padding: '10px', borderRadius: 'var(--radius-sm)', fontSize: '0.9rem', marginBottom: '15px' }}>
                             {error}
                         </div>
                     )}
@@ -130,7 +131,7 @@ function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
                                     placeholder="Filtrar por nombre (ej: Fer)"
                                     value={filtroNombre}
                                     onChange={(e) => setFiltroNombre(e.target.value)}
-                                    style={{ flex: 1,padding: '10px', borderRadius: '4px', border: '1px solid #ccc', margin: 0 }}
+                                    style={{ flex: 1,padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', margin: 0, backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
                                 />
                                 <button
                                     className='btn-global btn-primario'
@@ -147,24 +148,24 @@ function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
 
                             {/* TABLA DE CLIENTES */}
                             
-                            <div style={{maxHeight: '280px', overflowY: 'auto', border: '1px solid #ddd', borderRadius: '6px' }}>
-                                <table style={{ 
+                            <div style={{maxHeight: '280px', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}>
+                                <table style={{
                                     width: '100%',
                                     borderCollapse: 'collapse',
                                     display: 'flex',
                                     flexDirection: 'column'
                                 }}>
-                                    <thead style={{ 
-                                        backgroundColor: '#f4f6f8',
+                                    <thead style={{
+                                        backgroundColor: 'var(--surface-inverse)',
                                         width: '100%',
                                         display: 'table',
                                         tableLayout: 'fixed'
                                     }}>
-                                        <tr style={{ 
-                                            backgroundColor: '#f4f4f4' 
+                                        <tr style={{
+                                            color: 'var(--text-on-inverse)'
                                         }}>
-                                            <th style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>Nombre</th>
-                                            <th style={{ padding: '8px', textAlign: 'left', borderBottom: '1px solid #ddd' }}>CUIT/L</th>
+                                            <th style={{ padding: '8px', textAlign: 'left' }}>Nombre</th>
+                                            <th style={{ padding: '8px', textAlign: 'left' }}>CUIT/L</th>
                                         </tr>
                                     </thead>
                                     <tbody style={{
@@ -177,13 +178,13 @@ function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
                                         {buscando ? (
                                             <tr>
                                                 {/* 👇 Nota: Quitamos el colSpan porque en modo 'block' a veces rompe el diseño. Usamos width '100%' */}
-                                                <td style={{ display: 'block', width: '100%', padding: '10px', textAlign: 'center' }}>
+                                                <td style={{ display: 'block', width: '100%', padding: '10px', textAlign: 'center', color: 'var(--text-muted)' }}>
                                                     Cargando clientes...
                                                 </td>
                                             </tr>
                                         ) : clientes.length === 0 ? (
                                             <tr>
-                                                <td style={{ display: 'block', width: '100%', padding: '10px', textAlign: 'center' }}>
+                                                <td style={{ display: 'block', width: '100%', padding: '10px', textAlign: 'center', color: 'var(--text-muted)' }}>
                                                     No se encontró ningún cliente.
                                                 </td>
                                             </tr>
@@ -198,12 +199,13 @@ function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
                                                             width: '100%',
                                                             tableLayout: 'fixed',
                                                             cursor: 'pointer',
-                                                            backgroundColor: seleccionado ? '#cce5ff' : 'transparent'
+                                                            backgroundColor: seleccionado ? 'var(--accent-soft)' : 'transparent',
+                                                            color: 'var(--text-primary)'
                                                         }}
                                                         onClick={() => seleccionarCliente(cliente)}
                                                     >
-                                                        <td style={{ padding: '8px', borderBottom: '1px solid #eee', textTransform: 'capitalize' }}>{cliente.nombre}</td>
-                                                        <td style={{ padding: '8px', borderBottom: '1px solid #eee' }}>{cliente.documento || '-'}</td>
+                                                        <td style={{ padding: '8px', borderBottom: '1px solid var(--border)', textTransform: 'capitalize' }}>{cliente.nombre}</td>
+                                                        <td style={{ padding: '8px', borderBottom: '1px solid var(--border)' }}>{cliente.documento || '-'}</td>
                                                     </tr>
                                                 );
                                             })
@@ -221,7 +223,7 @@ function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
                                     placeholder="Ej: 20334445556"
                                     value={busquedaDocumento}
                                     onChange={(e) => setBusquedaDocumento(e.target.value)}
-                                    style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
+                                    style={{ width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
                                     onKeyDown={(e) => e.key === 'Enter' && handleBuscarDocumento()}
                                 />
                             </div>
@@ -230,9 +232,9 @@ function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
                                     className='btn-global btn-primario'
                                     onClick={handleBuscarDocumento}
                                     disabled={buscando}
-                                    style={{ width: '100%', padding: '10px', color: '#ffff' }}
+                                    style={{ width: '100%', padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                             >
-                                {buscando ? 'Buscando en la base de datos...' : 'Buscar y Continuar ➔'}
+                                {buscando ? 'Buscando en la base de datos...' : <>Buscar y Continuar <HiOutlineArrowRight /></>}
                             </button>
                         </>
                     )}

@@ -1,6 +1,6 @@
 package com.franbalsamo.mercadoapp.modules.boleta.model;
 import com.franbalsamo.mercadoapp.modules.boleta.EstadoPago;
-import com.franbalsamo.mercadoapp.modules.boleta.EstadoRetiro;
+import com.franbalsamo.mercadoapp.modules.boleta.EstadoEntrega;
 import com.franbalsamo.mercadoapp.modules.boleta.FormaPago;
 import com.franbalsamo.mercadoapp.modules.cliente.model.Cliente;
 import com.franbalsamo.mercadoapp.modules.planilla.model.Planilla;
@@ -42,7 +42,7 @@ public class Boleta {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private EstadoRetiro estadoRetiro;
+    private EstadoEntrega estadoEntrega;
 
     @Enumerated(EnumType.STRING)
     private FormaPago formaPago;

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { HiOutlinePlusCircle } from 'react-icons/hi2';
 import '../Estilos/Modal.css';
 import '../Estilos/Botones.css';
 
@@ -37,7 +38,7 @@ function ModalAgregarProducto({ cerrarModal, planilla, catalogoProductos, stockP
         setError('');
 
         if (filas.length === 0) {
-            setError('❌ Debes agregar al menos un producto.');
+            setError('Debes agregar al menos un producto.');
             return;
         }
 
@@ -47,13 +48,13 @@ function ModalAgregarProducto({ cerrarModal, planilla, catalogoProductos, stockP
             const numeroFila = i + 1;
 
             if (!fila.id_producto || fila.id_producto === '') {
-                setError(`❌ Faltó seleccionar un producto en la fila ${numeroFila}.`);
+                setError(`Faltó seleccionar un producto en la fila ${numeroFila}.`);
                 return;
             }
 
             const cantidadReal = parseFloat(fila.cantidad);
             if (!fila.cantidad || isNaN(cantidadReal) || cantidadReal <= 0) {
-                setError(`❌ La cantidad debe ser mayor a 0 en la fila ${numeroFila}.`);
+                setError(`La cantidad debe ser mayor a 0 en la fila ${numeroFila}.`);
                 return;
             }
         }
@@ -87,7 +88,7 @@ function ModalAgregarProducto({ cerrarModal, planilla, catalogoProductos, stockP
 
         } catch (err) {
             console.error(err);
-            setError('❌ Ocurrió un error al intentar guardar los productos en el servidor.');
+            setError('Ocurrió un error al intentar guardar los productos en el servidor.');
         } finally {
             setGuardando(false);
         }
@@ -101,27 +102,27 @@ function ModalAgregarProducto({ cerrarModal, planilla, catalogoProductos, stockP
             <div className="modal-contenido" style={{ width: '95%', maxWidth: '600px', maxHeight: '90vh' }}>
 
                 <div className="modal-header">
-                    <h3 style={{ margin: 0 }}>➕ Agregar Nuevo Producto</h3>
+                    <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlinePlusCircle /> Agregar Nuevo Producto</h3>
                     <button className="btn-cerrar-modal" onClick={cerrarModal}>X</button>
                 </div>
 
                 <div className="modal-body">
                     {error && (
-                        <p style={{ color: '#c0392b', fontWeight: 'bold', margin: '0', padding: '10px', backgroundColor: '#fadbd8', borderRadius: '4px' }}>
+                        <p style={{ color: 'var(--danger-soft-text)', fontWeight: 'bold', margin: '0', padding: '10px', backgroundColor: 'var(--danger-soft)', borderRadius: 'var(--radius-sm)' }}>
                             {error}
                         </p>
                     )}
 
-                    <p style={{ color: '#7f8c8d', fontSize: '0.95rem', margin: 0 }}>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', margin: 0 }}>
                         Selecciona productos del catálogo que aún no están en la planilla actual.
                     </p>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '10px' }}>
                         {filas.map((fila, index) => (
-                            <div key={fila.id_fila} style={{ display: 'flex', gap: '10px', alignItems: 'center', backgroundColor: '#f9f9f9', padding: '10px', border: '1px solid #eee', borderRadius: '6px' }}>
-                                
+                            <div key={fila.id_fila} style={{ display: 'flex', gap: '10px', alignItems: 'center', backgroundColor: 'var(--surface-2)', padding: '10px', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}>
+
                                 <select
-                                    style={{ flex: 2, padding: '8px', textTransform: 'capitalize', borderRadius: '4px', border: '1px solid #ccc', outline: 'none' }}
+                                    style={{ flex: 2, padding: '8px', textTransform: 'capitalize', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', outline: 'none', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
                                     value={fila.id_producto}
                                     onChange={(e) => actualizarFila(index, 'id_producto', e.target.value)}
                                 >
@@ -154,7 +155,7 @@ function ModalAgregarProducto({ cerrarModal, planilla, catalogoProductos, stockP
                                     placeholder="Cant."
                                     value={fila.cantidad}
                                     onChange={(e) => actualizarFila(index, 'cantidad', e.target.value)}
-                                    style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid #ccc', outline: 'none', textAlign: 'center' }}
+                                    style={{ flex: 1, padding: '8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', outline: 'none', textAlign: 'center', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
                                 />
 
                                 <button
@@ -170,7 +171,7 @@ function ModalAgregarProducto({ cerrarModal, planilla, catalogoProductos, stockP
                     </div>
                 </div>
                 
-                <div style={{ marginTop: '5px', marginBottom:'5px', borderTop: '1px solid #eee', paddingTop: '10px', display: 'flex', justifyContent: 'center'}}>
+                <div style={{ marginTop: '5px', marginBottom:'5px', borderTop: '1px solid var(--border)', paddingTop: '10px', display: 'flex', justifyContent: 'center'}}>
                     <button
                         type="button"
                         className="btn-global btn-secundario"

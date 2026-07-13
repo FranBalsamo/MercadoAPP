@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import reactLogo from "./assets/react.svg";
-import Header from "./components/Header"
+import Sidebar from "./components/Sidebar"
 import ModalProducto from "./components/Modals/ModalProducto";
 import ModalCliente from "./components/Modals/ModalCliente";
 import ModalPlanilla from "./components/Modals/ModalPlanilla";
@@ -14,9 +14,21 @@ import VistaClienteDeudas from "./components/Vistas/VistaClienteDeudas";
 import VistaEstadisticas from "./components/Vistas/VistaEstadisticas";
 import VistaBuscarBoletas from "./components/Vistas/VistaBuscarBoletas";
 
+import "./components/Estilos/tokens.css";
 import "./App.css";
 
 function App() {
+
+  const [tema, setTema] = useState(() => localStorage.getItem('tema') || 'light');
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', tema);
+    localStorage.setItem('tema', tema);
+  }, [tema]);
+
+  const alternarTema = () => {
+    setTema(prev => (prev === 'dark' ? 'light' : 'dark'));
+  };
 
   const [mostrarModalProd, setMostrarModalProd] = useState(false);
   const [mostrarModalCliente, setMostrarModalCliente] = useState(false);
@@ -28,6 +40,23 @@ function App() {
   const [clienteParaDeudas, setClienteParaDeudas] = useState(null);
   const [actualizarClientes, setActualizarClientes] = useState(0);
   const [actualizarProductos, setActualizarProductos] = useState(0);
+
+  // Al iniciar la app buscamos si quedó una planilla abierta de una sesión anterior
+  // (por ejemplo, si se cerró el programa sin cerrar la caja), para no perder ese estado.
+  useEffect(() => {
+    const buscarPlanillaAbierta = async () => {
+      try {
+        const respuesta = await fetch('http://localhost:8080/api/planilla/abierta');
+        if (respuesta.ok) {
+          const planillaAbierta = await respuesta.json();
+          setPlanillaActiva(planillaAbierta);
+        }
+      } catch (error) {
+        console.error("Error al buscar la planilla abierta:", error);
+      }
+    };
+    buscarPlanillaAbierta();
+  }, []);
 
   const avisarRecargaClientes = () => {
     setActualizarClientes(prev => prev + 1);
@@ -165,21 +194,27 @@ function App() {
   }
 
   return (
-    <div>
-      <Header
+    <div style={{ display: 'flex' }}>
+      <Sidebar
+        vistaActiva={vistaActiva}
+        tema={tema}
+        alternarTema={alternarTema}
+        volverInicio={volverInicio}
         abrirModalProducto={abrirModalProd}
         abrirModalCliente={abrirModalCliente}
-        abrirModalPlanilla={abrirModalPlanilla} 
+        abrirModalPlanilla={abrirModalPlanilla}
         abrirVistaClientes={abrirVistaClientes}
         abrirVistaPlanillas={abrirVistaPlanillas}
         abrirVistaProductos={abrirVistaProductos}
         abrirVistaEstadisticas={abrirVistaEstadisticas}
         abrirVistaBuscarBoletas={abrirVistaBuscarBoletas}
-        volverInicio={volverInicio}
+        planillaActiva={planillaActiva}
+        abrirPlanilla={abrirPlanilla}
       />
 
-
-      {MostrarVistas()}
+      <div style={{ flexGrow: 1, minWidth: 0 }}>
+        {MostrarVistas()}
+      </div>
 
       {mostrarModalProd && <ModalProducto
         cerrarModal={cerrarModalProd}
@@ -192,7 +227,7 @@ function App() {
       {mostrarModalPlanilla && <ModalPlanilla
         cerrarModal={cerrarModalPlanilla}
         onPlanillaCreada={abrirPlanilla}
-      />}  
+      />}
     </div>
   );
 }

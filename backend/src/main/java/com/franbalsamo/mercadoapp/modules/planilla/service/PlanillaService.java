@@ -1,6 +1,7 @@
 package com.franbalsamo.mercadoapp.modules.planilla.service;
 
 import com.franbalsamo.mercadoapp.modules.boleta.repository.BoletaRepository;
+import com.franbalsamo.mercadoapp.modules.planilla.EstadoPlanilla;
 import com.franbalsamo.mercadoapp.modules.planilla.repository.PlanillaRepository;
 import com.franbalsamo.mercadoapp.modules.boleta.model.Boleta;
 import com.franbalsamo.mercadoapp.modules.planilla.model.Planilla;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PlanillaService {
@@ -38,6 +40,10 @@ public class PlanillaService {
 
     @Transactional
     public PlanillaDTO newPlanilla(PlanillaDTO planillaDTO){
+        if(planillaRepository.findFirstByEstadoPlanilla(EstadoPlanilla.ABIERTA).isPresent()){
+            throw new ReglaNegocioException("Ya existe una planilla abierta. Cerrala antes de abrir una nueva.");
+        }
+
         Planilla planillaNueva = new Planilla();
 
         for(StockProductoDTO stockProductoDTO : planillaDTO.getStockProductos()) {
@@ -91,6 +97,11 @@ public class PlanillaService {
 
     public PlanillaDTO findDTOById(long id){
         return planillaMapper.toDTO(findById(id));
+    }
+
+    public Optional<PlanillaDTO> findAbierta(){
+        return planillaRepository.findFirstByEstadoPlanilla(EstadoPlanilla.ABIERTA)
+                .map(planillaMapper::toDTO);
     }
 
     @Transactional

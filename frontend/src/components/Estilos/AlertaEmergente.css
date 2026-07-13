@@ -11,13 +11,13 @@
         desvanecer 0.3s ease-in 3.2s forwards;
 }
 
-/* La cajita roja tipo notificación */
+/* La cajita tipo notificación */
 .alerta-emergente-contenido {
-    background-color: #e74c3c; /* Rojo de alerta/error */
-    color: white;
+    background-color: var(--danger); /* Rojo de alerta/error */
+    color: var(--text-on-accent);
     padding: 15px 25px;
-    border-radius: 8px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
     font-weight: bold;
     font-size: 1.05rem;
     display: flex;
@@ -28,7 +28,7 @@
 }
 
 .alerta-emergente-contenido.exito {
-    background-color: #2ecc71; /* Verde de éxito, igual que btn-primario-green */
+    background-color: var(--success); /* Verde de éxito, igual que btn-primario-green */
 }
 
 /* --------------------------------------

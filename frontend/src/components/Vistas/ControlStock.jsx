@@ -1,3 +1,4 @@
+import { HiOutlineCube } from 'react-icons/hi2';
 import '../Estilos/Botones.css'
 
 function ControlStock({ stockProductos, catalogoProductos, cargando, abrirModificarStock , abrirAgregarProducto}) {
@@ -7,31 +8,32 @@ function ControlStock({ stockProductos, catalogoProductos, cargando, abrirModifi
     };
 
     const ColorFondoStock = (stockActual) => {
-        if (stockActual === 0) return '#fccc';
-        else if (stockActual <= 20) return '#ffbc';
-        else return '#fffa';
+        if (stockActual === 0) return 'var(--danger-soft)';
+        else if (stockActual <= 20) return 'var(--warning-soft)';
+        else return 'var(--surface-2)';
     };
 
     const ColorTextoStock = (stockActual) => {
-        if (stockActual === 0) return '#e74c3c';
-        else if (stockActual <= 20) return '#e67e22';
-        else return '#2ecc71';
+        if (stockActual === 0) return 'var(--danger)';
+        else if (stockActual <= 20) return 'var(--warning)';
+        else return 'var(--success)';
     };
 
     return (
         <div style={{
             flex: 1,
             minWidth: '250px',
-            backgroundColor: 'white',
+            backgroundColor: 'var(--surface)',
+            border: '1px solid var(--border)',
             padding: '20px',
-            borderRadius: '8px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            borderRadius: 'var(--radius-lg)',
+            boxShadow: 'var(--shadow-sm)',
             display: 'flex',
             flexDirection: 'column'
         }}>
             <div className="controlStock-header" style={{display:'flex', flexDirection:'row', justifyContent:'space-between' }}>
-                <h3 style={{ marginTop: 0, padding: '5px' }}>📦 Inventario Hoy</h3>
-                <button 
+                <h3 style={{ marginTop: 0, padding: '5px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlineCube /> Inventario Hoy</h3>
+                <button
                     className="btn-global btn-primario"
                     onClick={abrirModificarStock}
                 >
@@ -39,7 +41,7 @@ function ControlStock({ stockProductos, catalogoProductos, cargando, abrirModifi
                 </button>
             </div>
             {cargando ? (
-                <p>Cargando catálogo...</p>
+                <p style={{ color: 'var(--text-secondary)' }}>Cargando catálogo...</p>
             ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '15px', flexGrow: 1, overflowY: 'auto', paddingRight: '5px' }}>
                     {[...stockProductos]
@@ -61,15 +63,15 @@ function ControlStock({ stockProductos, catalogoProductos, cargando, abrirModifi
 
                             return (
                                 <div key={item.id} style={{
-                                    border: '1px solid #ddd',
+                                    border: '1px solid var(--border)',
                                     padding: '10px 15px',
-                                    borderRadius: '8px',
+                                    borderRadius: 'var(--radius-md)',
                                     backgroundColor: ColorFondoStock(stockActual),
                                     display: 'flex',
                                     justifyContent: 'space-between',
                                     alignItems: 'center'
                                 }}>
-                                    <h4 style={{ margin: 0, fontSize: '1rem', textTransform:'capitalize'}}>
+                                    <h4 style={{ margin: 0, fontSize: '1rem', textTransform:'capitalize', color: 'var(--text-primary)'}}>
                                         {obtenerNombreProducto(item.id_producto)}
                                     </h4>
                                     <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color:ColorTextoStock(stockActual) }}>
@@ -80,11 +82,11 @@ function ControlStock({ stockProductos, catalogoProductos, cargando, abrirModifi
                         })}
                 </div>
             )}
-            <div style={{ paddingTop: '20px', borderTop: '2px dashed #eee', display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end'}}>
-                <button 
+            <div style={{ paddingTop: '20px', borderTop: '1px dashed var(--border)', display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end'}}>
+                <button
                     className='btn-global btn-primario'
                     onClick={abrirAgregarProducto}
-                    style={{ width: '100%', color: '#eeef', fontSize: '1.1rem', fontWeight: 'bold', }}
+                    style={{ width: '100%', fontSize: '1.1rem', fontWeight: 'bold', }}
                 >
                     + Agregar Producto
                 </button>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { calcularRangoFechas } from '../../utils/rangoFechas';
 import ToggleEscalaTiempo from './ToggleEscalaTiempo';
+import { HiOutlineTicket } from 'react-icons/hi2';
 
 const formatearMoneda = (valor) => (valor ?? 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
 
@@ -36,31 +37,31 @@ function TicketPromedio() {
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', flexWrap: 'wrap', gap: '10px' }}>
-                <h4 style={{ margin: 0, color: '#2c3e50' }}>🎟️ Ticket promedio por boleta</h4>
+                <h4 style={{ margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlineTicket /> Ticket promedio por boleta</h4>
                 <ToggleEscalaTiempo escala={escala} onCambiar={setEscala} />
             </div>
 
-            {error && <p style={{ color: '#e74c3c', fontSize: '0.9rem' }}>{error}</p>}
+            {error && <p style={{ color: 'var(--danger)', fontSize: '0.9rem' }}>{error}</p>}
 
             {cargando ? (
-                <p style={{ textAlign: 'center', color: '#888', fontSize: '0.9rem' }}>Cargando...</p>
+                <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Cargando...</p>
             ) : !datos || datos.cantidadBoletas === 0 ? (
-                <p style={{ textAlign: 'center', color: '#888', fontSize: '0.9rem' }}>
+                <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
                     No hay boletas pagadas en {escala === 'semana' ? 'la última semana' : 'el último mes'}.
                 </p>
             ) : (
                 <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
                     <div style={{ flex: 1, minWidth: '140px' }}>
-                        <span style={{ color: '#7f8c8d', fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Boletas pagadas</span>
-                        <h3 style={{ margin: '4px 0 0 0', color: '#2c3e50' }}>{datos.cantidadBoletas}</h3>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Boletas pagadas</span>
+                        <h3 style={{ margin: '4px 0 0 0', color: 'var(--text-primary)' }}>{datos.cantidadBoletas}</h3>
                     </div>
                     <div style={{ flex: 1, minWidth: '140px' }}>
-                        <span style={{ color: '#7f8c8d', fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Total facturado</span>
-                        <h3 style={{ margin: '4px 0 0 0', color: '#27ae60' }}>{formatearMoneda(datos.totalFacturado)}</h3>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Total facturado</span>
+                        <h3 style={{ margin: '4px 0 0 0', color: 'var(--success)' }}>{formatearMoneda(datos.totalFacturado)}</h3>
                     </div>
                     <div style={{ flex: 1, minWidth: '140px' }}>
-                        <span style={{ color: '#7f8c8d', fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Ticket promedio</span>
-                        <h3 style={{ margin: '4px 0 0 0', color: '#3498db' }}>{formatearMoneda(datos.promedio)}</h3>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Ticket promedio</span>
+                        <h3 style={{ margin: '4px 0 0 0', color: 'var(--info)' }}>{formatearMoneda(datos.promedio)}</h3>
                     </div>
                 </div>
             )}

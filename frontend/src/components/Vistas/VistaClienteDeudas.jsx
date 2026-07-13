@@ -6,6 +6,8 @@ import { writeFile } from '@tauri-apps/plugin-fs';
 import ModalResumenCobro from '../Modals/ModalResumenCobro';
 import ModalPagoACuenta from '../Modals/ModalPagoACuenta';
 import AlertaEmergente from '../Alertas/AlertaEmergente';
+import { formatearFechaVisual } from '../../utils/formatoFecha';
+import { HiOutlineBanknotes, HiOutlineDocumentArrowDown, HiOutlineTicket, HiOutlineCalendarDays } from 'react-icons/hi2';
 import '../Estilos/Botones.css';
 
 const capitalizar = (texto) => {
@@ -24,8 +26,8 @@ function PuntoInformativo({ texto }) {
         >
             <span
                 style={{
-                    cursor: 'help', color: '#95a5a6', fontSize: '0.75rem', fontWeight: 'bold',
-                    border: '1px solid #95a5a6', borderRadius: '50%', width: '15px', height: '15px',
+                    cursor: 'help', color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 'bold',
+                    border: '1px solid var(--text-muted)', borderRadius: '50%', width: '15px', height: '15px',
                     display: 'inline-flex', alignItems: 'center', justifyContent: 'center'
                 }}
             >
@@ -35,9 +37,9 @@ function PuntoInformativo({ texto }) {
             {mostrar && (
                 <div style={{
                     position: 'absolute', bottom: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)',
-                    backgroundColor: '#2c3e50', color: 'white', padding: '8px 12px', borderRadius: '6px',
+                    backgroundColor: 'var(--surface-inverse)', color: 'var(--text-on-inverse)', padding: '8px 12px', borderRadius: 'var(--radius-sm)',
                     fontSize: '0.8rem', fontWeight: '400', whiteSpace: 'normal', width: '220px', textAlign: 'left',
-                    lineHeight: '1.4', boxShadow: '0 4px 10px rgba(0,0,0,0.15)', zIndex: 20
+                    lineHeight: '1.4', boxShadow: 'var(--shadow-md)', zIndex: 20
                 }}>
                     {texto}
                 </div>
@@ -216,7 +218,7 @@ function VistaClienteDeudas({ cliente, volver }) {
                 .join('\n');
 
             return [
-                fechaPlanilla(boleta.id_planilla),
+                formatearFechaVisual(fechaPlanilla(boleta.id_planilla)),
                 productos,
                 formatearMoneda(boleta.total),
             ];
@@ -276,21 +278,21 @@ function VistaClienteDeudas({ cliente, volver }) {
     };
 
     return (
-        <main style={{ padding: '20px', backgroundColor: '#f4f6f8', minHeight: 'calc(100vh - 70px)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <main style={{ padding: '20px', backgroundColor: 'var(--bg)', minHeight: '100vh', display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
             {/* ENCABEZADO Y BOTÓN VOLVER */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'white', padding: '15px 20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '15px 20px', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)' }}>
                 <div>
-                    <h2 style={{ margin: 0, color: '#2c3e50', textTransform: 'capitalize' }}>💰 Deudas de {clienteActual.nombre}</h2>
-                    <p style={{ margin: '5px 0 0 0', color: '#7f8c8d' }}>
+                    <h2 style={{ margin: 0, color: 'var(--text-primary)', textTransform: 'capitalize', display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlineBanknotes style={{ textTransform: 'none' }} /> Deudas de {clienteActual.nombre}</h2>
+                    <p style={{ margin: '5px 0 0 0', color: 'var(--text-secondary)' }}>
                         CUIT/L: <strong>{clienteActual.documento}</strong>
                         {clienteActual.telefono ? <> | Tel: <strong>{clienteActual.telefono}</strong></> : null}
                         {clienteActual.direccion ? <> | Dirección: <strong>{clienteActual.direccion}</strong></> : null}
                     </p>
                 </div>
                 <div style={{ display: 'flex', gap: '10px' }}>
-                    <button className="btn-global btn-primario" onClick={exportarPDF} style={{ fontSize: '1rem' }}>
-                        📄 Exportar PDF
+                    <button className="btn-global btn-primario" onClick={exportarPDF} style={{ fontSize: '1rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        <HiOutlineDocumentArrowDown /> Exportar PDF
                     </button>
                     <button className="btn-global btn-secundario" onClick={volver} style={{ fontSize: '1rem' }}>
                         ← Volver a Clientes
@@ -298,36 +300,36 @@ function VistaClienteDeudas({ cliente, volver }) {
                 </div>
             </div>
 
-            {error && <p style={{ color: '#e74c3c', fontWeight: 'bold', margin: 0 }}>{error}</p>}
+            {error && <p style={{ color: 'var(--danger)', fontWeight: 'bold', margin: 0 }}>{error}</p>}
 
             {/* CAJITAS DE DEUDA / SALDO A FAVOR + ACCIÓN DE PAGO */}
             <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'stretch' }}>
-                <div style={{ flex: 1, minWidth: '220px', backgroundColor: 'white', padding: '15px', borderRadius: '8px', borderLeft: '5px solid #e74c3c', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                    <span style={{ color: '#7f8c8d', fontSize: '0.9rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ flex: 1, minWidth: '220px', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '15px', borderRadius: 'var(--radius-lg)', borderLeft: '5px solid var(--danger)', boxShadow: 'var(--shadow-sm)' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                         Deuda Total
                         <PuntoInformativo texto="Suma de todas las boletas del cliente que todavía están sin pagar." />
                     </span>
-                    <h3 style={{ margin: '5px 0 0 0', fontSize: '1.5rem', color: '#e74c3c' }}>
+                    <h3 style={{ margin: '5px 0 0 0', fontSize: '1.5rem', color: 'var(--danger)' }}>
                         {formatearMoneda(totalDeuda)}
                     </h3>
                 </div>
 
-                <div style={{ flex: 1, minWidth: '220px', backgroundColor: 'white', padding: '15px', borderRadius: '8px', borderLeft: '5px solid #27ae60', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                    <span style={{ color: '#7f8c8d', fontSize: '0.9rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ flex: 1, minWidth: '220px', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '15px', borderRadius: 'var(--radius-lg)', borderLeft: '5px solid var(--success)', boxShadow: 'var(--shadow-sm)' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                         Saldo del Cliente
                         <PuntoInformativo texto="Dinero que el cliente entregó de más y todavía no se usó para pagar deudas. Se descuenta automáticamente del próximo cobro." />
                     </span>
-                    <h3 style={{ margin: '5px 0 0 0', fontSize: '1.5rem', color: '#27ae60' }}>
+                    <h3 style={{ margin: '5px 0 0 0', fontSize: '1.5rem', color: 'var(--success)' }}>
                         {formatearMoneda(clienteActual.saldo_a_favor)}
                     </h3>
                 </div>
 
-                <div style={{ flex: 1, minWidth: '220px', backgroundColor: 'white', padding: '15px', borderRadius: '8px', borderLeft: '5px solid #c0392b', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                    <span style={{ color: '#7f8c8d', fontSize: '0.9rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ flex: 1, minWidth: '220px', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '15px', borderRadius: 'var(--radius-lg)', borderLeft: '5px solid var(--danger)', boxShadow: 'var(--shadow-sm)' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                         Deuda Actual
                         <PuntoInformativo texto="Deuda Total menos el Saldo del Cliente. Es lo que realmente falta cobrar." />
                     </span>
-                    <h3 style={{ margin: '5px 0 0 0', fontSize: '1.5rem', color: '#c0392b' }}>
+                    <h3 style={{ margin: '5px 0 0 0', fontSize: '1.5rem', color: 'var(--danger)' }}>
                         {formatearMoneda(deudaActual)}
                     </h3>
                 </div>
@@ -336,9 +338,9 @@ function VistaClienteDeudas({ cliente, volver }) {
                     <button
                         className="btn-global btn-primario"
                         onClick={() => setMostrarMenuPago(prev => !prev)}
-                        style={{ fontSize: '1rem', padding: '12px 20px', height: 'fit-content' }}
+                        style={{ fontSize: '1rem', padding: '12px 20px', height: 'fit-content', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                     >
-                        💵 Cobrar Deudas
+                        <HiOutlineBanknotes /> Cobrar Deudas
                     </button>
 
                     {mostrarMenuPago && (
@@ -346,9 +348,10 @@ function VistaClienteDeudas({ cliente, volver }) {
                             position: 'absolute',
                             top: 'calc(100% + 8px)',
                             right: 0,
-                            backgroundColor: 'white',
-                            borderRadius: '8px',
-                            boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
+                            backgroundColor: 'var(--surface)',
+                            border: '1px solid var(--border)',
+                            borderRadius: 'var(--radius-md)',
+                            boxShadow: 'var(--shadow-md)',
                             overflow: 'hidden',
                             zIndex: 10,
                             minWidth: '200px'
@@ -356,20 +359,20 @@ function VistaClienteDeudas({ cliente, volver }) {
                             <button
                                 onClick={iniciarSeleccionBoletas}
                                 style={{
-                                    display: 'block', width: '100%', textAlign: 'left', padding: '12px 16px',
-                                    border: 'none', backgroundColor: 'transparent', cursor: 'pointer', fontSize: '0.95rem', color: '#2c3e50'
+                                    display: 'flex', alignItems: 'center', gap: '8px', width: '100%', textAlign: 'left', padding: '12px 16px',
+                                    border: 'none', backgroundColor: 'transparent', cursor: 'pointer', fontSize: '0.95rem', color: 'var(--text-primary)'
                                 }}
                             >
-                                🧾 Seleccionar Boletas
+                                <HiOutlineTicket /> Seleccionar Boletas
                             </button>
                             <button
                                 onClick={() => { setMostrarMenuPago(false); setMostrarPagoACuenta(true); }}
                                 style={{
-                                    display: 'block', width: '100%', textAlign: 'left', padding: '12px 16px',
-                                    border: 'none', borderTop: '1px solid #eee', backgroundColor: 'transparent', cursor: 'pointer', fontSize: '0.95rem', color: '#2c3e50'
+                                    display: 'flex', alignItems: 'center', gap: '8px', width: '100%', textAlign: 'left', padding: '12px 16px',
+                                    border: 'none', borderTop: '1px solid var(--border)', backgroundColor: 'transparent', cursor: 'pointer', fontSize: '0.95rem', color: 'var(--text-primary)'
                                 }}
                             >
-                                💰 Pago a Cuenta
+                                <HiOutlineBanknotes /> Pago a Cuenta
                             </button>
                         </div>
                     )}
@@ -380,11 +383,11 @@ function VistaClienteDeudas({ cliente, volver }) {
             {modoSeleccion && (
                 <div style={{
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    backgroundColor: '#fffbe6', border: '1px solid #f1c40f', borderRadius: '8px',
+                    backgroundColor: 'var(--warning-soft)', border: '1px solid var(--warning)', borderRadius: 'var(--radius-lg)',
                     padding: '12px 20px'
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', color: '#2c3e50', cursor: 'pointer' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', color: 'var(--text-primary)', cursor: 'pointer' }}>
                             <input
                                 type="checkbox"
                                 checked={todasSeleccionadas}
@@ -393,8 +396,8 @@ function VistaClienteDeudas({ cliente, volver }) {
                             />
                             Seleccionar Todos
                         </label>
-                        <span style={{ fontWeight: 'bold', color: '#2c3e50' }}>
-                            {idsSeleccionados.length} boleta(s) seleccionada(s) — Total a Cobrar: <span style={{ color: '#27ae60' }}>{formatearMoneda(totalSeleccionado)}</span>
+                        <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                            {idsSeleccionados.length} boleta(s) seleccionada(s) — Total a Cobrar: <span style={{ color: 'var(--success)' }}>{formatearMoneda(totalSeleccionado)}</span>
                         </span>
                     </div>
                     <div style={{ display: 'flex', gap: '10px' }}>
@@ -413,15 +416,15 @@ function VistaClienteDeudas({ cliente, volver }) {
             )}
 
             {/* LISTADO DE BOLETAS IMPAGAS */}
-            <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', flexGrow: 1 }}>
-                <h3 style={{ marginTop: 0, color: '#2c3e50', borderBottom: '2px solid #eee', paddingBottom: '10px' }}>
-                    🧾 Boletas Pendientes de Pago
+            <div style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '20px', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', flexGrow: 1 }}>
+                <h3 style={{ marginTop: 0, color: 'var(--text-primary)', borderBottom: '1px solid var(--border)', paddingBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <HiOutlineTicket /> Boletas Pendientes de Pago
                 </h3>
 
                 {cargando ? (
-                    <p style={{ textAlign: 'center', color: '#888' }}>Cargando deudas...</p>
+                    <p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>Cargando deudas...</p>
                 ) : boletasOrdenadas.length === 0 ? (
-                    <p style={{ textAlign: 'center', color: '#888', padding: '20px' }}>
+                    <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px' }}>
                         Este cliente no tiene boletas pendientes de pago en planillas cerradas.
                     </p>
                 ) : (
@@ -429,9 +432,9 @@ function VistaClienteDeudas({ cliente, volver }) {
                         {boletasOrdenadas.map((boleta) => (
                             <div key={boleta.id} style={{
                                 display: 'flex', alignItems: 'flex-start', gap: '12px',
-                                border: idsSeleccionados.includes(boleta.id) ? '2px solid #27ae60' : '1px solid #eee',
-                                borderRadius: '8px', padding: '15px',
-                                backgroundColor: idsSeleccionados.includes(boleta.id) ? '#f0fff4' : 'white'
+                                border: idsSeleccionados.includes(boleta.id) ? '2px solid var(--success)' : '1px solid var(--border)',
+                                borderRadius: 'var(--radius-lg)', padding: '15px',
+                                backgroundColor: idsSeleccionados.includes(boleta.id) ? 'var(--success-soft)' : 'var(--surface)'
                             }}>
                                 {modoSeleccion && (
                                     <input
@@ -443,19 +446,19 @@ function VistaClienteDeudas({ cliente, volver }) {
                                 )}
                                 <div style={{ flexGrow: 1 }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                                        <span style={{ fontWeight: 'bold', color: '#2c3e50' }}>
-                                            📅 Fecha: {fechaPlanilla(boleta.id_planilla)}
+                                        <span style={{ fontWeight: 'bold', color: 'var(--text-primary)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                            <HiOutlineCalendarDays /> Fecha: {formatearFechaVisual(fechaPlanilla(boleta.id_planilla))}
                                         </span>
-                                        <span style={{ fontWeight: 'bold', fontSize: '1.05rem', color: '#c0392b' }}>
+                                        <span style={{ fontWeight: 'bold', fontSize: '1.05rem', color: 'var(--danger)' }}>
                                             {formatearMoneda(boleta.total)}
                                         </span>
                                     </div>
-                                    <ul style={{ margin: 0, paddingLeft: '20px', listStyleType: 'square', color: '#34495e' }}>
+                                    <ul style={{ margin: 0, paddingLeft: '20px', listStyleType: 'square', color: 'var(--text-secondary)' }}>
                                         {(boleta.ventas || []).map((itemProd, i) => (
                                             <li key={i} style={{ marginBottom: '3px', textTransform: 'capitalize' }}>
                                                 <strong>{itemProd.cantidad}x</strong> {nombreProducto(itemProd.id_producto)}
-                                                <span style={{ color: '#7f8c8d', fontSize: '0.85rem' }}> (c/u: {formatearMoneda(itemProd.precio_unitario)})</span>
-                                                <span style={{ color: '#7f8c8d', fontSize: '0.85rem' }}>
+                                                <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}> (c/u: {formatearMoneda(itemProd.precio_unitario)})</span>
+                                                <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                                                     {' '}- Vacío: {itemProd.precio_vacio > 0 ? formatearMoneda(itemProd.precio_vacio) : 'Sin Vacio'}
                                                 </span>
                                             </li>

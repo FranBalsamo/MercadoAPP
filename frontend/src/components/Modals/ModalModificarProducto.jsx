@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import AlertaConfirmacion from '../Alertas/AlertaConfirmacion';
+import { HiOutlinePencilSquare } from 'react-icons/hi2';
 import '../Estilos/Modal.css';
 import '../Estilos/Botones.css';
 
@@ -19,7 +20,7 @@ function ModalModificarProducto({ cerrarModal, producto, onProductoModificado })
 
     const handleGuardar = () => {
         if (nombre.trim() === '') {
-            setError('❌ El nombre del producto es obligatorio.');
+            setError('El nombre del producto es obligatorio.');
             return;
         }
 
@@ -47,7 +48,7 @@ function ModalModificarProducto({ cerrarModal, producto, onProductoModificado })
 
             if (!respuesta.ok) {
                 const mensajeError = await respuesta.text();
-                setError(mensajeError ? `❌ ${mensajeError}` : '❌ Error en el servidor al intentar guardar.');
+                setError(mensajeError ? mensajeError : 'Error en el servidor al intentar guardar.');
                 return;
             }
 
@@ -55,7 +56,7 @@ function ModalModificarProducto({ cerrarModal, producto, onProductoModificado })
             cerrarModal();
         } catch (err) {
             console.error(err);
-            setError('❌ Error de conexion con el servidor');
+            setError('Error de conexion con el servidor');
         } finally {
             setGuardando(false);
         }
@@ -66,13 +67,13 @@ function ModalModificarProducto({ cerrarModal, producto, onProductoModificado })
             <div className="modal-contenido">
 
                 <div className="modal-header">
-                    <h3>✏️ Modificar Producto</h3>
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlinePencilSquare /> Modificar Producto</h3>
                     <button className="btn-cerrar-modal" onClick={cerrarModal}>X</button>
                 </div>
 
                 <div className="modal-body">
                     {error && (
-                        <div style={{ color: 'red', fontSize: '0.8rem' }}>{error}</div>
+                        <div style={{ color: 'var(--danger)', fontSize: '0.8rem' }}>{error}</div>
                     )}
                     <div className="form-group">
                         <label>Nombre del Producto:</label>
@@ -95,7 +96,7 @@ function ModalModificarProducto({ cerrarModal, producto, onProductoModificado })
                             onChange={(e) => setDescripcion(e.target.value)}
                             maxLength={100}
                         />
-                        <small style={{ color: '#888', textAlign: 'right', fontSize: '0.8rem' }}>
+                        <small style={{ color: 'var(--text-muted)', textAlign: 'right', fontSize: '0.8rem' }}>
                             {descripcion.length}/100
                         </small>
                     </div>

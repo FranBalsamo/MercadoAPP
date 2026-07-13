@@ -58,8 +58,8 @@ function CarruselEstadisticas() {
                         key={estadistica.id}
                         onClick={() => irA(i)}
                         style={{
-                            width: i === indice ? '22px' : '8px', height: '8px', borderRadius: '4px', cursor: 'pointer',
-                            backgroundColor: i === indice ? '#3498db' : '#dcdcdc',
+                            width: i === indice ? '22px' : '8px', height: '8px', borderRadius: 'var(--radius-sm)', cursor: 'pointer',
+                            backgroundColor: i === indice ? 'var(--accent)' : 'var(--border-strong)',
                             transition: 'width 0.2s ease, background-color 0.2s ease'
                         }}
                     />

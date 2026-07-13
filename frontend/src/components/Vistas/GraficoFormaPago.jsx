@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { calcularRangoFechas } from '../../utils/rangoFechas';
 import ToggleEscalaTiempo from './ToggleEscalaTiempo';
+import { HiOutlineCreditCard } from 'react-icons/hi2';
 
 const COLORES_FORMA_PAGO = {
     EFECTIVO: '#2ecc71',
@@ -59,16 +60,16 @@ function GraficoFormaPago({ diametroTorta = 150 }) {
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', flexWrap: 'wrap', gap: '10px' }}>
-                <h4 style={{ margin: 0, color: '#2c3e50' }}>💳 Forma de pago más usada</h4>
+                <h4 style={{ margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlineCreditCard /> Forma de pago más usada</h4>
                 <ToggleEscalaTiempo escala={escala} onCambiar={setEscala} />
             </div>
 
-            {error && <p style={{ color: '#e74c3c', fontSize: '0.9rem' }}>{error}</p>}
+            {error && <p style={{ color: 'var(--danger)', fontSize: '0.9rem' }}>{error}</p>}
 
             {cargando ? (
-                <p style={{ textAlign: 'center', color: '#888', fontSize: '0.9rem' }}>Cargando...</p>
+                <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Cargando...</p>
             ) : datos.length === 0 ? (
-                <p style={{ textAlign: 'center', color: '#888', fontSize: '0.9rem' }}>
+                <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
                     No hay boletas pagadas en {escala === 'semana' ? 'la última semana' : 'el último mes'}.
                 </p>
             ) : (
@@ -81,9 +82,9 @@ function GraficoFormaPago({ diametroTorta = 150 }) {
                         {segmentos.map(s => (
                             <div key={s.formaPago} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <span style={{ width: '12px', height: '12px', borderRadius: '3px', backgroundColor: COLORES_FORMA_PAGO[s.formaPago] || '#bdc3c7', flexShrink: 0 }} />
-                                <span style={{ fontSize: '0.85rem', color: '#2c3e50', minWidth: '150px' }}>{NOMBRES_FORMA_PAGO[s.formaPago] || s.formaPago}</span>
-                                <strong style={{ fontSize: '0.85rem', color: '#2c3e50' }}>{s.porcentaje.toFixed(1)}%</strong>
-                                <span style={{ fontSize: '0.75rem', color: '#7f8c8d' }}>({s.cantidad})</span>
+                                <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)', minWidth: '150px' }}>{NOMBRES_FORMA_PAGO[s.formaPago] || s.formaPago}</span>
+                                <strong style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>{s.porcentaje.toFixed(1)}%</strong>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>({s.cantidad})</span>
                             </div>
                         ))}
                     </div>

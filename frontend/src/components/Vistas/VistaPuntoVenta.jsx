@@ -8,6 +8,8 @@ import ModalModificarBoleta from '../Modals/ModalModificarBoleta';
 import AlertaConfirmacion from '../Alertas/AlertaConfirmacion';
 import AlertaEmergente from '../Alertas/AlertaEmergente';
 import ModalAgregarProducto from '../Modals/ModalAgregarProducto';
+import { formatearFechaVisual } from '../../utils/formatoFecha';
+import { HiOutlineTicket } from 'react-icons/hi2';
 import '../Estilos/Botones.css';
 
 
@@ -203,8 +205,8 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
     return (
         <main style={{
             padding: '20px',
-            backgroundColor: '#f4f6f8',
-            height: 'calc(100vh - 70px)',
+            backgroundColor: 'var(--bg)',
+            height: '100vh',
             overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column'
@@ -212,7 +214,7 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
 
             {/* HEADER DE LA VISTA */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h2>🧾Estado Planilla: <span style={{color: planilla.estadoPlanilla === 'ABIERTA' ? '#3b3c': '#e43' }}> {planilla.estadoPlanilla} </span> - Fecha: {planilla.fecha}</h2>
+                <h2 style={{ color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlineTicket />Estado Planilla: <span style={{color: planilla.estadoPlanilla === 'ABIERTA' ? 'var(--success)': 'var(--danger)' }}> {planilla.estadoPlanilla} </span> - Fecha: {formatearFechaVisual(planilla.fecha)}</h2>
                 <button
                     onClick={() => setMostrarAlertaCerrarCaja(true)}
                     className="btn-global btn-peligro"
@@ -322,7 +324,7 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
             {mostrarAlertaEliminar && (
                 <AlertaConfirmacion 
                     mensaje={
-                        "⚠️ Estás a punto de eliminar permanentemente la Boleta #" + boletaAEliminar?.id + ".\n" +
+                        "Estás a punto de eliminar permanentemente la Boleta #" + boletaAEliminar?.id + ".\n" +
                         "Esta acción devolverá los artículos al inventario y no se puede deshacer.\n" +
                         "¿Estás completamente seguro?"
                     }
@@ -346,10 +348,10 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                 <AlertaConfirmacion
                     mensaje={
                         boletasDia.length === 0
-                            ? "⚠️ Esta planilla no tiene boletas cargadas.\n" +
+                            ? "Esta planilla no tiene boletas cargadas.\n" +
                             "Al confirmar, se ELIMINARÁ en lugar de cerrarse.\n" +
                             "¿Estás completamente seguro?"
-                            : "⚠️ Estás a punto de CERRAR definitivamente esta Planilla.\n" +
+                            : "Estás a punto de CERRAR definitivamente esta Planilla.\n" +
                             "Al cerrarla, se calcularán los ingresos y deudas totales, y NO se podrán agregar ni eliminar más boletas.\n" +
                             "¿Estás completamente seguro de realizar el cierre?"
                     }

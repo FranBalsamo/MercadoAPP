@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { HiOutlineUserCircle } from 'react-icons/hi2';
 import '../Estilos/Modal.css';
 import '../Estilos/Botones.css';
 
@@ -20,11 +21,11 @@ function ModalCliente({ cerrarModal, onClienteAgregado }) {
 
     const handleGuardar = async () => {
         if (nombre.trim() === '') {
-            setError('❌ El nombre del cliente es obligatorio.')
+            setError('El nombre del cliente es obligatorio.')
             return;
         }
         if (documento.trim() === '') {
-            setError('❌ El cuit del cliente es obligatorio.')
+            setError('El cuit del cliente es obligatorio.')
             return;
         }
 
@@ -43,12 +44,12 @@ function ModalCliente({ cerrarModal, onClienteAgregado }) {
             })
 
             if (respuesta.status === 409 || respuesta.status === 400) {
-                setError('❌ Ya existe un cliente con ese documento.')
+                setError('Ya existe un cliente con ese documento.')
                 return;
             }
 
             if (!respuesta.ok) {
-                setError('❌ Error en el servidor al intentar guardar.');
+                setError('Error en el servidor al intentar guardar.');
                 return;
             }
 
@@ -58,7 +59,7 @@ function ModalCliente({ cerrarModal, onClienteAgregado }) {
             cerrarModal();    
         } catch (err) {
             console.log(err);
-            setError('❌ Error de conexion con el servidor.')
+            setError('Error de conexion con el servidor.')
             return;
         }
         
@@ -68,13 +69,13 @@ function ModalCliente({ cerrarModal, onClienteAgregado }) {
         <div className="modal-overlay">
             <div className="modal-contenido">
                 <div className="modal-header">
-                    <h3>👤 Cargar Nuevo Cliente</h3>
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlineUserCircle /> Cargar Nuevo Cliente</h3>
                     <button className="btn-cerrar-modal" onClick={cerrarModal}>X</button>   
                 </div>
 
                 <div className="modal-body">
                     {error && (
-                        <div style={{ color: 'red', fontSize: '0.8rem' }}>{error}</div> 
+                        <div style={{ color: 'var(--danger)', fontSize: '0.8rem' }}>{error}</div>
                     )}
                     
                     <div className="form-group">

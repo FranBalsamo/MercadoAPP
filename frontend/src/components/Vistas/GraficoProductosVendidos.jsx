@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { calcularRangoFechas } from '../../utils/rangoFechas';
 import ToggleEscalaTiempo from './ToggleEscalaTiempo';
+import { HiOutlineChartBar } from 'react-icons/hi2';
 import '../Estilos/Botones.css';
 
 const COLORES_BARRAS = ['#3498db', '#2ecc71', '#f1c40f', '#e67e22', '#9b59b6', '#1abc9c', '#e74c3c', '#34495e'];
@@ -39,7 +40,7 @@ function GraficoProductosVendidos({ limite = null, mostrarBotonExpandir = false,
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', flexWrap: 'wrap', gap: '10px' }}>
-                <h4 style={{ margin: 0, color: '#2c3e50' }}>📊 Productos más vendidos</h4>
+                <h4 style={{ margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlineChartBar /> Productos más vendidos</h4>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <ToggleEscalaTiempo escala={escala} onCambiar={setEscala} />
@@ -52,12 +53,12 @@ function GraficoProductosVendidos({ limite = null, mostrarBotonExpandir = false,
                 </div>
             </div>
 
-            {error && <p style={{ color: '#e74c3c', fontSize: '0.9rem' }}>{error}</p>}
+            {error && <p style={{ color: 'var(--danger)', fontSize: '0.9rem' }}>{error}</p>}
 
             {cargando ? (
-                <p style={{ textAlign: 'center', color: '#888', fontSize: '0.9rem' }}>Cargando...</p>
+                <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Cargando...</p>
             ) : productos.length === 0 ? (
-                <p style={{ textAlign: 'center', color: '#888', fontSize: '0.9rem' }}>
+                <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
                     No se vendieron productos en {escala === 'semana' ? 'la última semana' : 'el último mes'}.
                 </p>
             ) : (
@@ -76,7 +77,7 @@ function GraficoProductosVendidos({ limite = null, mostrarBotonExpandir = false,
                             height: '100%',
                             ...(ajustarAlAncho ? { flex: '1 1 0', minWidth: 0 } : { minWidth: '60px' })
                         }}>
-                            <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#2c3e50', marginBottom: '4px' }}>
+                            <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: '4px' }}>
                                 {p.cantidadVendida % 1 === 0 ? p.cantidadVendida : p.cantidadVendida.toFixed(1)}
                             </span>
                             <div style={{
@@ -87,7 +88,7 @@ function GraficoProductosVendidos({ limite = null, mostrarBotonExpandir = false,
                                 borderRadius: '4px 4px 0 0'
                             }} />
                             <span style={{
-                                fontSize: '0.75rem', color: '#7f8c8d', textTransform: 'capitalize', marginTop: '6px',
+                                fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'capitalize', marginTop: '6px',
                                 textAlign: 'center', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
                             }} title={p.nombre}>
                                 {p.nombre}

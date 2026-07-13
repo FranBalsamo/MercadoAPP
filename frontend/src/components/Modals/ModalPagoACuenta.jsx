@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { formatearFechaVisual } from '../../utils/formatoFecha';
+import { HiOutlineCheckCircle, HiOutlineBanknotes, HiOutlineCalendarDays } from 'react-icons/hi2';
 import '../Estilos/Modal.css';
 import '../Estilos/Botones.css';
 
@@ -19,7 +21,7 @@ function ModalPagoACuenta({ cliente, fechaPlanilla, formatearMoneda, cerrarModal
 
     const handleConfirmar = async () => {
         if (!montoNumerico || montoNumerico <= 0) {
-            setError('❌ Ingresá un monto válido, mayor a 0.');
+            setError('Ingresá un monto válido, mayor a 0.');
             return;
         }
 
@@ -34,7 +36,7 @@ function ModalPagoACuenta({ cliente, fechaPlanilla, formatearMoneda, cerrarModal
 
             if (!respuesta.ok) {
                 const mensajeError = await respuesta.text();
-                setError(mensajeError ? `❌ ${mensajeError}` : '❌ Error en el servidor al intentar procesar el pago.');
+                setError(mensajeError ? mensajeError : 'Error en el servidor al intentar procesar el pago.');
                 return;
             }
 
@@ -49,7 +51,7 @@ function ModalPagoACuenta({ cliente, fechaPlanilla, formatearMoneda, cerrarModal
             });
         } catch (err) {
             console.error(err);
-            setError('❌ Error de conexion con el servidor.');
+            setError('Error de conexion con el servidor.');
         } finally {
             setProcesando(false);
         }
@@ -66,28 +68,28 @@ function ModalPagoACuenta({ cliente, fechaPlanilla, formatearMoneda, cerrarModal
             <div className="modal-overlay">
                 <div className="modal-contenido" style={{ width: '95%', maxWidth: '600px' }}>
                     <div className="modal-header">
-                        <h3>✅ Pago a Cuenta Procesado</h3>
+                        <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlineCheckCircle /> Pago a Cuenta Procesado</h3>
                         <button className="btn-cerrar-modal" onClick={handleAceptarResultado}>X</button>
                     </div>
 
                     <div className="modal-body">
                         {resultado.boletasPagadas.length === 0 ? (
-                            <p style={{ color: '#888', margin: 0 }}>
+                            <p style={{ color: 'var(--text-muted)', margin: 0 }}>
                                 El monto ingresado no alcanzó para cubrir ninguna boleta en su totalidad.
                             </p>
                         ) : (
                             <>
-                                <p style={{ margin: 0, color: '#7f8c8d' }}>Boletas cubiertas con este pago:</p>
+                                <p style={{ margin: 0, color: 'var(--text-secondary)' }}>Boletas cubiertas con este pago:</p>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                     {resultado.boletasPagadas.map((boleta) => (
                                         <div key={boleta.id} style={{
                                             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                                            border: '1px solid #eee', borderRadius: '8px', padding: '10px 12px'
+                                            border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '10px 12px'
                                         }}>
-                                            <span style={{ fontWeight: 'bold', color: '#2c3e50' }}>
-                                                📅 {fechaPlanilla(boleta.id_planilla)}
+                                            <span style={{ fontWeight: 'bold', color: 'var(--text-primary)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                                <HiOutlineCalendarDays /> {formatearFechaVisual(fechaPlanilla(boleta.id_planilla))}
                                             </span>
-                                            <span style={{ fontWeight: 'bold', color: '#27ae60' }}>
+                                            <span style={{ fontWeight: 'bold', color: 'var(--success)' }}>
                                                 {formatearMoneda(boleta.total)}
                                             </span>
                                         </div>
@@ -96,16 +98,16 @@ function ModalPagoACuenta({ cliente, fechaPlanilla, formatearMoneda, cerrarModal
                             </>
                         )}
 
-                        <div style={{ borderTop: '1px solid #eee', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                            <span style={{ color: '#2c3e50' }}>
+                        <div style={{ borderTop: '1px solid var(--border)', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            <span style={{ color: 'var(--text-primary)' }}>
                                 Total pagado: <strong>{formatearMoneda(totalPagado)}</strong>
                             </span>
                             {resultado.sobrante > 0 ? (
-                                <span style={{ color: '#27ae60', fontWeight: 'bold' }}>
-                                    💰 Sobraron {formatearMoneda(resultado.sobrante)}, guardados como saldo del cliente.
+                                <span style={{ color: 'var(--success)', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                    <HiOutlineBanknotes /> Sobraron {formatearMoneda(resultado.sobrante)}, guardados como saldo del cliente.
                                 </span>
                             ) : (
-                                <span style={{ color: '#7f8c8d' }}>No sobró dinero de este pago.</span>
+                                <span style={{ color: 'var(--text-secondary)' }}>No sobró dinero de este pago.</span>
                             )}
                         </div>
                     </div>
@@ -124,21 +126,21 @@ function ModalPagoACuenta({ cliente, fechaPlanilla, formatearMoneda, cerrarModal
         <div className="modal-overlay">
             <div className="modal-contenido">
                 <div className="modal-header">
-                    <h3>💰 Pago a Cuenta</h3>
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlineBanknotes /> Pago a Cuenta</h3>
                     <button className="btn-cerrar-modal" onClick={cerrarModal}>X</button>
                 </div>
 
                 <div className="modal-body">
-                    <p style={{ margin: 0, color: '#7f8c8d' }}>
-                        Cliente: <strong style={{ textTransform: 'capitalize', color: '#2c3e50' }}>{cliente.nombre}</strong>
+                    <p style={{ margin: 0, color: 'var(--text-secondary)' }}>
+                        Cliente: <strong style={{ textTransform: 'capitalize', color: 'var(--text-primary)' }}>{cliente.nombre}</strong>
                     </p>
-                    <p style={{ margin: 0, color: '#7f8c8d', fontSize: '0.85rem' }}>
+                    <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
                         {cliente.saldo_a_favor > 0
                             ? `Este cliente ya tiene ${formatearMoneda(cliente.saldo_a_favor)} de saldo: se va a sumar automáticamente al monto que ingreses acá para cubrir sus boletas impagas más antiguas primero. Si sobra dinero (o no alcanza para cubrir ninguna), la diferencia se guarda como saldo del cliente.`
                             : 'El monto se aplicará a las boletas impagas más antiguas primero. Si sobra dinero (o no alcanza para cubrir ninguna), se guarda como saldo del cliente.'}
                     </p>
 
-                    {error && <div style={{ color: 'red', fontSize: '0.85rem' }}>{error}</div>}
+                    {error && <div style={{ color: 'var(--danger)', fontSize: '0.85rem' }}>{error}</div>}
 
                     <div className="form-group">
                         <label>Monto:</label>
@@ -156,7 +158,7 @@ function ModalPagoACuenta({ cliente, fechaPlanilla, formatearMoneda, cerrarModal
                         <select
                             value={formaPago}
                             onChange={(e) => setFormaPago(e.target.value)}
-                            style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
+                            style={{ padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
                         >
                             <option value="EFECTIVO">Efectivo</option>
                             <option value="MERCADO_PAGO">Mercado Pago</option>

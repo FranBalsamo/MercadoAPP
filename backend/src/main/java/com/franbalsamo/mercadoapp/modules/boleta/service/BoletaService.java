@@ -11,7 +11,7 @@ import com.franbalsamo.mercadoapp.shared.exception.RecursoNoEncontradoException;
 import com.franbalsamo.mercadoapp.shared.exception.ReglaNegocioException;
 import com.franbalsamo.mercadoapp.modules.boleta.EstadoPago;
 import com.franbalsamo.mercadoapp.modules.planilla.EstadoPlanilla;
-import com.franbalsamo.mercadoapp.modules.boleta.EstadoRetiro;
+import com.franbalsamo.mercadoapp.modules.boleta.EstadoEntrega;
 import com.franbalsamo.mercadoapp.modules.boleta.FormaPago;
 import com.franbalsamo.mercadoapp.modules.boleta.model.BoletaDTO;
 import com.franbalsamo.mercadoapp.modules.boleta.model.ResultadoCobroDTO;
@@ -166,7 +166,7 @@ public class BoletaService {
         Boleta nuevaBoleta = new Boleta();
         nuevaBoleta.setCliente(cliente);
         nuevaBoleta.setPlanilla(planilla);
-        nuevaBoleta.setEstadoRetiro(boletaDTO.getEstadoRetiro());
+        nuevaBoleta.setEstadoEntrega(boletaDTO.getEstadoEntrega());
         nuevaBoleta.setEstadoPago(boletaDTO.getEstadoPago());
         if(boletaDTO.getFormaPago() != null){
             nuevaBoleta.setFormaPago(boletaDTO.getFormaPago());
@@ -191,7 +191,7 @@ public class BoletaService {
 
         modificarVentas(boleta,boletaDTO);
         boleta.setEstadoPago(boletaDTO.getEstadoPago());
-        boleta.setEstadoRetiro(boletaDTO.getEstadoRetiro());
+        boleta.setEstadoEntrega(boletaDTO.getEstadoEntrega());
         if(boletaDTO.getFormaPago() != null){
             boleta.setFormaPago(boletaDTO.getFormaPago());
         }
@@ -235,8 +235,8 @@ public class BoletaService {
         Boleta boleta = boletaRepository.findById(id_boleta)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontro la boleta con id: "+ id_boleta));
 
-        if(boleta.getEstadoPago() == EstadoPago.PAGADO || boleta.getEstadoRetiro() == EstadoRetiro.RETIRADO){
-            throw new ReglaNegocioException("No se puede eliminar la boleta #" + id_boleta + " porque ya se encuentra pagada y/o retirada.");
+        if(boleta.getEstadoPago() == EstadoPago.PAGADO || boleta.getEstadoEntrega() == EstadoEntrega.ENTREGADO){
+            throw new ReglaNegocioException("No se puede eliminar la boleta #" + id_boleta + " porque ya se encuentra pagada y/o entregada.");
         }
 
         //Antes de eliminar la boleta debemos recuperar el stock del producto.

@@ -1,12 +1,12 @@
 function ToggleEscalaTiempo({ escala, onCambiar }) {
     const estiloBoton = (activo) => ({
         padding: '6px 14px', border: 'none', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold',
-        backgroundColor: activo ? '#3498db' : 'white',
-        color: activo ? 'white' : '#2c3e50'
+        backgroundColor: activo ? 'var(--accent)' : 'var(--surface)',
+        color: activo ? 'var(--text-on-accent)' : 'var(--text-primary)'
     });
 
     return (
-        <div style={{ display: 'flex', border: '1px solid #ddd', borderRadius: '6px', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}>
             <button onClick={() => onCambiar('semana')} style={estiloBoton(escala === 'semana')}>
                 Semana
             </button>

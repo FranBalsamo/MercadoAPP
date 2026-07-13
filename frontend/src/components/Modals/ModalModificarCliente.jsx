@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import AlertaConfirmacion from '../Alertas/AlertaConfirmacion';
+import { HiOutlinePencilSquare } from 'react-icons/hi2';
 import '../Estilos/Modal.css';
 import '../Estilos/Botones.css';
 
@@ -23,11 +24,11 @@ function ModalModificarCliente({ cerrarModal, cliente, onClienteModificado }) {
 
     const handleGuardar = () => {
         if (nombre.trim() === '') {
-            setError('❌ El nombre del cliente es obligatorio.');
+            setError('El nombre del cliente es obligatorio.');
             return;
         }
         if (documento.trim() === '') {
-            setError('❌ El cuit del cliente es obligatorio.');
+            setError('El cuit del cliente es obligatorio.');
             return;
         }
 
@@ -55,7 +56,7 @@ function ModalModificarCliente({ cerrarModal, cliente, onClienteModificado }) {
 
             if (!respuesta.ok) {
                 const mensajeError = await respuesta.text();
-                setError(mensajeError ? `❌ ${mensajeError}` : '❌ Error en el servidor al intentar guardar.');
+                setError(mensajeError ? mensajeError : 'Error en el servidor al intentar guardar.');
                 return;
             }
 
@@ -63,7 +64,7 @@ function ModalModificarCliente({ cerrarModal, cliente, onClienteModificado }) {
             cerrarModal();
         } catch (err) {
             console.error(err);
-            setError('❌ Error de conexion con el servidor.');
+            setError('Error de conexion con el servidor.');
         } finally {
             setGuardando(false);
         }
@@ -73,13 +74,13 @@ function ModalModificarCliente({ cerrarModal, cliente, onClienteModificado }) {
         <div className="modal-overlay">
             <div className="modal-contenido">
                 <div className="modal-header">
-                    <h3>✏️ Modificar Cliente</h3>
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlinePencilSquare /> Modificar Cliente</h3>
                     <button className="btn-cerrar-modal" onClick={cerrarModal}>X</button>
                 </div>
 
                 <div className="modal-body">
                     {error && (
-                        <div style={{ color: 'red', fontSize: '0.8rem' }}>{error}</div>
+                        <div style={{ color: 'var(--danger)', fontSize: '0.8rem' }}>{error}</div>
                     )}
 
                     <div className="form-group">

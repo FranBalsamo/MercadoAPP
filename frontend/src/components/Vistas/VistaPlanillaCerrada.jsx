@@ -5,6 +5,8 @@ import { save } from '@tauri-apps/plugin-dialog';
 import { writeFile } from '@tauri-apps/plugin-fs';
 import ModalModificarBoleta from '../Modals/ModalModificarBoleta';
 import AlertaEmergente from '../Alertas/AlertaEmergente';
+import { formatearFechaVisual } from '../../utils/formatoFecha';
+import { HiOutlineLockClosed, HiOutlineDocumentArrowDown, HiOutlineCube, HiOutlineTicket } from 'react-icons/hi2';
 import '../Estilos/Botones.css';
 
 const capitalizar = (texto) => {
@@ -31,7 +33,7 @@ function VistaPlanillaCerrada({ planilla, volver }) {
     const [boletas, setBoletas] = useState([]);
     const [busquedaCliente, setBusquedaCliente] = useState('');
     const [filtroPago, setFiltroPago] = useState('');
-    const [filtroRetiro, setFiltroRetiro] = useState('');
+    const [filtroEntrega, setFiltroEntrega] = useState('');
     const [configOrden, setConfigOrden] = useState({ columna: null, direccion: 'asc' });
     const [totalesPlanilla, setTotalesPlanilla] = useState({
         ingresoTotal: planilla?.ingresoTotal,
@@ -144,7 +146,7 @@ function VistaPlanillaCerrada({ planilla, volver }) {
 
         doc.setFontSize(10);
         doc.setTextColor(85, 85, 85);
-        doc.text(`Fecha planilla: ${planilla.fecha}`, anchoPagina - 14, 15, { align: 'right' });
+        doc.text(`Fecha planilla: ${formatearFechaVisual(planilla.fecha)}`, anchoPagina - 14, 15, { align: 'right' });
         doc.text('Estado: CERRADA', anchoPagina - 14, 20, { align: 'right' });
         doc.setTextColor(150, 150, 150);
         doc.text(`Generado: ${new Date().toLocaleString('es-AR')}`, anchoPagina - 14, 25, { align: 'right' });
@@ -200,7 +202,7 @@ function VistaPlanillaCerrada({ planilla, volver }) {
             return [
                 capitalizar(nombreCliente(boleta.id_cliente)),
                 boleta.estadoPago === 'NO_PAGADO' ? 'NO PAGADO' : 'PAGADO',
-                boleta.estadoRetiro === 'NO_RETIRADO' ? 'NO RETIRADO' : 'RETIRADO',
+                boleta.estadoEntrega === 'NO_ENTREGADO' ? 'NO ENTREGADO' : 'ENTREGADO',
                 formaPagoLegible(boleta),
                 productos,
                 formatearMoneda(boleta.total),
@@ -209,7 +211,7 @@ function VistaPlanillaCerrada({ planilla, volver }) {
 
         autoTable(doc, {
             startY: cursorY,
-            head: [['Cliente', 'Pago', 'Retiro', 'Forma de Pago', 'Productos', 'Total']],
+            head: [['Cliente', 'Pago', 'Entrega', 'Forma de Pago', 'Productos', 'Total']],
             body: filas,
             styles: { fontSize: 8, cellPadding: 3, valign: 'top' },
             headStyles: { fillColor: [44, 62, 80], textColor: 255 },
@@ -225,8 +227,8 @@ function VistaPlanillaCerrada({ planilla, volver }) {
                     data.cell.styles.fontStyle = 'bold';
                 }
                 if (data.section === 'body' && data.column.index === 2) {
-                    const esRetirado = data.cell.raw === 'RETIRADO';
-                    data.cell.styles.textColor = esRetirado ? [41, 128, 185] : [192, 57, 43];
+                    const esEntregado = data.cell.raw === 'ENTREGADO';
+                    data.cell.styles.textColor = esEntregado ? [41, 128, 185] : [192, 57, 43];
                     data.cell.styles.fontStyle = 'bold';
                 }
             },
@@ -277,8 +279,8 @@ function VistaPlanillaCerrada({ planilla, volver }) {
         .filter((boleta) => {
             const coincideCliente = !busquedaCliente || nombreCliente(boleta.id_cliente).toLowerCase().includes(busquedaCliente.toLowerCase());
             const coincidePago = !filtroPago || boleta.estadoPago === filtroPago;
-            const coincideRetiro = !filtroRetiro || boleta.estadoRetiro === filtroRetiro;
-            return coincideCliente && coincidePago && coincideRetiro;
+            const coincideEntrega = !filtroEntrega || boleta.estadoEntrega === filtroEntrega;
+            return coincideCliente && coincidePago && coincideEntrega;
         })
         .sort((a, b) => {
             if (!configOrden.columna) return 0;
@@ -297,9 +299,9 @@ function VistaPlanillaCerrada({ planilla, volver }) {
                 return configOrden.direccion === 'asc' ? pesoB - pesoA : pesoA - pesoB;
             }
 
-            if (configOrden.columna === 'retiro') {
-                const pesoA = a.estadoRetiro === 'RETIRADO' ? 1 : 0;
-                const pesoB = b.estadoRetiro === 'RETIRADO' ? 1 : 0;
+            if (configOrden.columna === 'entrega') {
+                const pesoA = a.estadoEntrega === 'ENTREGADO' ? 1 : 0;
+                const pesoB = b.estadoEntrega === 'ENTREGADO' ? 1 : 0;
                 return configOrden.direccion === 'asc' ? pesoB - pesoA : pesoA - pesoB;
             }
 
@@ -307,19 +309,19 @@ function VistaPlanillaCerrada({ planilla, volver }) {
         });
 
     return (
-        <main style={{ padding: '20px', backgroundColor: '#f4f6f8', minHeight: 'calc(100vh - 70px)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <main style={{ padding: '20px', backgroundColor: 'var(--bg)', minHeight: '100vh', display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
             {/* ENCABEZADO Y BOTÓN VOLVER */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'white', padding: '15px 20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '15px 20px', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)' }}>
                 <div>
-                    <h2 style={{ margin: 0, color: '#2c3e50' }}>🔒 Resumen de Planilla Cerrada</h2>
-                    <p style={{ margin: '5px 0 0 0', color: '#7f8c8d' }}>
-                        Fecha: <strong>{planilla.fecha}</strong> | Estado: <span style={{ color: '#c0392b', fontWeight: 'bold' }}>{planilla.estadoPlanilla}</span>
+                    <h2 style={{ margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlineLockClosed /> Resumen de Planilla Cerrada</h2>
+                    <p style={{ margin: '5px 0 0 0', color: 'var(--text-secondary)' }}>
+                        Fecha: <strong>{formatearFechaVisual(planilla.fecha)}</strong> | Estado: <span style={{ color: 'var(--danger)', fontWeight: 'bold' }}>{planilla.estadoPlanilla}</span>
                     </p>
                 </div>
                 <div style={{ display: 'flex', gap: '10px' }}>
-                    <button className="btn-global btn-primario" onClick={exportarPDF} style={{ fontSize: '1rem' }}>
-                        📄 Exportar PDF
+                    <button className="btn-global btn-primario" onClick={exportarPDF} style={{ fontSize: '1rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        <HiOutlineDocumentArrowDown /> Exportar PDF
                     </button>
                     <button className="btn-global btn-secundario" onClick={volver} style={{ fontSize: '1rem' }}>
                         ← Volver al Listado
@@ -331,30 +333,30 @@ function VistaPlanillaCerrada({ planilla, volver }) {
             <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
 
                 {/* Cajita de Ingresos */}
-                <div style={{ flex: 1, minWidth: '200px', backgroundColor: 'white', padding: '15px', borderRadius: '8px', borderLeft: '5px solid #27ae60', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                    <span style={{ color: '#7f8c8d', fontSize: '0.9rem' }}>Ingresos Totales (Pagado)</span>
-                    <h3 style={{ margin: '5px 0 0 0', fontSize: '1.5rem', color: '#27ae60' }}>
+                <div style={{ flex: 1, minWidth: '200px', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '15px', borderRadius: 'var(--radius-lg)', borderLeft: '5px solid var(--success)', boxShadow: 'var(--shadow-sm)' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Ingresos Totales (Pagado)</span>
+                    <h3 style={{ margin: '5px 0 0 0', fontSize: '1.5rem', color: 'var(--success)' }}>
                         {formatearMoneda(totalesPlanilla.ingresoTotal)}
                     </h3>
                 </div>
 
                 {/* Cajita de Deudas */}
-                <div style={{ flex: 1, minWidth: '200px', backgroundColor: 'white', padding: '15px', borderRadius: '8px', borderLeft: '5px solid #e74c3c', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                    <span style={{ color: '#7f8c8d', fontSize: '0.9rem' }}>Deudas Pendientes</span>
-                    <h3 style={{ margin: '5px 0 0 0', fontSize: '1.5rem', color: '#e74c3c' }}>
+                <div style={{ flex: 1, minWidth: '200px', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '15px', borderRadius: 'var(--radius-lg)', borderLeft: '5px solid var(--danger)', boxShadow: 'var(--shadow-sm)' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Deudas Pendientes</span>
+                    <h3 style={{ margin: '5px 0 0 0', fontSize: '1.5rem', color: 'var(--danger)' }}>
                         {formatearMoneda(totalesPlanilla.deudaTotal)}
                     </h3>
                 </div>
 
                 {/* Cajita de Stock Sobrante del Día */}
-                <div style={{ flex: 2, minWidth: '300px', backgroundColor: 'white', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                    <h4 style={{ margin: '0 0 10px 0', color: '#2c3e50' }}>📦 Inventario de Cierre de Planilla</h4>
+                <div style={{ flex: 2, minWidth: '300px', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '15px', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)' }}>
+                    <h4 style={{ margin: '0 0 10px 0', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlineCube /> Inventario de Cierre de Planilla</h4>
                     <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', maxHeight: '80px', overflowY: 'auto' }}>
                         {(totalesPlanilla.stockProductos || []).map(item => {
                             const sobrante = item.stock - item.stock_vendido;
                             return (
-                                <span key={item.id} style={{ backgroundColor: '#f0f3f4', padding: '4px 10px', borderRadius: '15px', fontSize: '0.85rem', fontWeight: '500', textTransform: 'capitalize' }}>
-                                    {nombreProducto(item.id_producto)}: <strong style={{ color: sobrante > 0 ? '#27ae60' : '#e74c3c' }}>{sobrante} un.</strong>
+                                <span key={item.id} style={{ backgroundColor: 'var(--surface-2)', color: 'var(--text-primary)', padding: '4px 10px', borderRadius: 'var(--radius-lg)', fontSize: '0.85rem', fontWeight: '500', textTransform: 'capitalize' }}>
+                                    {nombreProducto(item.id_producto)}: <strong style={{ color: sobrante > 0 ? 'var(--success)' : 'var(--danger)' }}>{sobrante} un.</strong>
                                 </span>
                             );
                         })}
@@ -363,9 +365,9 @@ function VistaPlanillaCerrada({ planilla, volver }) {
             </div>
 
             {/* SECCIÓN 2: TABLA DETALLADA DE BOLETAS */}
-            <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', flexGrow: 1 }}>
-                <h3 style={{ marginTop: 0, color: '#2c3e50', borderBottom: '2px solid #eee', paddingBottom: '10px' }}>
-                    🧾 Detalle de Boletas Emitidas
+            <div style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '20px', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', flexGrow: 1 }}>
+                <h3 style={{ marginTop: 0, color: 'var(--text-primary)', borderBottom: '1px solid var(--border)', paddingBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <HiOutlineTicket /> Detalle de Boletas Emitidas
                 </h3>
 
                 {/* FILTROS */}
@@ -375,34 +377,34 @@ function VistaPlanillaCerrada({ planilla, volver }) {
                         placeholder="Filtrar por cliente..."
                         value={busquedaCliente}
                         onChange={(e) => setBusquedaCliente(e.target.value)}
-                        style={{ flex: 1, minWidth: '200px', border: '1px solid #ccc', borderRadius: '8px', padding: '8px 12px', outline: 'none', fontSize: '0.95rem' }}
+                        style={{ flex: 1, minWidth: '200px', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', outline: 'none', fontSize: '0.95rem', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
                     />
                     <select
                         value={filtroPago}
                         onChange={(e) => setFiltroPago(e.target.value)}
-                        style={{ border: '1px solid #ccc', borderRadius: '8px', padding: '8px 12px', outline: 'none', fontSize: '0.95rem' }}
+                        style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', outline: 'none', fontSize: '0.95rem', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
                     >
                         <option value="">Todos los pagos</option>
                         <option value="PAGADO">Pagado</option>
                         <option value="NO_PAGADO">No Pagado</option>
                     </select>
                     <select
-                        value={filtroRetiro}
-                        onChange={(e) => setFiltroRetiro(e.target.value)}
-                        style={{ border: '1px solid #ccc', borderRadius: '8px', padding: '8px 12px', outline: 'none', fontSize: '0.95rem' }}
+                        value={filtroEntrega}
+                        onChange={(e) => setFiltroEntrega(e.target.value)}
+                        style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', outline: 'none', fontSize: '0.95rem', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
                     >
-                        <option value="">Todos los retiros</option>
-                        <option value="RETIRADO">Retirado</option>
-                        <option value="NO_RETIRADO">No Retirado</option>
+                        <option value="">Todas las entregas</option>
+                        <option value="ENTREGADO">Entregado</option>
+                        <option value="NO_ENTREGADO">No Entregado</option>
                     </select>
                 </div>
 
                 {cargando ? (
-                    <p style={{ textAlign: 'center', color: '#888' }}>Cargando detalles...</p>
+                    <p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>Cargando detalles...</p>
                 ) : (
                     <div style={{ overflowX: 'auto' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.95rem' }}>
-                            <thead style={{ backgroundColor: '#2c3e50', color: 'white' }}>
+                            <thead style={{ backgroundColor: 'var(--surface-inverse)', color: 'var(--text-on-inverse)' }}>
                                 <tr>
                                     <th
                                         onClick={() => solicitarOrden('cliente')}
@@ -419,11 +421,11 @@ function VistaPlanillaCerrada({ planilla, volver }) {
                                         Estado Pago {obtenerIconoOrden('pago')}
                                     </th>
                                     <th
-                                        onClick={() => solicitarOrden('retiro')}
+                                        onClick={() => solicitarOrden('entrega')}
                                         style={{ padding: '12px', cursor: 'pointer', userSelect: 'none' }}
-                                        title="Ordenar por Estado de Retiro"
+                                        title="Ordenar por Estado de Entrega"
                                     >
-                                        Estado Retiro {obtenerIconoOrden('retiro')}
+                                        Estado Entrega {obtenerIconoOrden('entrega')}
                                     </th>
                                     <th style={{ padding: '12px', width: '12%' }}>Forma de Pago</th>
                                     <th style={{ padding: '12px', width: '30%' }}>Productos Vendidos</th>
@@ -434,7 +436,7 @@ function VistaPlanillaCerrada({ planilla, volver }) {
                             <tbody>
                                 {boletasProcesadas.length === 0 ? (
                                     <tr>
-                                        <td colSpan="7" style={{ textAlign: 'center', padding: '20px', color: '#888' }}>
+                                        <td colSpan="7" style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}>
                                             {boletas.length === 0
                                                 ? "No se registraron boletas este día."
                                                 : "No se encontró ninguna boleta con esos filtros."}
@@ -442,46 +444,46 @@ function VistaPlanillaCerrada({ planilla, volver }) {
                                     </tr>
                                 ) : (
                                     boletasProcesadas.map((boleta, idx) => (
-                                        <tr key={boleta.id} style={{ borderBottom: '1px solid #eee', backgroundColor: idx % 2 === 0 ? '#fff' : '#fafafa' }}>
-                                            <td style={{ padding: '12px', fontWeight: 'bold', textTransform: 'capitalize', verticalAlign: 'top' }}>
+                                        <tr key={boleta.id} style={{ borderBottom: '1px solid var(--border)', backgroundColor: idx % 2 === 0 ? 'var(--surface)' : 'var(--surface-2)' }}>
+                                            <td style={{ padding: '12px', fontWeight: 'bold', textTransform: 'capitalize', verticalAlign: 'top', color: 'var(--text-primary)' }}>
                                                 {nombreCliente(boleta.id_cliente)}
                                             </td>
 
                                             {/* Estado Pago */}
                                             <td style={{ padding: '12px', verticalAlign: 'top' }}>
                                                 <span style={{
-                                                    padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold',
-                                                    backgroundColor: boleta.estadoPago === 'PAGADO' ? '#d4efdf' : '#fadbd8',
-                                                    color: boleta.estadoPago === 'PAGADO' ? '#27ae60' : '#c0392b'
+                                                    padding: '4px 8px', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontWeight: 'bold',
+                                                    backgroundColor: boleta.estadoPago === 'PAGADO' ? 'var(--success-soft)' : 'var(--danger-soft)',
+                                                    color: boleta.estadoPago === 'PAGADO' ? 'var(--success-soft-text)' : 'var(--danger-soft-text)'
                                                 }}>
                                                     {boleta.estadoPago}
                                                 </span>
                                             </td>
 
-                                            {/* Estado Retiro */}
+                                            {/* Estado Entrega */}
                                             <td style={{ padding: '12px', verticalAlign: 'top' }}>
                                                 <span style={{
-                                                    padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold',
-                                                    backgroundColor: boleta.estadoRetiro === 'RETIRADO' ? '#d6eaf8' : '#fadbd8',
-                                                    color: boleta.estadoRetiro === 'RETIRADO' ? '#2980b9' : '#c0392b'
+                                                    padding: '4px 8px', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontWeight: 'bold',
+                                                    backgroundColor: boleta.estadoEntrega === 'ENTREGADO' ? 'var(--info-soft)' : 'var(--danger-soft)',
+                                                    color: boleta.estadoEntrega === 'ENTREGADO' ? 'var(--info-soft-text)' : 'var(--danger-soft-text)'
                                                 }}>
-                                                    {boleta.estadoRetiro}
+                                                    {boleta.estadoEntrega}
                                                 </span>
                                             </td>
 
                                             {/* Forma de Pago */}
-                                            <td style={{ padding: '12px', verticalAlign: 'top', fontSize: '0.9rem', color: '#2c3e50' }}>
+                                            <td style={{ padding: '12px', verticalAlign: 'top', fontSize: '0.9rem', color: 'var(--text-primary)' }}>
                                                 {formaPagoLegible(boleta)}
                                             </td>
 
                                             {/* Lista de Productos dentro de la boleta */}
                                             <td style={{ padding: '12px', verticalAlign: 'top' }}>
-                                                <ul style={{ margin: 0, paddingLeft: '15px', listStyleType: 'square', color: '#34495e' }}>
+                                                <ul style={{ margin: 0, paddingLeft: '15px', listStyleType: 'square', color: 'var(--text-secondary)' }}>
                                                     {(boleta.ventas || []).map((itemProd, i) => (
                                                         <li key={i} style={{ marginBottom: '3px', textTransform: 'capitalize' }}>
                                                             <strong>{itemProd.cantidad}x</strong> {nombreProducto(itemProd.id_producto)}
-                                                            <span style={{ color: '#7f8c8d', fontSize: '0.85rem' }}> ({formatearMoneda(itemProd.precio_unitario)} c/u)</span>
-                                                            <span style={{ color: '#7f8c8d', fontSize: '0.85rem' }}>
+                                                            <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}> ({formatearMoneda(itemProd.precio_unitario)} c/u)</span>
+                                                            <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                                                                 {' '}- Vacío: {itemProd.precio_vacio > 0 ? formatearMoneda(itemProd.precio_vacio) : 'Sin Vacio'}
                                                             </span>
                                                         </li>
@@ -490,7 +492,7 @@ function VistaPlanillaCerrada({ planilla, volver }) {
                                             </td>
 
                                             {/* Total */}
-                                            <td style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold', fontSize: '1.05rem', color: '#2c3e50', verticalAlign: 'top' }}>
+                                            <td style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold', fontSize: '1.05rem', color: 'var(--text-primary)', verticalAlign: 'top' }}>
                                                 {formatearMoneda(boleta.total)}
                                             </td>
 

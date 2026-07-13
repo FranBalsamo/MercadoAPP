@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ModalModificarProducto from '../Modals/ModalModificarProducto';
+import { HiOutlineCube } from 'react-icons/hi2';
 import '../Estilos/Botones.css';
 
 function VistaProductos({ senalRecarga, abrirModalNuevoProducto }) {
@@ -64,8 +65,8 @@ function VistaProductos({ senalRecarga, abrirModalNuevoProducto }) {
     return (
         <main style={{
             padding: '20px',
-            backgroundColor: '#f4f6f8',
-            height: 'calc(100vh - 70px)',
+            backgroundColor: 'var(--bg)',
+            height: '100vh',
             display: 'flex',
             flexDirection: 'column',
             gap: '15px',
@@ -77,16 +78,16 @@ function VistaProductos({ senalRecarga, abrirModalNuevoProducto }) {
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 padding: '15px 20px',
-                border: '1px solid #ddd',
-                borderRadius: '10px',
-                backgroundColor: '#fff',
-                boxShadow: '0 2px 4px #0001'
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-lg)',
+                backgroundColor: 'var(--surface)',
+                boxShadow: 'var(--shadow-sm)'
             }}>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '20px', width: '70%' }}>
-                    <h3 style={{ fontSize: '1rem', margin: 0, color: '#2c3e50' }}>Filtrar por:</h3>
+                    <h3 style={{ fontSize: '1rem', margin: 0, color: 'var(--text-primary)' }}>Filtrar por:</h3>
 
-                    <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.95rem' }}>
+                    <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.95rem', color: 'var(--text-secondary)' }}>
                         Nombre
                     </label>
 
@@ -98,33 +99,35 @@ function VistaProductos({ senalRecarga, abrirModalNuevoProducto }) {
                         placeholder="Buscar por Nombre..."
                         style={{
                             flex: 1,
-                            border: '1px solid #ccc',
-                            borderRadius: '8px',
+                            border: '1px solid var(--border)',
+                            borderRadius: 'var(--radius-sm)',
                             padding: '8px 12px',
                             outline: 'none',
-                            fontSize: '0.95rem'
+                            fontSize: '0.95rem',
+                            backgroundColor: 'var(--surface)',
+                            color: 'var(--text-primary)'
                         }}
                     />
                 </div>
 
-                <h3 style={{ fontSize: '1.2rem', margin: 0, color: '#2c3e50' }}>📦 Lista Productos</h3>
+                <h3 style={{ fontSize: '1.2rem', margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlineCube /> Lista Productos</h3>
             </div>
 
-            {error && <p style={{ color: '#e74c3c', fontWeight: 'bold', margin: 0 }}>{error}</p>}
+            {error && <p style={{ color: 'var(--danger)', fontWeight: 'bold', margin: 0 }}>{error}</p>}
 
             {/* 2. CONTENEDOR DE LA TABLA (Maneja el Scroll) */}
             <div style={{
                 flex: 1,
                 overflowY: 'auto',
-                backgroundColor: '#fff',
-                border: '1px solid #ddd',
-                borderRadius: '10px',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                backgroundColor: 'var(--surface)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-lg)',
+                boxShadow: 'var(--shadow-sm)',
                 marginBottom: '0px'
             }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                    <thead style={{ backgroundColor: '#2c3e50', position: 'sticky', top: 0, zIndex: 1 }}>
-                        <tr style={{ color: '#fff' }}>
+                    <thead style={{ backgroundColor: 'var(--surface-inverse)', position: 'sticky', top: 0, zIndex: 1 }}>
+                        <tr style={{ color: 'var(--text-on-inverse)' }}>
                             <th style={{ padding: '12px 15px' }}>Nombre</th>
                             <th style={{ padding: '12px 15px' }}>Descripcion</th>
                             <th style={{ padding: '12px 15px' }}></th>
@@ -133,17 +136,17 @@ function VistaProductos({ senalRecarga, abrirModalNuevoProducto }) {
                     <tbody>
                         {productosFiltrados.length === 0 ? (
                             <tr>
-                                <td colSpan={3} style={{ padding: '20px', textAlign: 'center', color: '#7f8c8d' }}>
+                                <td colSpan={3} style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)' }}>
                                     {productos.length === 0 ? "Cargando productos..." : "No se encontraron productos con esa búsqueda."}
                                 </td>
                             </tr>
                         ) : (
                             productosFiltrados.map((producto) => (
-                                <tr key={producto.id} style={{ borderBottom: '1px solid #eee' }}>
-                                    <td style={{ padding: '10px 15px', textTransform: 'capitalize', fontWeight: '500' }}>
+                                <tr key={producto.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                                    <td style={{ padding: '10px 15px', textTransform: 'capitalize', fontWeight: '500', color: 'var(--text-primary)' }}>
                                         {producto.nombre}
                                     </td>
-                                    <td style={{ padding: '10px 15px', textTransform: 'capitalize', fontWeight: '500' }}>
+                                    <td style={{ padding: '10px 15px', textTransform: 'capitalize', fontWeight: '500', color: 'var(--text-secondary)' }}>
                                         {producto.descripcion || '-'}
                                     </td>
                                     <td style={{ padding: '10px 15px', textTransform: 'capitalize', fontWeight: '500' }}>
@@ -168,8 +171,7 @@ function VistaProductos({ senalRecarga, abrirModalNuevoProducto }) {
                         width: '100%',
                         padding: '10px 8px',
                         fontSize: '1em',
-                        color: '#ffff',
-                        boxShadow: '1px 3px 10px #0008',
+                        boxShadow: 'var(--shadow-md)',
                     }}
                     onClick={abrirModalNuevoProducto}>
                     +Nuevo Producto

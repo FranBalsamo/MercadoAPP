@@ -4,49 +4,52 @@ import ProductosStockCritico from './ProductosStockCritico';
 import GraficoFormaPago from './GraficoFormaPago';
 import ComparativaMensual from './ComparativaMensual';
 import TicketPromedio from './TicketPromedio';
+import { HiOutlineChartBar, HiOutlineBanknotes, HiOutlineCube } from 'react-icons/hi2';
 import '../Estilos/Botones.css';
 
 const PESTANIAS = [
-    { id: 'ventas', etiqueta: '💰 Ventas' },
-    { id: 'productos', etiqueta: '📦 Productos' },
+    { id: 'ventas', etiqueta: 'Ventas', icono: HiOutlineBanknotes },
+    { id: 'productos', etiqueta: 'Productos', icono: HiOutlineCube },
 ];
 
 function VistaEstadisticas({ volver }) {
     const [pestaniaActiva, setPestaniaActiva] = useState('ventas');
 
     const panelStyle = {
-        backgroundColor: 'white',
+        backgroundColor: 'var(--surface)',
+        border: '1px solid var(--border)',
         padding: '20px',
-        borderRadius: '8px',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+        borderRadius: 'var(--radius-lg)',
+        boxShadow: 'var(--shadow-sm)',
         display: 'flex',
         flexDirection: 'column'
     };
 
     return (
-        <main style={{ padding: '20px', backgroundColor: '#f4f6f8', minHeight: 'calc(100vh - 70px)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <main style={{ padding: '20px', backgroundColor: 'var(--bg)', minHeight: '100vh', display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'white', padding: '15px 20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                <h2 style={{ margin: 0, color: '#2c3e50' }}>📊 Estadísticas</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '15px 20px', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)' }}>
+                <h2 style={{ margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlineChartBar /> Estadísticas</h2>
                 <button className="btn-global btn-secundario" onClick={volver} style={{ fontSize: '1rem' }}>
                     ← Volver al Inicio
                 </button>
             </div>
 
             {/* PESTAÑAS */}
-            <div style={{ display: 'flex', gap: '10px', backgroundColor: 'white', padding: '10px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+            <div style={{ display: 'flex', gap: '10px', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '10px', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)' }}>
                 {PESTANIAS.map(p => (
                     <button
                         key={p.id}
                         onClick={() => setPestaniaActiva(p.id)}
                         style={{
-                            padding: '10px 20px', border: 'none', borderRadius: '6px', cursor: 'pointer',
+                            padding: '10px 20px', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer',
                             fontSize: '0.95rem', fontWeight: 'bold',
-                            backgroundColor: pestaniaActiva === p.id ? '#2c3e50' : 'transparent',
-                            color: pestaniaActiva === p.id ? 'white' : '#2c3e50'
+                            display: 'flex', alignItems: 'center', gap: '8px',
+                            backgroundColor: pestaniaActiva === p.id ? 'var(--surface-inverse)' : 'transparent',
+                            color: pestaniaActiva === p.id ? 'var(--text-on-inverse)' : 'var(--text-primary)'
                         }}
                     >
-                        {p.etiqueta}
+                        <p.icono /> {p.etiqueta}
                     </button>
                 ))}
             </div>

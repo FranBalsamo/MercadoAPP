@@ -3,6 +3,7 @@ services:
     image: mysql:8.4
     restart: unless-stopped
     environment:
+      TZ: America/Argentina/Buenos_Aires
       MYSQL_DATABASE: ${DB_NAME:-mercado_db}
       MYSQL_USER: ${DB_USER:-mercado_user}
       MYSQL_PASSWORD: ${DB_PASSWORD:-mercado_pass}
@@ -31,7 +32,7 @@ services:
     ports:
       - "${BACKEND_PORT:-8080}:8080"
     volumes:
-      - ./backend_backups:/app/backups
+      - ${BACKUP_HOST_PATH:-./backend_backups}:/app/backups
     depends_on:
       db:
         condition: service_healthy

@@ -1,8 +1,29 @@
 import { useState, useRef, useEffect } from 'react';
-import { save } from '@tauri-apps/plugin-dialog';
+import { save, open } from '@tauri-apps/plugin-dialog';
 import { writeFile } from '@tauri-apps/plugin-fs';
-import { HiOutlineArrowDownTray, HiOutlineArrowUpTray, HiOutlineShieldExclamation, HiOutlineClock } from 'react-icons/hi2';
+import { HiOutlineArrowDownTray, HiOutlineArrowUpTray, HiOutlineShieldExclamation, HiOutlineClock, HiOutlineFolderOpen } from 'react-icons/hi2';
 import AlertaConfirmacion from '../Alertas/AlertaConfirmacion';
+
+const esTauriApp = () => typeof window !== 'undefined' && !!window.__TAURI_INTERNALS__;
+
+// El backend corre en un contenedor Docker con los discos de Windows montados en /mnt/<letra>
+// (ver scripts/refrescar-discos.ps1). El selector nativo de Tauri devuelve una ruta de Windows
+// (ej. "D:\Backups"), asi que la traducimos a la ruta equivalente dentro del contenedor.
+const rutaWindowsAContenedor = (rutaWindows) => {
+    const match = rutaWindows.match(/^([A-Za-z]):[\\/](.*)$/);
+    if (!match) return null;
+    const letra = match[1].toLowerCase();
+    const resto = match[2].replace(/\\/g, '/');
+    return `/mnt/${letra}${resto ? '/' + resto : ''}`;
+};
+
+const rutaContenedorAWindows = (rutaContenedor) => {
+    const match = rutaContenedor.match(/^\/mnt\/([a-zA-Z])(\/.*)?$/);
+    if (!match) return null;
+    const letra = match[1].toUpperCase();
+    const resto = (match[2] || '').replace(/\//g, '\\');
+    return `${letra}:${resto}`;
+};
 
 function TabBackup() {
     const [exportando, setExportando] = useState(false);
@@ -39,6 +60,24 @@ function TabBackup() {
         setConfigAuto(prev => ({ ...prev, [campo]: valor }));
     };
 
+    const handleElegirCarpeta = async () => {
+        setErrorConfig('');
+        try {
+            const carpetaElegida = await open({ directory: true, multiple: false });
+            if (!carpetaElegida) return;
+
+            const rutaContenedor = rutaWindowsAContenedor(carpetaElegida);
+            if (!rutaContenedor) {
+                setErrorConfig('No se pudo interpretar esa carpeta. Elegí una ubicación dentro de un disco con letra (ej. D:\\...).');
+                return;
+            }
+            actualizarCampoConfig('rutaDestino', rutaContenedor);
+        } catch (err) {
+            console.error(err);
+            setErrorConfig('No se pudo abrir el selector de carpetas.');
+        }
+    };
+
     const handleGuardarConfig = async () => {
         setGuardandoConfig(true);
         setErrorConfig('');
@@ -66,8 +105,18 @@ function TabBackup() {
 
     const formatearFechaHora = (valor) => {
         if (!valor) return 'Todavía no se ejecutó ningún backup automático.';
-        return new Date(valor).toLocaleString('es-AR');
+        return new Date(valor).toLocaleString('es-AR', { hour12: false });
     };
+
+    const proximoBackup = () => {
+        if (!configAuto.activo) return 'Backup automático desactivado.';
+        if (!configAuto.ultimaEjecucion) return 'En la próxima revisión automática.';
+        const fecha = new Date(configAuto.ultimaEjecucion);
+        fecha.setHours(fecha.getHours() + configAuto.intervaloHoras);
+        return fecha.toLocaleString('es-AR', { hour12: false });
+    };
+
+    const ultimoBackupFallo = () => (configAuto.ultimoResultado || '').startsWith('ERROR');
 
     const handleExportar = async () => {
         setExportando(true);
@@ -181,8 +230,13 @@ function TabBackup() {
                     <HiOutlineClock /> Backup Automático
                 </h4>
                 <p style={{ margin: '0 0 14px 0', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                    Genera una copia periódica en el servidor, sin que tengas que hacer nada. Se guarda dentro de la carpeta configurada (montada como volumen en Docker: <code>./backend_backups</code> en la raíz del proyecto).
+                    Genera una copia periódica en el servidor, sin que tengas que hacer nada.
                 </p>
+                {!esTauriApp() && (
+                    <p style={{ margin: '0 0 14px 0', color: 'var(--text-muted)', fontSize: '0.85rem', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '10px 12px' }}>
+                        ℹ️ El selector de carpeta solo está disponible en la aplicación instalada.
+                    </p>
+                )}
 
                 {cargandoConfig ? (
                     <p style={{ color: 'var(--text-muted)' }}>Cargando...</p>
@@ -208,21 +262,47 @@ function TabBackup() {
                                     style={{ width: '100px', padding: '8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', backgroundColor: 'var(--surface)', color: 'var(--text-primary)', outline: 'none' }}
                                 />
                             </div>
-                            <div style={{ flex: 1, minWidth: '220px' }}>
-                                <label style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>Carpeta de destino (en el servidor):</label>
-                                <input
-                                    type="text"
-                                    value={configAuto.rutaDestino}
-                                    onChange={(e) => actualizarCampoConfig('rutaDestino', e.target.value)}
-                                    style={{ width: '100%', padding: '8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', backgroundColor: 'var(--surface)', color: 'var(--text-primary)', outline: 'none' }}
-                                />
+                            <div style={{ flex: 1, minWidth: '260px' }}>
+                                <label style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>Carpeta de destino:</label>
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <input
+                                        type="text"
+                                        value={rutaContenedorAWindows(configAuto.rutaDestino) || configAuto.rutaDestino}
+                                        onChange={(e) => actualizarCampoConfig('rutaDestino', e.target.value)}
+                                        readOnly={esTauriApp()}
+                                        style={{ flex: 1, padding: '8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', backgroundColor: esTauriApp() ? 'var(--surface-2)' : 'var(--surface)', color: 'var(--text-primary)', outline: 'none' }}
+                                    />
+                                    {esTauriApp() && (
+                                        <button
+                                            type="button"
+                                            className="btn-global btn-secundario"
+                                            onClick={handleElegirCarpeta}
+                                            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}
+                                            title="Elegir carpeta"
+                                        >
+                                            <HiOutlineFolderOpen /> Elegir...
+                                        </button>
+                                    )}
+                                </div>
+                                {esTauriApp() && (
+                                    <p style={{ margin: '4px 0 0 0', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                                        Si conectaste un disco nuevo y no aparece, reiniciá la aplicación.
+                                    </p>
+                                )}
                             </div>
                         </div>
 
-                        <p style={{ margin: '0 0 12px 0', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                        <p style={{ margin: '0 0 4px 0', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                             Última ejecución: {formatearFechaHora(configAuto.ultimaEjecucion)}
-                            {configAuto.ultimoResultado ? ` — ${configAuto.ultimoResultado}` : ''}
                         </p>
+                        <p style={{ margin: '0 0 12px 0', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                            Próximo backup automático: {proximoBackup()}
+                        </p>
+                        {ultimoBackupFallo() && (
+                            <p style={{ margin: '0 0 12px 0', color: 'var(--danger)', fontWeight: 'bold', fontSize: '0.85rem' }}>
+                                ⚠️ El último backup automático no se pudo generar. Verificá la carpeta de destino.
+                            </p>
+                        )}
 
                         {errorConfig && <div style={{ color: 'var(--danger)', fontWeight: 'bold', fontSize: '0.9rem', marginBottom: '10px' }}>{errorConfig}</div>}
                         {mensajeConfig && <div style={{ color: 'var(--success)', fontWeight: 'bold', fontSize: '0.9rem', marginBottom: '10px' }}>{mensajeConfig}</div>}

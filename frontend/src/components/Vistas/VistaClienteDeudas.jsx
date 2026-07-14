@@ -227,7 +227,7 @@ function VistaClienteDeudas({ cliente, volver }) {
         doc.text(capitalizar(clienteActual.nombre), anchoPagina - 14, 15, { align: 'right' });
         doc.text(`CUIT/L: ${clienteActual.documento}`, anchoPagina - 14, 20, { align: 'right' });
         doc.setTextColor(150, 150, 150);
-        doc.text(`Generado: ${new Date().toLocaleString('es-AR')}`, anchoPagina - 14, 25, { align: 'right' });
+        doc.text(`Generado: ${new Date().toLocaleString('es-AR', { hour12: false })}`, anchoPagina - 14, 25, { align: 'right' });
 
         doc.setDrawColor(44, 62, 80);
         doc.setLineWidth(0.5);

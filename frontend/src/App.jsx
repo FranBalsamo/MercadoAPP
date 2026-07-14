@@ -48,7 +48,7 @@ function App() {
     const buscarPlanillaAbierta = async () => {
       try {
         const respuesta = await fetch('http://localhost:8080/api/planilla/abierta');
-        if (respuesta.ok) {
+        if (respuesta.status === 200) {
           const planillaAbierta = await respuesta.json();
           setPlanillaActiva(planillaAbierta);
         }

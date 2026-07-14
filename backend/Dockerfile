@@ -22,5 +22,6 @@ USER mercado
 
 EXPOSE 8080
 ENV SPRING_PROFILES_ACTIVE=docker
+ENV TZ=America/Argentina/Buenos_Aires
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Duser.timezone=America/Argentina/Buenos_Aires", "-jar", "app.jar"]

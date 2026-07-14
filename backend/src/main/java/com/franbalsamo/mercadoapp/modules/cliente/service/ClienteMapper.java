@@ -16,8 +16,9 @@ public class ClienteMapper {
         dto.setId(cliente.getId());
         dto.setDocumento(cliente.getDocumento());
         dto.setNombre(cliente.getNombre());
-        dto.setDireccion(cliente.getDireccion());
+        dto.setDirecciones(cliente.getDirecciones());
         dto.setTelefono(cliente.getTelefono());
+        dto.setTipoCliente(cliente.getTipoCliente());
         dto.setSaldo_a_favor(cliente.getSaldo_a_favor());
 
         return dto;
@@ -32,8 +33,9 @@ public class ClienteMapper {
         cliente.setId(dto.getId());
         cliente.setDocumento(dto.getDocumento());
         cliente.setNombre(dto.getNombre());
-        cliente.setDireccion(dto.getDireccion());
+        cliente.setDirecciones(dto.getDirecciones());
         cliente.setTelefono(dto.getTelefono());
+        cliente.setTipoCliente(dto.getTipoCliente());
         cliente.setSaldo_a_favor(dto.getSaldo_a_favor());
 
         return cliente;

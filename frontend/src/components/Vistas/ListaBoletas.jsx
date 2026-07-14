@@ -2,17 +2,28 @@ import { useState } from "react";
 import { HiOutlineTicket } from 'react-icons/hi2';
 import "../Estilos/Botones.css";
 import AlertaEmergente from "../Alertas/AlertaEmergente";
+import ModalVerBoleta from "../Modals/ModalVerBoleta";
 
-function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBoleta ,boletas = [], clientes = [] }) {
+function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBoleta ,boletas = [], clientes = [], catalogoProductos = [] }) {
     const [error, setError] = useState('');
     const [busqueda, setBusqueda] = useState('');
     const [mensajeAlerta, setMensajeAlerta] = useState(null);
     const [configOrden, setConfigOrden] = useState({ columna: null, direccion: 'asc' });
+    const [boletaAVer, setBoletaAVer] = useState(null);
 
     const nombreCliente = (id_cliente) => {
         const clienteEncontrado = clientes.find(cliente => cliente.id === id_cliente);
         if (!clienteEncontrado) return '-';
         return clienteEncontrado.nombre;
+    }
+
+    const nombreProducto = (id_producto) => {
+        const producto = catalogoProductos.find(p => String(p.id) === String(id_producto));
+        return producto ? producto.nombre : `Prod #${id_producto}`;
+    }
+
+    const formatearMoneda = (val) => {
+        return (val ?? 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
     }
 
     const formaPagoLegible = (formaPago) => {
@@ -168,10 +179,10 @@ function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBol
                                     <td style={{ padding: '12px' }}>
                                         <span style={{
                                             padding: '4px 8px', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontWeight: 'bold',
-                                            backgroundColor: boleta.estadoEntrega === 'ENTREGADO' ? 'var(--info-soft)' : 'var(--danger-soft)',
-                                            color: boleta.estadoEntrega === 'ENTREGADO' ? 'var(--info-soft-text)' : 'var(--danger-soft-text)'
+                                            backgroundColor: boleta.estadoEntrega === 'ENTREGADO' ? 'var(--success-soft)' : boleta.estadoEntrega === 'PARCIAL' ? 'var(--warning-soft)' : 'var(--danger-soft)',
+                                            color: boleta.estadoEntrega === 'ENTREGADO' ? 'var(--success-soft-text)' : boleta.estadoEntrega === 'PARCIAL' ? 'var(--warning-soft-text)' : 'var(--danger-soft-text)'
                                         }}>
-                                            {boleta.estadoEntrega}
+                                            {boleta.estadoEntrega === 'PARCIAL' ? 'PARCIAL' : boleta.estadoEntrega}
                                         </span>
                                     </td>
                                     <td style={{ padding: '12px', color: 'var(--text-secondary)' }}>
@@ -181,6 +192,16 @@ function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBol
                                         {boleta.total.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}
                                     </td>
                                     <td style={{ padding: '12px', textAlign: 'center', display: 'flex', gap: '15px', justifyContent: 'center', alignItems: 'center' }}>
+                                        <button
+                                            className='btn-global btn-secundario'
+                                            onClick={() => setBoletaAVer(boleta)}
+                                            style={{
+                                                fontSize:'0.9rem', padding: '4px 8px',
+                                            }}
+                                            title="Ver Boleta"
+                                        >
+                                            Ver
+                                        </button>
                                         <button
                                             className='btn-global btn-primario'
                                             onClick={() => abrirModalModificarBoleta(boleta, nombreCliente(boleta.id_cliente))}
@@ -217,10 +238,20 @@ function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBol
                 </button>
             </div>
 
-            <AlertaEmergente 
-                mensaje={mensajeAlerta} 
-                onClose={() => setMensajeAlerta(null)} 
+            <AlertaEmergente
+                mensaje={mensajeAlerta}
+                onClose={() => setMensajeAlerta(null)}
             />
+
+            {boletaAVer && (
+                <ModalVerBoleta
+                    boleta={boletaAVer}
+                    nombreCliente={nombreCliente(boletaAVer.id_cliente)}
+                    nombreProducto={nombreProducto}
+                    formatearMoneda={formatearMoneda}
+                    cerrarModal={() => setBoletaAVer(null)}
+                />
+            )}
         </div>
     );
 }

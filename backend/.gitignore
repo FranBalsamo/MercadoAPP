@@ -4,9 +4,8 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-### H2 Database Local ###
-*.mv.db
-*.trace.db
+### Backups automaticos generados por la app ###
+backups/
 
 ### STS ###
 .apt_generated

@@ -35,6 +35,11 @@ public class Venta {
     @Column
     private float subtotal;
 
+    // Cuanto de esta linea (de la cantidad vendida) se entrego realmente.
+    // Se recalcula siempre en base al EstadoEntrega elegido para la boleta (ver BoletaService).
+    @Column
+    private float cantidad_entregada = 0;
+
     public Venta(){}
 
 }

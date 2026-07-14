@@ -60,6 +60,7 @@ public class BoletaService {
     private void cargarVentas(BoletaDTO boletaDTO, Boleta nuevaBoleta){
         float totalCalculado = 0;
         Planilla planilla = nuevaBoleta.getPlanilla();
+        EstadoEntrega estadoSolicitado = boletaDTO.getEstadoEntrega();
 
         for (VentaDTO vDto : boletaDTO.getVentas()) {
             Producto producto = productoService.findById(vDto.getId_producto());
@@ -77,6 +78,7 @@ public class BoletaService {
             nuevaVenta.setCantidad(vDto.getCantidad());
             nuevaVenta.setPrecio_unitario(vDto.getPrecio_unitario());
             nuevaVenta.setPrecio_vacio(vDto.getPrecio_vacio());
+            nuevaVenta.setCantidad_entregada(calcularCantidadEntregada(estadoSolicitado, vDto, producto));
 
             float subtotal = (vDto.getCantidad() * vDto.getPrecio_unitario()) + (((int)vDto.getCantidad()) * vDto.getPrecio_vacio());
             nuevaVenta.setSubtotal(subtotal);
@@ -85,11 +87,44 @@ public class BoletaService {
             totalCalculado += nuevaVenta.getSubtotal();
         }
         nuevaBoleta.setTotal(totalCalculado);
+        nuevaBoleta.setEstadoEntrega(determinarEstadoEntregaReal(nuevaBoleta.getVentas()));
+    }
+
+    private float calcularCantidadEntregada(EstadoEntrega estadoSolicitado, VentaDTO vDto, Producto producto){
+        if(estadoSolicitado == EstadoEntrega.ENTREGADO){
+            return vDto.getCantidad();
+        }
+        if(estadoSolicitado == EstadoEntrega.NO_ENTREGADO){
+            return 0f;
+        }
+        // PARCIAL: se respeta la cantidad entregada que cargo el usuario para este producto.
+        float cantidadEntregada = vDto.getCantidad_entregada();
+        if(cantidadEntregada < 0 || cantidadEntregada > vDto.getCantidad()){
+            throw new ReglaNegocioException("La cantidad entregada de \"" + producto.getNombre() + "\" no puede ser negativa ni mayor a la cantidad vendida.");
+        }
+        return cantidadEntregada;
+    }
+
+    private EstadoEntrega determinarEstadoEntregaReal(List<Venta> ventas){
+        float totalVendido = 0;
+        float totalEntregado = 0;
+        for(Venta venta : ventas){
+            totalVendido += venta.getCantidad();
+            totalEntregado += venta.getCantidad_entregada();
+        }
+        if(totalEntregado <= 0){
+            return EstadoEntrega.NO_ENTREGADO;
+        }
+        if(totalEntregado >= totalVendido){
+            return EstadoEntrega.ENTREGADO;
+        }
+        return EstadoEntrega.PARCIAL;
     }
 
     private void modificarVentas(Boleta boleta, BoletaDTO boletaDTO){
         float totalCalculado = 0;
         Planilla planilla = boleta.getPlanilla();
+        EstadoEntrega estadoSolicitado = boletaDTO.getEstadoEntrega();
 
         List<Venta> ventasActuales = new ArrayList<>(boleta.getVentas());
 
@@ -116,6 +151,7 @@ public class BoletaService {
                 ventaEncontrada.setCantidad(vDto.getCantidad());
                 ventaEncontrada.setPrecio_unitario(vDto.getPrecio_unitario());
                 ventaEncontrada.setPrecio_vacio(vDto.getPrecio_vacio());
+                ventaEncontrada.setCantidad_entregada(calcularCantidadEntregada(estadoSolicitado, vDto, producto));
 
                 float subtotal = (vDto.getCantidad() * vDto.getPrecio_unitario()) + (((int)vDto.getCantidad()) * vDto.getPrecio_vacio());
                 ventaEncontrada.setSubtotal(subtotal);
@@ -130,9 +166,10 @@ public class BoletaService {
                 nuevaVenta.setCantidad(vDto.getCantidad());
                 nuevaVenta.setPrecio_unitario(vDto.getPrecio_unitario());
                 nuevaVenta.setPrecio_vacio(vDto.getPrecio_vacio());
+                nuevaVenta.setCantidad_entregada(calcularCantidadEntregada(estadoSolicitado, vDto, producto));
                 float subtotal = (vDto.getCantidad() * vDto.getPrecio_unitario()) + (((int)vDto.getCantidad()) * vDto.getPrecio_vacio());
                 nuevaVenta.setSubtotal(subtotal);
-                
+
                 boleta.addVenta(nuevaVenta);
 
                 totalCalculado += nuevaVenta.getSubtotal();
@@ -144,6 +181,7 @@ public class BoletaService {
         }
 
         boleta.setTotal(totalCalculado);
+        boleta.setEstadoEntrega(determinarEstadoEntregaReal(boleta.getVentas()));
     }
 
     private void recuperarStock(Boleta boleta){
@@ -166,7 +204,6 @@ public class BoletaService {
         Boleta nuevaBoleta = new Boleta();
         nuevaBoleta.setCliente(cliente);
         nuevaBoleta.setPlanilla(planilla);
-        nuevaBoleta.setEstadoEntrega(boletaDTO.getEstadoEntrega());
         nuevaBoleta.setEstadoPago(boletaDTO.getEstadoPago());
         if(boletaDTO.getFormaPago() != null){
             nuevaBoleta.setFormaPago(boletaDTO.getFormaPago());
@@ -191,7 +228,6 @@ public class BoletaService {
 
         modificarVentas(boleta,boletaDTO);
         boleta.setEstadoPago(boletaDTO.getEstadoPago());
-        boleta.setEstadoEntrega(boletaDTO.getEstadoEntrega());
         if(boletaDTO.getFormaPago() != null){
             boleta.setFormaPago(boletaDTO.getFormaPago());
         }
@@ -235,8 +271,8 @@ public class BoletaService {
         Boleta boleta = boletaRepository.findById(id_boleta)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontro la boleta con id: "+ id_boleta));
 
-        if(boleta.getEstadoPago() == EstadoPago.PAGADO || boleta.getEstadoEntrega() == EstadoEntrega.ENTREGADO){
-            throw new ReglaNegocioException("No se puede eliminar la boleta #" + id_boleta + " porque ya se encuentra pagada y/o entregada.");
+        if(boleta.getEstadoPago() == EstadoPago.PAGADO || boleta.getEstadoEntrega() != EstadoEntrega.NO_ENTREGADO){
+            throw new ReglaNegocioException("No se puede eliminar la boleta #" + id_boleta + " porque ya se encuentra pagada y/o entregada (total o parcialmente).");
         }
 
         //Antes de eliminar la boleta debemos recuperar el stock del producto.

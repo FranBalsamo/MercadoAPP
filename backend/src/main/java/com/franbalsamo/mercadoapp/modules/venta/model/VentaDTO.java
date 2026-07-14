@@ -12,6 +12,7 @@ public class VentaDTO {
     private float cantidad;
     private float precio_unitario;
     private float precio_vacio;
+    private float cantidad_entregada;
 
     public VentaDTO(){}
 }

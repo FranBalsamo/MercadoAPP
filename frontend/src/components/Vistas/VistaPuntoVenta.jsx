@@ -236,12 +236,13 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                     }}
                 />
 
-                <ListaBoletas 
-                    abrirModalBoleta={() => setMostrarModalBuscarCliente(true)} 
+                <ListaBoletas
+                    abrirModalBoleta={() => setMostrarModalBuscarCliente(true)}
                     abrirModalModificarBoleta={handleAbrirEdicion}
                     eliminarBoleta={handleAbrirEliminar}
-                    boletas={boletasDia} 
+                    boletas={boletasDia}
                     clientes={clientesDia}
+                    catalogoProductos={catalogoProductos}
                 />
             </div>
 

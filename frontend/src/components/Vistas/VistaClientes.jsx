@@ -46,7 +46,8 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCl
                     nombre: cliente.nombre,
                     documento: cliente.documento,
                     telefono: cliente.telefono,
-                    direccion: cliente.direccion,
+                    tipoCliente: cliente.tipoCliente,
+                    direcciones: cliente.direcciones || [],
                     saldo_a_favor: cliente.saldo_a_favor,
                 }))
                 : [];
@@ -80,6 +81,10 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCl
     // Filtramos los clientes en tiempo real en base al input y el método elegido
     const clientesFiltrados = clientes.filter((cliente) => {
         if (!busqueda) return true; // Si no hay búsqueda, mostramos todos
+
+        if (metodoFiltro === 'tipo') {
+            return cliente.tipoCliente === busqueda;
+        }
 
         const textoBusqueda = busqueda.toLowerCase();
         if (metodoFiltro === 'nombre') {
@@ -146,23 +151,58 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCl
                         CUIT/L
                     </label>
 
-                    {/* Input de Búsqueda */}
-                    <input
-                        type="text"
-                        value={busqueda}
-                        onChange={(e) => setBusqueda(e.target.value)}
-                        placeholder={placeHolderFilter()}
-                        style={{
-                            flex: 1,
-                            border: '1px solid var(--border)',
-                            borderRadius: 'var(--radius-sm)',
-                            padding: '8px 12px',
-                            outline: 'none',
-                            fontSize: '0.95rem',
-                            backgroundColor: 'var(--surface)',
-                            color: 'var(--text-primary)'
-                        }}
-                    />
+                    {/* Radio: Tipo */}
+                    <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.95rem', color: 'var(--text-secondary)' }}>
+                        <input
+                            type="radio"
+                            name="filtroCliente"
+                            checked={metodoFiltro === "tipo"}
+                            onChange={() => {
+                                setMetodoFiltro("tipo");
+                                setBusqueda('');
+                            }}
+                        />
+                        Tipo
+                    </label>
+
+                    {/* Input de Búsqueda (texto, o select cuando el filtro es por Tipo) */}
+                    {metodoFiltro === 'tipo' ? (
+                        <select
+                            value={busqueda}
+                            onChange={(e) => setBusqueda(e.target.value)}
+                            style={{
+                                flex: 1,
+                                border: '1px solid var(--border)',
+                                borderRadius: 'var(--radius-sm)',
+                                padding: '8px 12px',
+                                outline: 'none',
+                                fontSize: '0.95rem',
+                                backgroundColor: 'var(--surface)',
+                                color: 'var(--text-primary)'
+                            }}
+                        >
+                            <option value="">Todos</option>
+                            <option value="PERSONA">Persona</option>
+                            <option value="SUPERMERCADO">Supermercado</option>
+                        </select>
+                    ) : (
+                        <input
+                            type="text"
+                            value={busqueda}
+                            onChange={(e) => setBusqueda(e.target.value)}
+                            placeholder={placeHolderFilter()}
+                            style={{
+                                flex: 1,
+                                border: '1px solid var(--border)',
+                                borderRadius: 'var(--radius-sm)',
+                                padding: '8px 12px',
+                                outline: 'none',
+                                fontSize: '0.95rem',
+                                backgroundColor: 'var(--surface)',
+                                color: 'var(--text-primary)'
+                            }}
+                        />
+                    )}
                 </div>
 
                 <h3 style={{ fontSize: '1.2rem', margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlineUsers /> Lista Clientes</h3>
@@ -185,8 +225,9 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCl
                         <tr style={{ color: 'var(--text-on-inverse)' }}>
                             <th style={{ padding: '12px 15px' }}>Nombre</th>
                             <th style={{ padding: '12px 15px' }}>CUIT/L</th>
+                            <th style={{ padding: '12px 15px' }}>Tipo</th>
                             <th style={{ padding: '12px 15px' }}>Telefono</th>
-                            <th style={{ padding: '12px 15px' }}>Direccion</th>
+                            <th style={{ padding: '12px 15px' }}>{"Direccion(es)"}</th>
                             <th style={{ padding: '12px 15px' }}>Saldo del Cliente</th>
                             <th style={{ padding: '12px 15px' }}></th>
                         </tr>
@@ -194,7 +235,7 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCl
                     <tbody>
                         {clientesFiltrados.length === 0 ? (
                             <tr>
-                                <td colSpan={6} style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                <td colSpan={7} style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)' }}>
                                     {clientes.length === 0 ? "Cargando clientes..." : "No se encontraron clientes con esa búsqueda."}
                                 </td>
                             </tr>
@@ -207,11 +248,20 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCl
                                     <td style={{ padding: '10px 15px', color: 'var(--text-secondary)' }}>
                                         {cliente.documento}
                                     </td>
+                                    <td style={{ padding: '10px 15px', color: 'var(--text-secondary)' }}>
+                                        <span style={{
+                                            padding: '3px 8px', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontWeight: 'bold',
+                                            backgroundColor: cliente.tipoCliente === 'SUPERMERCADO' ? 'var(--info-soft)' : 'var(--surface-2)',
+                                            color: cliente.tipoCliente === 'SUPERMERCADO' ? 'var(--info-soft-text)' : 'var(--text-secondary)'
+                                        }}>
+                                            {cliente.tipoCliente === 'SUPERMERCADO' ? 'Supermercado' : 'Persona'}
+                                        </span>
+                                    </td>
                                     <td style={{ padding: '10px 15px', textTransform: 'capitalize', fontWeight: '500', color: 'var(--text-secondary)' }}>
                                         {cliente.telefono || '-'}
                                     </td>
                                     <td style={{ padding: '10px 15px', textTransform: 'capitalize', fontWeight: '500', color: 'var(--text-secondary)' }}>
-                                        {cliente.direccion || '-'}
+                                        {cliente.direcciones.length > 0 ? cliente.direcciones.join(', ') : '-'}
                                     </td>
                                     <td style={{ padding: '10px 15px', fontWeight: '500', color: cliente.saldo_a_favor > 0 ? 'var(--success)' : 'var(--text-primary)' }}>
                                         {formatearMoneda(cliente.saldo_a_favor)}

@@ -1,21 +1,31 @@
 import { useState } from 'react'
 import { HiOutlineUserCircle } from 'react-icons/hi2';
+import CampoDirecciones from './CampoDirecciones';
 import '../Estilos/Modal.css';
 import '../Estilos/Botones.css';
 
 function ModalCliente({ cerrarModal, onClienteAgregado }) {
-    
+
     const [nombre, setNombre] = useState('');
     const [documento, setDocumento] = useState('');
-    const [direccion, setDireccion] = useState('');
+    const [tipoCliente, setTipoCliente] = useState('PERSONA');
+    const [direcciones, setDirecciones] = useState([]);
     const [telefono, setTelefono] = useState('');
-    
+
     const [error, setError] = useState('');
+
+    const cambiarTipoCliente = (nuevoTipo) => {
+        setTipoCliente(nuevoTipo);
+        if (nuevoTipo === 'PERSONA' && direcciones.length > 1) {
+            setDirecciones(direcciones.slice(0, 1));
+        }
+    };
 
     const nuevoCliente = {
         nombre: nombre,
         documento: documento,
-        direccion: direccion,
+        tipoCliente: tipoCliente,
+        direcciones: direcciones,
         telefono: telefono
     }
 
@@ -99,14 +109,24 @@ function ModalCliente({ cerrarModal, onClienteAgregado }) {
                     </div>
 
                     <div className="form-group">
-                        <label>Direccion:</label>
-                        <input
-                            type="text"
-                            placeholder="Opcional"
-                            value={direccion}
-                            onChange={(e) => setDireccion(e.target.value)}
+                        <label>Tipo de Cliente:</label>
+                        <select
+                            value={tipoCliente}
+                            onChange={(e) => cambiarTipoCliente(e.target.value)}
+                        >
+                            <option value="PERSONA">Persona</option>
+                            <option value="SUPERMERCADO">Supermercado</option>
+                        </select>
+                    </div>
+
+                    <div className="form-group">
+                        <label>{tipoCliente === 'SUPERMERCADO' ? 'Sucursales:' : 'Direccion:'}</label>
+                        <CampoDirecciones
+                            direcciones={direcciones}
+                            onChange={setDirecciones}
+                            multiple={tipoCliente === 'SUPERMERCADO'}
                         />
-                    </div> 
+                    </div>
 
                     <div className="form-group">
                         <label>Telefono:</label>

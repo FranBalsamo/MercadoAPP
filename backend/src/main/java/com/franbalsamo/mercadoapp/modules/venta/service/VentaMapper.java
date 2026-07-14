@@ -19,6 +19,7 @@ public class VentaMapper {
         dto.setCantidad(venta.getCantidad());
         dto.setPrecio_unitario(venta.getPrecio_unitario());
         dto.setPrecio_vacio(venta.getPrecio_vacio());
+        dto.setCantidad_entregada(venta.getCantidad_entregada());
 
         return dto;
     }

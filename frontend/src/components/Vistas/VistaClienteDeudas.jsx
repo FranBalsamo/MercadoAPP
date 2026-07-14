@@ -5,6 +5,7 @@ import { save } from '@tauri-apps/plugin-dialog';
 import { writeFile } from '@tauri-apps/plugin-fs';
 import ModalResumenCobro from '../Modals/ModalResumenCobro';
 import ModalPagoACuenta from '../Modals/ModalPagoACuenta';
+import ModalVerBoleta from '../Modals/ModalVerBoleta';
 import AlertaEmergente from '../Alertas/AlertaEmergente';
 import { formatearFechaVisual } from '../../utils/formatoFecha';
 import { HiOutlineBanknotes, HiOutlineDocumentArrowDown, HiOutlineTicket, HiOutlineCalendarDays } from 'react-icons/hi2';
@@ -62,6 +63,20 @@ function VistaClienteDeudas({ cliente, volver }) {
     const [mostrarPagoACuenta, setMostrarPagoACuenta] = useState(false);
     const [mensajeExport, setMensajeExport] = useState(null);
     const [tipoExport, setTipoExport] = useState('exito');
+    const [boletaAVer, setBoletaAVer] = useState(null);
+    const [empresa, setEmpresa] = useState(null);
+
+    useEffect(() => {
+        const cargarEmpresa = async () => {
+            try {
+                const respuesta = await fetch('http://localhost:8080/api/empresa');
+                if (respuesta.ok) setEmpresa(await respuesta.json());
+            } catch (error) {
+                console.error("Error cargando datos de la empresa:", error);
+            }
+        };
+        cargarEmpresa();
+    }, []);
 
     const cargarDeudas = async () => {
         if (!cliente || !cliente.id) return;
@@ -174,12 +189,38 @@ function VistaClienteDeudas({ cliente, volver }) {
         const doc = new jsPDF();
         const anchoPagina = doc.internal.pageSize.getWidth();
 
+        let xTexto = 14;
+        if (empresa?.logoBase64) {
+            try {
+                doc.addImage(empresa.logoBase64, 'PNG', 14, 7, 18, 18);
+                xTexto = 36;
+            } catch (error) {
+                console.error('No se pudo agregar el logo al PDF:', error);
+            }
+        }
+
+        // El bloque de datos de la empresa (izquierda) y el del cliente (derecha, alineado)
+        // se mantienen cada uno en su mitad de la página para que nunca se solapen entre sí.
+        const anchoMaximoTextoEmpresa = anchoPagina / 2 - xTexto - 4;
+
+        const datosExtra = [empresa?.cuit ? `CUIT: ${empresa.cuit}` : null, empresa?.direccion]
+            .filter(Boolean).join(' — ');
+
         doc.setFontSize(16);
         doc.setTextColor(44, 62, 80);
-        doc.text('MercadoApp', 14, 18);
+        doc.text(
+            doc.splitTextToSize(empresa?.nombre ? capitalizar(empresa.nombre) : 'MercadoApp', anchoMaximoTextoEmpresa)[0],
+            xTexto, 18
+        );
         doc.setFontSize(10);
         doc.setTextColor(127, 127, 127);
-        doc.text('Deudas del cliente', 14, 24);
+        doc.text('Deudas del cliente', xTexto, 24);
+
+        if (datosExtra) {
+            doc.setFontSize(8);
+            doc.setTextColor(150, 150, 150);
+            doc.text(doc.splitTextToSize(datosExtra, anchoMaximoTextoEmpresa)[0], xTexto, 29);
+        }
 
         doc.setFontSize(10);
         doc.setTextColor(85, 85, 85);
@@ -190,7 +231,7 @@ function VistaClienteDeudas({ cliente, volver }) {
 
         doc.setDrawColor(44, 62, 80);
         doc.setLineWidth(0.5);
-        doc.line(14, 29, anchoPagina - 14, 29);
+        doc.line(14, 34, anchoPagina - 14, 34);
 
         const anchoCaja = (anchoPagina - 28 - 5) / 2;
         const cajas = [
@@ -201,15 +242,15 @@ function VistaClienteDeudas({ cliente, volver }) {
         cajas.forEach((caja, i) => {
             const x = 14 + i * (anchoCaja + 5);
             doc.setFillColor(...caja.color);
-            doc.rect(x, 34, 1, 14, 'F');
+            doc.rect(x, 39, 1, 14, 'F');
             doc.setDrawColor(224, 224, 224);
-            doc.rect(x, 34, anchoCaja, 14);
+            doc.rect(x, 39, anchoCaja, 14);
             doc.setFontSize(8);
             doc.setTextColor(127, 127, 127);
-            doc.text(caja.titulo, x + 4, 39);
+            doc.text(caja.titulo, x + 4, 44);
             doc.setFontSize(11);
             doc.setTextColor(...caja.color);
-            doc.text(caja.valor, x + 4, 45);
+            doc.text(caja.valor, x + 4, 50);
         });
 
         const filas = boletasOrdenadas.map(boleta => {
@@ -225,7 +266,7 @@ function VistaClienteDeudas({ cliente, volver }) {
         });
 
         autoTable(doc, {
-            startY: 56,
+            startY: 61,
             head: [['Fecha Planilla', 'Productos', 'Total']],
             body: filas,
             styles: { fontSize: 8, cellPadding: 3, valign: 'top' },
@@ -239,7 +280,7 @@ function VistaClienteDeudas({ cliente, volver }) {
                 const alturaPagina = doc.internal.pageSize.getHeight();
                 doc.setFontSize(8);
                 doc.setTextColor(180, 180, 180);
-                doc.text('MercadoApp — reporte generado automáticamente', 14, alturaPagina - 10);
+                doc.text(`${empresa?.nombre ? capitalizar(empresa.nombre) : 'MercadoApp'} — reporte generado automáticamente`, 14, alturaPagina - 10);
                 doc.text(`Página ${doc.internal.getNumberOfPages()}`, anchoPagina - 14, alturaPagina - 10, { align: 'right' });
             },
         });
@@ -287,7 +328,7 @@ function VistaClienteDeudas({ cliente, volver }) {
                     <p style={{ margin: '5px 0 0 0', color: 'var(--text-secondary)' }}>
                         CUIT/L: <strong>{clienteActual.documento}</strong>
                         {clienteActual.telefono ? <> | Tel: <strong>{clienteActual.telefono}</strong></> : null}
-                        {clienteActual.direccion ? <> | Dirección: <strong>{clienteActual.direccion}</strong></> : null}
+                        {clienteActual.direcciones?.length > 0 ? <> | Dirección: <strong>{clienteActual.direcciones.join(', ')}</strong></> : null}
                     </p>
                 </div>
                 <div style={{ display: 'flex', gap: '10px' }}>
@@ -449,9 +490,19 @@ function VistaClienteDeudas({ cliente, volver }) {
                                         <span style={{ fontWeight: 'bold', color: 'var(--text-primary)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                                             <HiOutlineCalendarDays /> Fecha: {formatearFechaVisual(fechaPlanilla(boleta.id_planilla))}
                                         </span>
-                                        <span style={{ fontWeight: 'bold', fontSize: '1.05rem', color: 'var(--danger)' }}>
-                                            {formatearMoneda(boleta.total)}
-                                        </span>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                            <button
+                                                className="btn-global btn-secundario"
+                                                onClick={() => setBoletaAVer(boleta)}
+                                                style={{ fontSize: '0.85rem', padding: '4px 10px' }}
+                                                title="Ver Boleta"
+                                            >
+                                                Ver
+                                            </button>
+                                            <span style={{ fontWeight: 'bold', fontSize: '1.05rem', color: 'var(--danger)' }}>
+                                                {formatearMoneda(boleta.total)}
+                                            </span>
+                                        </div>
                                     </div>
                                     <ul style={{ margin: 0, paddingLeft: '20px', listStyleType: 'square', color: 'var(--text-secondary)' }}>
                                         {(boleta.ventas || []).map((itemProd, i) => (
@@ -490,6 +541,17 @@ function VistaClienteDeudas({ cliente, volver }) {
                     formatearMoneda={formatearMoneda}
                     cerrarModal={() => setMostrarPagoACuenta(false)}
                     onPagoConfirmado={handlePagoConfirmado}
+                />
+            )}
+
+            {boletaAVer && (
+                <ModalVerBoleta
+                    boleta={boletaAVer}
+                    nombreCliente={clienteActual.nombre}
+                    nombreProducto={nombreProducto}
+                    formatearMoneda={formatearMoneda}
+                    fecha={formatearFechaVisual(fechaPlanilla(boletaAVer.id_planilla))}
+                    cerrarModal={() => setBoletaAVer(null)}
                 />
             )}
 

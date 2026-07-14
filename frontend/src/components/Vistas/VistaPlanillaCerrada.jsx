@@ -4,6 +4,7 @@ import autoTable from 'jspdf-autotable';
 import { save } from '@tauri-apps/plugin-dialog';
 import { writeFile } from '@tauri-apps/plugin-fs';
 import ModalModificarBoleta from '../Modals/ModalModificarBoleta';
+import ModalVerBoleta from '../Modals/ModalVerBoleta';
 import AlertaEmergente from '../Alertas/AlertaEmergente';
 import { formatearFechaVisual } from '../../utils/formatoFecha';
 import { HiOutlineLockClosed, HiOutlineDocumentArrowDown, HiOutlineCube, HiOutlineTicket } from 'react-icons/hi2';
@@ -42,13 +43,15 @@ function VistaPlanillaCerrada({ planilla, volver }) {
     });
     const [boletaAEditar, setBoletaAEditar] = useState(null);
     const [mostrarModalEditar, setMostrarModalEditar] = useState(false);
+    const [boletaAVer, setBoletaAVer] = useState(null);
     const [mensajeExport, setMensajeExport] = useState(null);
     const [tipoExport, setTipoExport] = useState('exito');
+    const [empresa, setEmpresa] = useState(null);
 
     useEffect(() => {
         const cargarDatos = async () => {
             if (!planilla || !planilla.id) return;
-            
+
             try {
                 const [resProd, resCli, resBol] = await Promise.all([
                     fetch('http://localhost:8080/api/productos/All'),
@@ -69,9 +72,21 @@ function VistaPlanillaCerrada({ planilla, volver }) {
                 setCargando(false);
             }
         };
-        
+
         cargarDatos();
     }, [planilla]);
+
+    useEffect(() => {
+        const cargarEmpresa = async () => {
+            try {
+                const respuesta = await fetch('http://localhost:8080/api/empresa');
+                if (respuesta.ok) setEmpresa(await respuesta.json());
+            } catch (error) {
+                console.error("Error cargando datos de la empresa:", error);
+            }
+        };
+        cargarEmpresa();
+    }, []);
 
     if (!planilla) return <p>No se seleccionó ninguna planilla...</p>;
 
@@ -137,12 +152,38 @@ function VistaPlanillaCerrada({ planilla, volver }) {
         const doc = new jsPDF();
         const anchoPagina = doc.internal.pageSize.getWidth();
 
+        let xTexto = 14;
+        if (empresa?.logoBase64) {
+            try {
+                doc.addImage(empresa.logoBase64, 'PNG', 14, 7, 18, 18);
+                xTexto = 36;
+            } catch (error) {
+                console.error('No se pudo agregar el logo al PDF:', error);
+            }
+        }
+
+        // El bloque de datos de la empresa (izquierda) y el de la planilla (derecha, alineado)
+        // se mantienen cada uno en su mitad de la página para que nunca se solapen entre sí.
+        const anchoMaximoTextoEmpresa = anchoPagina / 2 - xTexto - 4;
+
+        const datosExtra = [empresa?.cuit ? `CUIT: ${empresa.cuit}` : null, empresa?.direccion]
+            .filter(Boolean).join(' — ');
+
         doc.setFontSize(16);
         doc.setTextColor(44, 62, 80);
-        doc.text('MercadoApp', 14, 18);
+        doc.text(
+            doc.splitTextToSize(empresa?.nombre ? capitalizar(empresa.nombre) : 'MercadoApp', anchoMaximoTextoEmpresa)[0],
+            xTexto, 18
+        );
         doc.setFontSize(10);
         doc.setTextColor(127, 127, 127);
-        doc.text('Resumen de planilla cerrada', 14, 24);
+        doc.text('Resumen de planilla cerrada', xTexto, 24);
+
+        if (datosExtra) {
+            doc.setFontSize(8);
+            doc.setTextColor(150, 150, 150);
+            doc.text(doc.splitTextToSize(datosExtra, anchoMaximoTextoEmpresa)[0], xTexto, 29);
+        }
 
         doc.setFontSize(10);
         doc.setTextColor(85, 85, 85);
@@ -153,7 +194,7 @@ function VistaPlanillaCerrada({ planilla, volver }) {
 
         doc.setDrawColor(44, 62, 80);
         doc.setLineWidth(0.5);
-        doc.line(14, 29, anchoPagina - 14, 29);
+        doc.line(14, 34, anchoPagina - 14, 34);
 
         const anchoCaja = (anchoPagina - 28 - 10) / 3;
         const cajas = [
@@ -166,18 +207,18 @@ function VistaPlanillaCerrada({ planilla, volver }) {
             const x = 14 + i * (anchoCaja + 5);
             doc.setDrawColor(224, 224, 224);
             doc.setFillColor(...caja.color);
-            doc.rect(x, 34, 1, 14, 'F');
+            doc.rect(x, 39, 1, 14, 'F');
             doc.setDrawColor(224, 224, 224);
-            doc.rect(x, 34, anchoCaja, 14);
+            doc.rect(x, 39, anchoCaja, 14);
             doc.setFontSize(8);
             doc.setTextColor(127, 127, 127);
-            doc.text(caja.titulo, x + 4, 39);
+            doc.text(caja.titulo, x + 4, 44);
             doc.setFontSize(11);
             doc.setTextColor(...caja.color);
-            doc.text(caja.valor, x + 4, 45);
+            doc.text(caja.valor, x + 4, 50);
         });
 
-        let cursorY = 56;
+        let cursorY = 61;
 
         const stockSobrante = (totalesPlanilla.stockProductos || [])
             .map(item => `${capitalizar(nombreProducto(item.id_producto))}: ${item.stock - item.stock_vendido} un.`)
@@ -464,8 +505,8 @@ function VistaPlanillaCerrada({ planilla, volver }) {
                                             <td style={{ padding: '12px', verticalAlign: 'top' }}>
                                                 <span style={{
                                                     padding: '4px 8px', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontWeight: 'bold',
-                                                    backgroundColor: boleta.estadoEntrega === 'ENTREGADO' ? 'var(--info-soft)' : 'var(--danger-soft)',
-                                                    color: boleta.estadoEntrega === 'ENTREGADO' ? 'var(--info-soft-text)' : 'var(--danger-soft-text)'
+                                                    backgroundColor: boleta.estadoEntrega === 'ENTREGADO' ? 'var(--success-soft)' : boleta.estadoEntrega === 'PARCIAL' ? 'var(--warning-soft)' : 'var(--danger-soft)',
+                                                    color: boleta.estadoEntrega === 'ENTREGADO' ? 'var(--success-soft-text)' : boleta.estadoEntrega === 'PARCIAL' ? 'var(--warning-soft-text)' : 'var(--danger-soft-text)'
                                                 }}>
                                                     {boleta.estadoEntrega}
                                                 </span>
@@ -497,7 +538,15 @@ function VistaPlanillaCerrada({ planilla, volver }) {
                                             </td>
 
                                             {/* Acciones */}
-                                            <td style={{ padding: '12px', textAlign: 'center', verticalAlign: 'top' }}>
+                                            <td style={{ padding: '12px', textAlign: 'center', verticalAlign: 'top', display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                                                <button
+                                                    className="btn-global btn-secundario"
+                                                    onClick={() => setBoletaAVer(boleta)}
+                                                    style={{ fontSize: '0.85rem', padding: '4px 10px' }}
+                                                    title="Ver Boleta"
+                                                >
+                                                    Ver
+                                                </button>
                                                 <button
                                                     className="btn-global btn-primario"
                                                     onClick={() => abrirEdicionBoleta(boleta)}
@@ -527,6 +576,17 @@ function VistaPlanillaCerrada({ planilla, volver }) {
                         setBoletaAEditar(null);
                     }}
                     onBoletaEditada={handleBoletaEditada}
+                />
+            )}
+
+            {boletaAVer && (
+                <ModalVerBoleta
+                    boleta={boletaAVer}
+                    nombreCliente={nombreCliente(boletaAVer.id_cliente)}
+                    nombreProducto={nombreProducto}
+                    formatearMoneda={formatearMoneda}
+                    fecha={formatearFechaVisual(planilla.fecha)}
+                    cerrarModal={() => setBoletaAVer(null)}
                 />
             )}
 

@@ -42,7 +42,8 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                     precio_unitario: precioU,
                     precio_vacio: precioV,
                     cantidad: cant,
-                    subtotal: subTCalculado
+                    subtotal: subTCalculado,
+                    cantidad_entregada: Number(venta.cantidad_entregada || 0)
                 };
             });
             setCarrito(carritoInicial);
@@ -138,7 +139,8 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
             precio_unitario: precioReal,
             precio_vacio: vacioReal,
             cantidad: cantidadReal,
-            subtotal: subtotalFila
+            subtotal: subtotalFila,
+            cantidad_entregada: 0
         };
 
         setCarrito([...carrito, nuevaFila]);
@@ -169,6 +171,24 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
 
     const eliminarDelCarrito = (id_fila_borrar) => {
         setCarrito(carrito.filter(item => item.id_fila !== id_fila_borrar));
+    };
+
+    const actualizarCantidadEntregada = (id_fila, valor) => {
+        setCarrito(prev => prev.map(item => {
+            if (item.id_fila !== id_fila) return item;
+            if (valor === '') {
+                return { ...item, cantidad_entregada: '' };
+            }
+            const cantidadEntregada = Math.max(0, Math.min(Number(valor) || 0, item.cantidad));
+            return { ...item, cantidad_entregada: cantidadEntregada };
+        }));
+    };
+
+    const confirmarCantidadEntregada = (id_fila) => {
+        setCarrito(prev => prev.map(item => {
+            if (item.id_fila !== id_fila || item.cantidad_entregada !== '') return item;
+            return { ...item, cantidad_entregada: 0 };
+        }));
     };
 
     // --- STOCK DISPONIBLE POR FILA DEL CARRITO (para marcar en rojo y bloquear el guardado) ---
@@ -231,7 +251,8 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                     cantidad: Number(item.cantidad),
                     precio_unitario: Number(item.precio_unitario),
                     precio_vacio: Number(item.precio_vacio),
-                    subtotal: Number(item.subtotal)
+                    subtotal: Number(item.subtotal),
+                    cantidad_entregada: Number(item.cantidad_entregada || 0)
                 }))
             };
 
@@ -389,13 +410,14 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                                     <th style={{ padding: '10px' }}>$ Precio</th>
                                     <th style={{ padding: '10px' }}>$ Vacío</th>
                                     <th style={{ padding: '10px' }}>Subtotal</th>
+                                    {entregado === 'PARCIAL' && <th style={{ padding: '10px' }}>Entregado</th>}
                                     <th style={{ padding: '10px' }} />
                                 </tr>
                             </thead>
                             <tbody>
                                 {carrito.length === 0 ? (
                                     <tr>
-                                        <td colSpan="6" style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)' }}>No hay productos.</td>
+                                        <td colSpan={entregado === 'PARCIAL' ? 7 : 6} style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)' }}>No hay productos.</td>
                                     </tr>
                                 ) : (
                                     carrito.map(fila => {
@@ -446,6 +468,20 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                                                 {Number(fila.subtotal || 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}
                                             </td>
 
+                                            {/* Cantidad Entregada (solo en modo Entrega Parcial) */}
+                                            {entregado === 'PARCIAL' && (
+                                                <td style={{ padding: '10px' }}>
+                                                    <input
+                                                        type="number" min="0" max={fila.cantidad} step="0.5"
+                                                        value={fila.cantidad_entregada}
+                                                        onChange={(e) => actualizarCantidadEntregada(fila.id_fila, e.target.value)}
+                                                        onBlur={() => confirmarCantidadEntregada(fila.id_fila)}
+                                                        style={{ width: '70px', padding: '4px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', textAlign: 'center', backgroundColor: 'var(--surface)', color: 'var(--text-primary)', outline: 'none' }}
+                                                    />
+                                                    <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}> / {fila.cantidad}</span>
+                                                </td>
+                                            )}
+
                                             {/* Botón Borrar */}
                                             <td style={{ padding: '10px', textAlign: 'center' }}>
                                                 <button 
@@ -493,13 +529,36 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                             <option value="OTROS">Otros</option>
                         </select>
 
-                        <input
-                            id='checkbox_entregado_edit' type="checkbox" checked={entregado === 'ENTREGADO'}
-                            onChange={(e) => setEntregado(e.target.checked ? 'ENTREGADO' : 'NO_ENTREGADO')}
-                        />
-                        <label htmlFor='checkbox_entregado_edit' style={{ cursor: 'pointer' }}>
-                            Entregado
-                        </label>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontWeight: 'normal' }}>
+                                <input
+                                    type="radio"
+                                    name="estadoEntregaEdit"
+                                    checked={entregado === 'NO_ENTREGADO'}
+                                    onChange={() => setEntregado('NO_ENTREGADO')}
+                                />
+                                No Entregado
+                            </label>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontWeight: 'normal' }}>
+                                <input
+                                    type="radio"
+                                    name="estadoEntregaEdit"
+                                    checked={entregado === 'ENTREGADO'}
+                                    onChange={() => setEntregado('ENTREGADO')}
+                                />
+                                Entregado
+                            </label>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontWeight: 'normal' }}>
+                                <input
+                                    type="radio"
+                                    name="estadoEntregaEdit"
+                                    checked={entregado === 'PARCIAL'}
+                                    onChange={() => setEntregado('PARCIAL')}
+                                    disabled={carrito.length === 0}
+                                />
+                                Entrega Parcial
+                            </label>
+                        </div>
                     </div>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

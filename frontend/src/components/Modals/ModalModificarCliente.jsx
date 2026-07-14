@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import AlertaConfirmacion from '../Alertas/AlertaConfirmacion';
+import CampoDirecciones from './CampoDirecciones';
 import { HiOutlinePencilSquare } from 'react-icons/hi2';
 import '../Estilos/Modal.css';
 import '../Estilos/Botones.css';
@@ -8,17 +9,26 @@ function ModalModificarCliente({ cerrarModal, cliente, onClienteModificado }) {
 
     const [nombre, setNombre] = useState(cliente?.nombre || '');
     const [documento, setDocumento] = useState(cliente?.documento || '');
-    const [direccion, setDireccion] = useState(cliente?.direccion || '');
+    const [tipoCliente, setTipoCliente] = useState(cliente?.tipoCliente || 'PERSONA');
+    const [direcciones, setDirecciones] = useState(cliente?.direcciones || []);
     const [telefono, setTelefono] = useState(cliente?.telefono || '');
 
     const [error, setError] = useState('');
     const [guardando, setGuardando] = useState(false);
     const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
 
+    const cambiarTipoCliente = (nuevoTipo) => {
+        setTipoCliente(nuevoTipo);
+        if (nuevoTipo === 'PERSONA' && direcciones.length > 1) {
+            setDirecciones(direcciones.slice(0, 1));
+        }
+    };
+
     const huboModificacion = () => {
         return nombre.trim() !== (cliente?.nombre || '').trim()
             || documento.trim() !== (cliente?.documento || '').trim()
-            || direccion.trim() !== (cliente?.direccion || '').trim()
+            || tipoCliente !== (cliente?.tipoCliente || 'PERSONA')
+            || JSON.stringify(direcciones) !== JSON.stringify(cliente?.direcciones || [])
             || telefono.trim() !== (cliente?.telefono || '').trim();
     };
 
@@ -51,7 +61,7 @@ function ModalModificarCliente({ cerrarModal, cliente, onClienteModificado }) {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ nombre, documento, direccion, telefono })
+                body: JSON.stringify({ nombre, documento, tipoCliente, direcciones, telefono })
             });
 
             if (!respuesta.ok) {
@@ -105,12 +115,22 @@ function ModalModificarCliente({ cerrarModal, cliente, onClienteModificado }) {
                     </div>
 
                     <div className="form-group">
-                        <label>Direccion:</label>
-                        <input
-                            type="text"
-                            placeholder="Opcional"
-                            value={direccion}
-                            onChange={(e) => setDireccion(e.target.value)}
+                        <label>Tipo de Cliente:</label>
+                        <select
+                            value={tipoCliente}
+                            onChange={(e) => cambiarTipoCliente(e.target.value)}
+                        >
+                            <option value="PERSONA">Persona</option>
+                            <option value="SUPERMERCADO">Supermercado</option>
+                        </select>
+                    </div>
+
+                    <div className="form-group">
+                        <label>{tipoCliente === 'SUPERMERCADO' ? 'Sucursales:' : 'Direccion:'}</label>
+                        <CampoDirecciones
+                            direcciones={direcciones}
+                            onChange={setDirecciones}
+                            multiple={tipoCliente === 'SUPERMERCADO'}
                         />
                     </div>
 

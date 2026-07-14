@@ -10,6 +10,7 @@ import {
     HiOutlineSun,
     HiOutlineMoon,
     HiOutlineShoppingBag,
+    HiOutlineCog6Tooth,
 } from 'react-icons/hi2';
 import './Estilos/Sidebar.css';
 
@@ -26,6 +27,7 @@ function Sidebar({
     abrirModalCliente,
     abrirVistaBuscarBoletas,
     abrirVistaEstadisticas,
+    abrirVistaConfiguracion,
     planillaActiva,
     abrirPlanilla,
 }) {
@@ -78,6 +80,13 @@ function Sidebar({
             icono: HiOutlineChartBar,
             activaEn: ['estadisticas'],
             onClick: abrirVistaEstadisticas,
+        },
+        {
+            id: 'configuracion',
+            label: 'Configuración',
+            icono: HiOutlineCog6Tooth,
+            activaEn: ['configuracion'],
+            onClick: abrirVistaConfiguracion,
         },
     ];
 

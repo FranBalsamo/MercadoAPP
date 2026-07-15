@@ -14,6 +14,7 @@ import VistaClienteDeudas from "./components/Vistas/VistaClienteDeudas";
 import VistaEstadisticas from "./components/Vistas/VistaEstadisticas";
 import VistaBuscarBoletas from "./components/Vistas/VistaBuscarBoletas";
 import VistaConfiguracion from "./components/Vistas/VistaConfiguracion";
+import PantallaCarga from "./components/PantallaCarga";
 
 import "./components/Estilos/tokens.css";
 import "./App.css";
@@ -42,9 +43,39 @@ function App() {
   const [actualizarClientes, setActualizarClientes] = useState(0);
   const [actualizarProductos, setActualizarProductos] = useState(0);
 
+  // El backend (y en la app instalada, tambien la base local) arrancan en paralelo a la ventana:
+  // hasta que no responda, no tiene sentido mostrar la app (fetches fallando en cascada).
+  const [backendListo, setBackendListo] = useState(false);
+  const [tardandoMucho, setTardandoMucho] = useState(false);
+
+  useEffect(() => {
+    let cancelado = false;
+    const inicioEspera = Date.now();
+
+    const revisarBackend = async () => {
+      try {
+        const respuesta = await fetch('http://localhost:8080/api/sistema/db-info');
+        if (respuesta.ok) {
+          if (!cancelado) setBackendListo(true);
+          return;
+        }
+      } catch (error) {
+        // El backend todavia no esta arriba; se reintenta mas abajo.
+      }
+      if (!cancelado) {
+        if (Date.now() - inicioEspera > 15000) setTardandoMucho(true);
+        setTimeout(revisarBackend, 800);
+      }
+    };
+
+    revisarBackend();
+    return () => { cancelado = true; };
+  }, []);
+
   // Al iniciar la app buscamos si quedó una planilla abierta de una sesión anterior
   // (por ejemplo, si se cerró el programa sin cerrar la caja), para no perder ese estado.
   useEffect(() => {
+    if (!backendListo) return;
     const buscarPlanillaAbierta = async () => {
       try {
         const respuesta = await fetch('http://localhost:8080/api/planilla/abierta');
@@ -57,7 +88,7 @@ function App() {
       }
     };
     buscarPlanillaAbierta();
-  }, []);
+  }, [backendListo]);
 
   const avisarRecargaClientes = () => {
     setActualizarClientes(prev => prev + 1);
@@ -200,6 +231,10 @@ function App() {
       abrirPlanillaCerrada={abrirPlanillaCerrada}
       planilla={planillaActiva}
     />
+  }
+
+  if (!backendListo) {
+    return <PantallaCarga tardandoMucho={tardandoMucho} />;
   }
 
   return (

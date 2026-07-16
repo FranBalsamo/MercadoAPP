@@ -3,7 +3,7 @@ import { HiOutlineShoppingBag } from 'react-icons/hi2';
 function PantallaCarga({ tardandoMucho }) {
     return (
         <div style={{
-            width: '100vw', height: '100vh',
+            width: '100%', height: '100%',
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             gap: '16px', backgroundColor: 'var(--bg)'
         }}>

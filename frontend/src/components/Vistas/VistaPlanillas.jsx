@@ -77,7 +77,7 @@ function VistaPlanillas({ abrirPlanilla, abrirPlanillaCerrada }) {
         <main style={{
             padding: '20px',
             backgroundColor: 'var(--bg)',
-            height: '100vh',
+            height: '100%',
             display: 'flex',
             flexDirection: 'column',
             gap: '15px',

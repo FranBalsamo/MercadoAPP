@@ -94,12 +94,12 @@ function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBol
 
     const intentarEliminar = (boleta) => {
         const estaPagada = boleta.estadoPago === 'PAGADO';
-        const estaEntregada = boleta.estadoEntrega === 'ENTREGADO';
+        const estaEntregada = boleta.estadoEntrega !== 'NO_ENTREGADO';
 
         if (estaPagada || estaEntregada) {
             const motivos = [];
             if (estaPagada) motivos.push('Pagada');
-            if (estaEntregada) motivos.push('Entregada');
+            if (estaEntregada) motivos.push(boleta.estadoEntrega === 'PARCIAL' ? 'Entregada parcialmente' : 'Entregada');
 
             setMensajeAlerta(`La boleta #${boleta.id} no puede ser eliminada porque está ${motivos.join(' y ')}.`);
             return;

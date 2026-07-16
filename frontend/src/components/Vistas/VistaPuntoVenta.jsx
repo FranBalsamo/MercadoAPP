@@ -206,7 +206,7 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
         <main style={{
             padding: '20px',
             backgroundColor: 'var(--bg)',
-            height: '100vh',
+            height: '100%',
             overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column'

@@ -128,7 +128,7 @@ function VistaInicio({ abrirModalPlanilla, abrirPlanilla, abrirPlanillaCerrada, 
     };
 
     return (
-        <main style={{ padding: '24px', backgroundColor: 'var(--bg)', minHeight: '100vh', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <main style={{ padding: '24px', backgroundColor: 'var(--bg)', minHeight: '100%', display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
             {/* FILA 1: TARJETAS KPI + ACCIÓN RÁPIDA */}
             <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>

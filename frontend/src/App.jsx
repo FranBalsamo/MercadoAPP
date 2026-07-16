@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import reactLogo from "./assets/react.svg";
+import TitleBar from "./components/TitleBar";
 import Sidebar from "./components/Sidebar"
 import ModalProducto from "./components/Modals/ModalProducto";
 import ModalCliente from "./components/Modals/ModalCliente";
@@ -234,45 +235,55 @@ function App() {
   }
 
   if (!backendListo) {
-    return <PantallaCarga tardandoMucho={tardandoMucho} />;
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+        <TitleBar />
+        <div style={{ flex: 1, minHeight: 0 }}>
+          <PantallaCarga tardandoMucho={tardandoMucho} />
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div style={{ display: 'flex' }}>
-      <Sidebar
-        vistaActiva={vistaActiva}
-        tema={tema}
-        alternarTema={alternarTema}
-        volverInicio={volverInicio}
-        abrirModalProducto={abrirModalProd}
-        abrirModalCliente={abrirModalCliente}
-        abrirModalPlanilla={abrirModalPlanilla}
-        abrirVistaClientes={abrirVistaClientes}
-        abrirVistaPlanillas={abrirVistaPlanillas}
-        abrirVistaProductos={abrirVistaProductos}
-        abrirVistaEstadisticas={abrirVistaEstadisticas}
-        abrirVistaBuscarBoletas={abrirVistaBuscarBoletas}
-        abrirVistaConfiguracion={abrirVistaConfiguracion}
-        planillaActiva={planillaActiva}
-        abrirPlanilla={abrirPlanilla}
-      />
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+      <TitleBar />
+      <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
+        <Sidebar
+          vistaActiva={vistaActiva}
+          tema={tema}
+          alternarTema={alternarTema}
+          volverInicio={volverInicio}
+          abrirModalProducto={abrirModalProd}
+          abrirModalCliente={abrirModalCliente}
+          abrirModalPlanilla={abrirModalPlanilla}
+          abrirVistaClientes={abrirVistaClientes}
+          abrirVistaPlanillas={abrirVistaPlanillas}
+          abrirVistaProductos={abrirVistaProductos}
+          abrirVistaEstadisticas={abrirVistaEstadisticas}
+          abrirVistaBuscarBoletas={abrirVistaBuscarBoletas}
+          abrirVistaConfiguracion={abrirVistaConfiguracion}
+          planillaActiva={planillaActiva}
+          abrirPlanilla={abrirPlanilla}
+        />
 
-      <div style={{ flexGrow: 1, minWidth: 0 }}>
-        {MostrarVistas()}
+        <div style={{ flexGrow: 1, minWidth: 0, overflowY: 'auto' }}>
+          {MostrarVistas()}
+        </div>
+
+        {mostrarModalProd && <ModalProducto
+          cerrarModal={cerrarModalProd}
+          onProductoAgregado={avisarRecargaProductos}
+        />}
+        {mostrarModalCliente && <ModalCliente
+          cerrarModal={cerrarModalCliente}
+          onClienteAgregado={avisarRecargaClientes}
+        />}
+        {mostrarModalPlanilla && <ModalPlanilla
+          cerrarModal={cerrarModalPlanilla}
+          onPlanillaCreada={abrirPlanilla}
+        />}
       </div>
-
-      {mostrarModalProd && <ModalProducto
-        cerrarModal={cerrarModalProd}
-        onProductoAgregado={avisarRecargaProductos}
-      />}
-      {mostrarModalCliente && <ModalCliente
-        cerrarModal={cerrarModalCliente}
-        onClienteAgregado={avisarRecargaClientes}
-      />}
-      {mostrarModalPlanilla && <ModalPlanilla
-        cerrarModal={cerrarModalPlanilla}
-        onPlanillaCreada={abrirPlanilla}
-      />}
     </div>
   );
 }

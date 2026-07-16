@@ -8,6 +8,8 @@ import ModalVerBoleta from '../Modals/ModalVerBoleta';
 import AlertaEmergente from '../Alertas/AlertaEmergente';
 import { formatearFechaVisual } from '../../utils/formatoFecha';
 import { HiOutlineLockClosed, HiOutlineDocumentArrowDown, HiOutlineCube, HiOutlineTicket } from 'react-icons/hi2';
+import SelectPersonalizado from '../UI/SelectPersonalizado';
+import '../Estilos/Formularios.css';
 import '../Estilos/Botones.css';
 
 const capitalizar = (texto) => {
@@ -420,24 +422,26 @@ function VistaPlanillaCerrada({ planilla, volver }) {
                         onChange={(e) => setBusquedaCliente(e.target.value)}
                         style={{ flex: 1, minWidth: '200px', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', outline: 'none', fontSize: '0.95rem', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
                     />
-                    <select
+                    <SelectPersonalizado
                         value={filtroPago}
                         onChange={(e) => setFiltroPago(e.target.value)}
-                        style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', outline: 'none', fontSize: '0.95rem', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
-                    >
-                        <option value="">Todos los pagos</option>
-                        <option value="PAGADO">Pagado</option>
-                        <option value="NO_PAGADO">No Pagado</option>
-                    </select>
-                    <select
+                        opciones={[
+                            { value: '', label: 'Todos los pagos' },
+                            { value: 'PAGADO', label: 'Pagado' },
+                            { value: 'NO_PAGADO', label: 'No Pagado' },
+                        ]}
+                        style={{ width: '160px' }}
+                    />
+                    <SelectPersonalizado
                         value={filtroEntrega}
                         onChange={(e) => setFiltroEntrega(e.target.value)}
-                        style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', outline: 'none', fontSize: '0.95rem', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
-                    >
-                        <option value="">Todas las entregas</option>
-                        <option value="ENTREGADO">Entregado</option>
-                        <option value="NO_ENTREGADO">No Entregado</option>
-                    </select>
+                        opciones={[
+                            { value: '', label: 'Todas las entregas' },
+                            { value: 'ENTREGADO', label: 'Entregado' },
+                            { value: 'NO_ENTREGADO', label: 'No Entregado' },
+                        ]}
+                        style={{ width: '170px' }}
+                    />
                 </div>
 
                 {cargando ? (

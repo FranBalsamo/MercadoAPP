@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { HiOutlinePlusCircle } from 'react-icons/hi2';
+import SelectPersonalizado from '../UI/SelectPersonalizado';
 import '../Estilos/Modal.css';
 import '../Estilos/Botones.css';
+import '../Estilos/Formularios.css';
 
 function ModalAgregarProducto({ cerrarModal, planilla, catalogoProductos, stockProductos, onStockAgregado }) {
     // Iniciamos con una fila vacía por defecto
@@ -121,32 +123,25 @@ function ModalAgregarProducto({ cerrarModal, planilla, catalogoProductos, stockP
                         {filas.map((fila, index) => (
                             <div key={fila.id_fila} style={{ display: 'flex', gap: '10px', alignItems: 'center', backgroundColor: 'var(--surface-2)', padding: '10px', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}>
 
-                                <select
-                                    style={{ flex: 2, padding: '8px', textTransform: 'capitalize', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', outline: 'none', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
+                                <SelectPersonalizado
+                                    style={{ flex: 2 }}
                                     value={fila.id_producto}
                                     onChange={(e) => actualizarFila(index, 'id_producto', e.target.value)}
-                                >
-                                    <option value="">-- Seleccionar Producto --</option>
-                                    
-                                    {catalogoOrdenado.map(prod => {
-                                        const idString = String(prod.id);
-                                        const yaEnPlanilla = idsYaEnPlanilla.includes(idString);
-                                        const yaSeleccionadoAqui = idsSeleccionadosModal.includes(idString);
-                                        const esMiSeleccion = String(fila.id_producto) === idString;
-
-                                        // SOLO mostramos la opción si:
-                                        // 1. NO está cargado previamente en la planilla.
-                                        // 2. Y (NO lo seleccioné en otra fila de este modal, o es el que tengo seleccionado actualmente).
-                                        if (!yaEnPlanilla && (!yaSeleccionadoAqui || esMiSeleccion)) {
-                                            return (
-                                                <option key={prod.id} value={prod.id} style={{ textTransform: 'capitalize' }}>
-                                                    {prod.nombre}
-                                                </option>
-                                            );
-                                        }
-                                        return null;
-                                    })}
-                                </select>
+                                    placeholder="-- Seleccionar Producto --"
+                                    opciones={catalogoOrdenado
+                                        .filter(prod => {
+                                            const idString = String(prod.id);
+                                            const yaEnPlanilla = idsYaEnPlanilla.includes(idString);
+                                            const yaSeleccionadoAqui = idsSeleccionadosModal.includes(idString);
+                                            const esMiSeleccion = String(fila.id_producto) === idString;
+                                            // SOLO mostramos la opción si:
+                                            // 1. NO está cargado previamente en la planilla.
+                                            // 2. Y (NO lo seleccioné en otra fila de este modal, o es el que tengo seleccionado actualmente).
+                                            return !yaEnPlanilla && (!yaSeleccionadoAqui || esMiSeleccion);
+                                        })
+                                        .map(prod => ({ value: prod.id, label: prod.nombre }))}
+                                    capitalizarOpciones
+                                />
 
                                 <input
                                     type="number"

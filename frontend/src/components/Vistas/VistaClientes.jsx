@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import ModalModificarCliente from '../Modals/ModalModificarCliente';
 import ModalModificarSaldoCliente from '../Modals/ModalModificarSaldoCliente';
 import { HiOutlineUsers } from 'react-icons/hi2';
+import SelectPersonalizado from '../UI/SelectPersonalizado';
 import '../Estilos/Botones.css';
+import '../Estilos/Formularios.css';
 
 const formatearMoneda = (val) => {
     return (val ?? 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
@@ -127,6 +129,7 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCl
                     <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.95rem', color: 'var(--text-secondary)' }}>
                         <input
                             type="radio"
+                            className="radio-personalizado"
                             name="filtroCliente"
                             checked={metodoFiltro === "nombre"}
                             onChange={() => {
@@ -141,6 +144,7 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCl
                     <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.95rem', color: 'var(--text-secondary)' }}>
                         <input
                             type="radio"
+                            className="radio-personalizado"
                             name="filtroCliente"
                             checked={metodoFiltro === "documento"}
                             onChange={() => {
@@ -155,6 +159,7 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCl
                     <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.95rem', color: 'var(--text-secondary)' }}>
                         <input
                             type="radio"
+                            className="radio-personalizado"
                             name="filtroCliente"
                             checked={metodoFiltro === "tipo"}
                             onChange={() => {
@@ -167,24 +172,16 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCl
 
                     {/* Input de Búsqueda (texto, o select cuando el filtro es por Tipo) */}
                     {metodoFiltro === 'tipo' ? (
-                        <select
+                        <SelectPersonalizado
                             value={busqueda}
                             onChange={(e) => setBusqueda(e.target.value)}
-                            style={{
-                                flex: 1,
-                                border: '1px solid var(--border)',
-                                borderRadius: 'var(--radius-sm)',
-                                padding: '8px 12px',
-                                outline: 'none',
-                                fontSize: '0.95rem',
-                                backgroundColor: 'var(--surface)',
-                                color: 'var(--text-primary)'
-                            }}
-                        >
-                            <option value="">Todos</option>
-                            <option value="PERSONA">Persona</option>
-                            <option value="SUPERMERCADO">Supermercado</option>
-                        </select>
+                            opciones={[
+                                { value: '', label: 'Todos' },
+                                { value: 'PERSONA', label: 'Persona' },
+                                { value: 'SUPERMERCADO', label: 'Supermercado' },
+                            ]}
+                            style={{ flex: 1 }}
+                        />
                     ) : (
                         <input
                             type="text"

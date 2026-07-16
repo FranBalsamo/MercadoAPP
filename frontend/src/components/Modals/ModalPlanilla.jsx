@@ -1,6 +1,8 @@
 import {useState, useEffect} from 'react';
+import SelectPersonalizado from '../UI/SelectPersonalizado';
 import '../Estilos/Modal.css';
-import '../Estilos/Botones.css'; 
+import '../Estilos/Botones.css';
+import '../Estilos/Formularios.css';
 
 function ModalPlanilla({cerrarModal, onPlanillaCreada}) {
     
@@ -127,34 +129,22 @@ function ModalPlanilla({cerrarModal, onPlanillaCreada}) {
                     {stockDiario.map((fila,index) => (
                         <div key={fila.id_fila} style={{display: 'flex', gap: '10px', marginBotton: '10px'}}>
 
-                            <select
-                                style={{ flex: 2, padding: '8px', textTransform:'capitalize', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
-                                values={fila.id_producto}
+                            <SelectPersonalizado
+                                style={{ flex: 2 }}
+                                value={fila.id_producto}
                                 onChange={(e) => actualizarFila(index, 'id_producto', e.target.value)}
-                            >
-                                <option value="">Seleccionar Producto</option>
-                                    {productosDB
-                                        .sort((a, b) => a.nombre.localeCompare(b.nombre))
-                                        .map(prod => {
-                                            const idProdString = String(prod.id);
-                                            const estaEnUso = idsEnUso.includes(idProdString);
-                                            const esMiSeleccion = String(fila.id_producto) === idProdString;
-
-                                            if (!estaEnUso || esMiSeleccion) {
-                                                return (
-                                                    <option
-                                                        key={prod.id}
-                                                        value={prod.id}
-                                                        style={{textTransform:'capitalize'}}
-                                                    >
-                                                        {prod.nombre}
-                                                    </option>
-                                                );
-                                            }
-                                            return null;
-                                        })
-                                    }
-                            </select>
+                                placeholder="Seleccionar Producto"
+                                opciones={[...productosDB]
+                                    .sort((a, b) => a.nombre.localeCompare(b.nombre))
+                                    .filter(prod => {
+                                        const idProdString = String(prod.id);
+                                        const estaEnUso = idsEnUso.includes(idProdString);
+                                        const esMiSeleccion = String(fila.id_producto) === idProdString;
+                                        return !estaEnUso || esMiSeleccion;
+                                    })
+                                    .map(prod => ({ value: prod.id, label: prod.nombre }))}
+                                capitalizarOpciones
+                            />
                             
                             <input
                                 type="number"

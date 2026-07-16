@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { formatearFechaVisual } from '../../utils/formatoFecha';
 import { HiOutlineCheckCircle, HiOutlineTicket, HiOutlineBanknotes, HiOutlineCalendarDays } from 'react-icons/hi2';
+import SelectPersonalizado from '../UI/SelectPersonalizado';
 import '../Estilos/Modal.css';
 import '../Estilos/Botones.css';
+import '../Estilos/Formularios.css';
 
 function ModalResumenCobro({ cliente, boletasSeleccionadas, nombreProducto, fechaPlanilla, formatearMoneda, cerrarModal, onCobroConfirmado }) {
     const [formaPago, setFormaPago] = useState('EFECTIVO');
@@ -139,16 +141,17 @@ function ModalResumenCobro({ cliente, boletasSeleccionadas, nombreProducto, fech
 
                         <div className="form-group" style={{ maxWidth: '260px' }}>
                             <label>Forma de pago:</label>
-                            <select
+                            <SelectPersonalizado
                                 value={formaPago}
                                 onChange={(e) => setFormaPago(e.target.value)}
-                                style={{ padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
-                            >
-                                <option value="EFECTIVO">Efectivo</option>
-                                <option value="MERCADO_PAGO">Mercado Pago</option>
-                                <option value="TRANSFERENCIA_BANCARIA">Transferencia Bancaria</option>
-                                <option value="OTROS">Otros</option>
-                            </select>
+                                opciones={[
+                                    { value: 'EFECTIVO', label: 'Efectivo' },
+                                    { value: 'MERCADO_PAGO', label: 'Mercado Pago' },
+                                    { value: 'TRANSFERENCIA_BANCARIA', label: 'Transferencia Bancaria' },
+                                    { value: 'OTROS', label: 'Otros' },
+                                ]}
+                                style={{ width: '100%' }}
+                            />
                         </div>
 
                         {usarSaldoFavor && (

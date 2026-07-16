@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { HiOutlineUserCircle } from 'react-icons/hi2';
 import CampoDirecciones from './CampoDirecciones';
+import SelectPersonalizado from '../UI/SelectPersonalizado';
 import '../Estilos/Modal.css';
 import '../Estilos/Botones.css';
+import '../Estilos/Formularios.css';
 
 function ModalCliente({ cerrarModal, onClienteAgregado }) {
 
@@ -110,13 +112,15 @@ function ModalCliente({ cerrarModal, onClienteAgregado }) {
 
                     <div className="form-group">
                         <label>Tipo de Cliente:</label>
-                        <select
+                        <SelectPersonalizado
                             value={tipoCliente}
                             onChange={(e) => cambiarTipoCliente(e.target.value)}
-                        >
-                            <option value="PERSONA">Persona</option>
-                            <option value="SUPERMERCADO">Supermercado</option>
-                        </select>
+                            opciones={[
+                                { value: 'PERSONA', label: 'Persona' },
+                                { value: 'SUPERMERCADO', label: 'Supermercado' },
+                            ]}
+                            style={{ width: '100%' }}
+                        />
                     </div>
 
                     <div className="form-group">

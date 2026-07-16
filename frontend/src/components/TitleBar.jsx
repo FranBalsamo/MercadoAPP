@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import {
     HiOutlineShoppingBag,
@@ -9,12 +9,23 @@ import {
 } from 'react-icons/hi2';
 import './Estilos/TitleBar.css';
 
-const ventana = getCurrentWindow();
-
 function TitleBar() {
+    // getCurrentWindow() explota si no hay un puente real de Tauri (por ej. abriendo
+    // el servidor de Vite en un navegador comun mientras se desarrolla la UI). Lo
+    // resolvemos de forma defensiva para que la barra se vea bien en ambos casos,
+    // aunque los botones solo hagan algo dentro de la app de escritorio real.
+    const ventana = useMemo(() => {
+        try {
+            return getCurrentWindow();
+        } catch {
+            return null;
+        }
+    }, []);
+
     const [maximizada, setMaximizada] = useState(false);
 
     useEffect(() => {
+        if (!ventana) return;
         let cancelado = false;
 
         ventana.isMaximized().then((valor) => {
@@ -31,14 +42,14 @@ function TitleBar() {
             cancelado = true;
             desuscribir.then((fn) => fn());
         };
-    }, []);
+    }, [ventana]);
 
     return (
         <header className="titlebar">
             <div
                 className="titlebar-drag"
                 data-tauri-drag-region
-                onDoubleClick={() => ventana.toggleMaximize()}
+                onDoubleClick={() => ventana?.toggleMaximize()}
             >
                 <span className="titlebar-icono"><HiOutlineShoppingBag /></span>
                 <span className="titlebar-texto">MercadoApp</span>
@@ -47,7 +58,7 @@ function TitleBar() {
             <div className="titlebar-controles">
                 <button
                     className="titlebar-boton"
-                    onClick={() => ventana.minimize()}
+                    onClick={() => ventana?.minimize()}
                     title="Minimizar"
                     aria-label="Minimizar"
                 >
@@ -55,7 +66,7 @@ function TitleBar() {
                 </button>
                 <button
                     className="titlebar-boton"
-                    onClick={() => ventana.toggleMaximize()}
+                    onClick={() => ventana?.toggleMaximize()}
                     title={maximizada ? 'Restaurar' : 'Maximizar'}
                     aria-label={maximizada ? 'Restaurar' : 'Maximizar'}
                 >
@@ -63,7 +74,7 @@ function TitleBar() {
                 </button>
                 <button
                     className="titlebar-boton titlebar-boton-cerrar"
-                    onClick={() => ventana.close()}
+                    onClick={() => ventana?.close()}
                     title="Cerrar"
                     aria-label="Cerrar"
                 >

@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import '../Estilos/Modal.css';
 import '../Estilos/Botones.css';
 import InputMoneda from './InputMoneda';
+import SelectPersonalizado from '../UI/SelectPersonalizado';
+import SelectorEstadoEntrega from '../UI/SelectorEstadoEntrega';
 import { HiOutlinePencilSquare, HiOutlineUserCircle, HiOutlineArrowPath } from 'react-icons/hi2';
 
 function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogoProductos, onBoletaEditada }) {
@@ -326,23 +328,19 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                             <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', marginBottom: '10px', backgroundColor: 'var(--surface-2)', padding: '10px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', flexWrap: 'wrap' }}>
                                 <div style={{ flex: '2 1 200px' }}>
                                     <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Producto:</label>
-                                    <select
+                                    <SelectPersonalizado
                                         value={idProducto}
                                         onChange={(e) => setIdProducto(e.target.value)}
-                                        style={{ width: '100%', padding: '8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', textTransform: 'capitalize', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
-                                    >
-                                        <option value="">-- Seleccionar --</option>
-                                        {stockProductos.map(item => {
-                                            const prod = catalogoProductos?.find(p => String(p.id) === String(item.id_producto));
-                                            const disp = item.stock - item.stock_vendido;
-                                            if (disp > 0)
-                                                return (
-                                                    <option key={item.id_producto} value={item.id_producto}>
-                                                        {prod ? prod.nombre : `Prod #${item.id_producto}`}
-                                                    </option>
-                                                );
-                                        })}
-                                    </select>
+                                        placeholder="-- Seleccionar --"
+                                        opciones={stockProductos
+                                            .filter(item => (item.stock - item.stock_vendido) > 0)
+                                            .map(item => {
+                                                const prod = catalogoProductos?.find(p => String(p.id) === String(item.id_producto));
+                                                return { value: item.id_producto, label: prod ? prod.nombre : `Prod #${item.id_producto}` };
+                                            })}
+                                        style={{ width: '100%' }}
+                                        capitalizarOpciones
+                                    />
                                 </div>
 
                                 <div style={{ flex: '1 1 80px' }}>
@@ -513,52 +511,27 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                             Pagado
                         </label>
 
-                        <select
+                        <SelectPersonalizado
                             value={formaPago}
                             onChange={(e) => setFormaPago(e.target.value)}
                             disabled={pagado !== 'PAGADO'}
+                            opciones={[
+                                { value: 'EFECTIVO', label: 'Efectivo' },
+                                { value: 'MERCADO_PAGO', label: 'Mercado Pago' },
+                                { value: 'TRANSFERENCIA_BANCARIA', label: 'Transferencia Bancaria' },
+                                { value: 'OTROS', label: 'Otros' },
+                            ]}
                             style={{
-                                padding: '5px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', fontWeight: 'normal', marginRight: '30px',
-                                backgroundColor: 'var(--surface)', color: 'var(--text-primary)',
+                                width: '190px', marginRight: '30px',
                                 visibility: pagado === 'PAGADO' ? 'visible' : 'hidden'
                             }}
-                        >
-                            <option value="EFECTIVO">Efectivo</option>
-                            <option value="MERCADO_PAGO">Mercado Pago</option>
-                            <option value="TRANSFERENCIA_BANCARIA">Transferencia Bancaria</option>
-                            <option value="OTROS">Otros</option>
-                        </select>
+                        />
 
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontWeight: 'normal' }}>
-                                <input
-                                    type="radio"
-                                    name="estadoEntregaEdit"
-                                    checked={entregado === 'NO_ENTREGADO'}
-                                    onChange={() => setEntregado('NO_ENTREGADO')}
-                                />
-                                No Entregado
-                            </label>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontWeight: 'normal' }}>
-                                <input
-                                    type="radio"
-                                    name="estadoEntregaEdit"
-                                    checked={entregado === 'ENTREGADO'}
-                                    onChange={() => setEntregado('ENTREGADO')}
-                                />
-                                Entregado
-                            </label>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontWeight: 'normal' }}>
-                                <input
-                                    type="radio"
-                                    name="estadoEntregaEdit"
-                                    checked={entregado === 'PARCIAL'}
-                                    onChange={() => setEntregado('PARCIAL')}
-                                    disabled={carrito.length === 0}
-                                />
-                                Entrega Parcial
-                            </label>
-                        </div>
+                        <SelectorEstadoEntrega
+                            value={entregado}
+                            onChange={setEntregado}
+                            deshabilitarParcial={carrito.length === 0}
+                        />
                     </div>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

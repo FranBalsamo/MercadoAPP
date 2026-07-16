@@ -2,7 +2,10 @@ import { useState, useEffect } from 'react';
 import ModalBuscarCliente from '../Modals/ModalBuscarCliente';
 import { formatearFechaVisual } from '../../utils/formatoFecha';
 import { HiOutlineMagnifyingGlass, HiOutlineTicket } from 'react-icons/hi2';
+import SelectPersonalizado from '../UI/SelectPersonalizado';
+import SelectorFecha from '../UI/SelectorFecha';
 import '../Estilos/Botones.css';
+import '../Estilos/Formularios.css';
 
 const NOMBRES_FORMA_PAGO = {
     EFECTIVO: 'Efectivo',
@@ -151,6 +154,7 @@ function VistaBuscarBoletas() {
                     <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', color: 'var(--text-secondary)' }}>
                         <input
                             type="radio"
+                            className="radio-personalizado"
                             name="metodoFiltroBoletas"
                             checked={metodoFiltro === 'cliente'}
                             onChange={() => cambiarMetodoFiltro('cliente')}
@@ -161,6 +165,7 @@ function VistaBuscarBoletas() {
                     <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', color: 'var(--text-secondary)' }}>
                         <input
                             type="radio"
+                            className="radio-personalizado"
                             name="metodoFiltroBoletas"
                             checked={metodoFiltro === 'fecha'}
                             onChange={() => cambiarMetodoFiltro('fecha')}
@@ -168,25 +173,27 @@ function VistaBuscarBoletas() {
                         Rango de Fechas
                     </label>
 
-                    <select
+                    <SelectPersonalizado
                         value={filtroPago}
                         onChange={(e) => setFiltroPago(e.target.value)}
-                        style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', outline: 'none', fontSize: '0.95rem', marginLeft: 'auto', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
-                    >
-                        <option value="">Todos los pagos</option>
-                        <option value="PAGADO">Pagadas</option>
-                        <option value="NO_PAGADO">No Pagadas</option>
-                    </select>
+                        opciones={[
+                            { value: '', label: 'Todos los pagos' },
+                            { value: 'PAGADO', label: 'Pagadas' },
+                            { value: 'NO_PAGADO', label: 'No Pagadas' },
+                        ]}
+                        style={{ marginLeft: 'auto', width: '160px' }}
+                    />
 
-                    <select
+                    <SelectPersonalizado
                         value={filtroEntrega}
                         onChange={(e) => setFiltroEntrega(e.target.value)}
-                        style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', outline: 'none', fontSize: '0.95rem', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
-                    >
-                        <option value="">Todas las entregas</option>
-                        <option value="ENTREGADO">Entregadas</option>
-                        <option value="NO_ENTREGADO">No Entregadas</option>
-                    </select>
+                        opciones={[
+                            { value: '', label: 'Todas las entregas' },
+                            { value: 'ENTREGADO', label: 'Entregadas' },
+                            { value: 'NO_ENTREGADO', label: 'No Entregadas' },
+                        ]}
+                        style={{ width: '190px' }}
+                    />
                 </div>
 
                 {metodoFiltro === 'cliente' ? (
@@ -203,12 +210,13 @@ function VistaBuscarBoletas() {
                 ) : (
                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px', flexWrap: 'wrap' }}>
                         <div className="form-group">
-                            <label>Desde:</label>
-                            <input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} />
-                        </div>
-                        <div className="form-group">
-                            <label>Hasta:</label>
-                            <input type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} />
+                            <label>Rango de fechas:</label>
+                            <SelectorFecha
+                                desde={desde}
+                                hasta={hasta}
+                                onCambiar={({ desde: d, hasta: h }) => { setDesde(d); setHasta(h); }}
+                                style={{ width: '260px' }}
+                            />
                         </div>
                         <button className="btn-global btn-primario" onClick={buscarPorFecha} style={{ height: 'fit-content' }}>
                             Buscar

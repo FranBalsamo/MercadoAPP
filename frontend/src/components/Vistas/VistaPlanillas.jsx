@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { formatearFechaVisual } from '../../utils/formatoFecha';
 import { HiOutlineDocumentText } from 'react-icons/hi2';
+import SelectPersonalizado from '../UI/SelectPersonalizado';
+import SelectorFecha from '../UI/SelectorFecha';
 import '../Estilos/Botones.css';
+import '../Estilos/Formularios.css';
 
 function VistaPlanillas({ abrirPlanilla, abrirPlanillaCerrada }) {
     // --- ESTADOS ---
@@ -11,6 +14,8 @@ function VistaPlanillas({ abrirPlanilla, abrirPlanillaCerrada }) {
     // Estados para los filtros
     const [metodoFiltro, setMetodoFiltro] = useState('fecha');
     const [busqueda, setBusqueda] = useState('');
+    const [desde, setDesde] = useState('');
+    const [hasta, setHasta] = useState('');
 
     // --- EFECTOS Y FETCH ---
     useEffect(() => {
@@ -52,13 +57,12 @@ function VistaPlanillas({ abrirPlanilla, abrirPlanillaCerrada }) {
 
     // Filtramos las planillas en tiempo real en base al input y el método elegido
     const planillasFiltradas = planillas.filter((planilla) => {
-        if (!busqueda) return true; // Si no hay búsqueda, mostramos todas
-
-        if (metodoFiltro === 'fecha') {
-            return planilla.fecha === busqueda;
-        } else {
-            return planilla.estadoPlanilla === busqueda;
+        if (metodoFiltro === 'estado') {
+            return !busqueda || planilla.estadoPlanilla === busqueda;
         }
+        // metodoFiltro === 'fecha': rango desde/hasta (si solo hay un extremo, o
+        // desde === hasta, filtra por ese unico dia puntual).
+        return (!desde || planilla.fecha >= desde) && (!hasta || planilla.fecha <= hasta);
     }).sort((a, b) => {
         if (a.fecha !== b.fecha) {
             return a.fecha < b.fecha ? 1 : -1; // Más reciente primero
@@ -101,6 +105,7 @@ function VistaPlanillas({ abrirPlanilla, abrirPlanillaCerrada }) {
                     <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.95rem', color: 'var(--text-secondary)' }}>
                         <input
                             type="radio"
+                            className="radio-personalizado"
                             name="filtroPlanilla"
                             checked={metodoFiltro === "fecha"}
                             onChange={() => {
@@ -108,17 +113,19 @@ function VistaPlanillas({ abrirPlanilla, abrirPlanillaCerrada }) {
                                 setBusqueda('');
                             }}
                         />
-                        Fecha
+                        Rango de Fechas
                     </label>
 
                     <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.95rem', color: 'var(--text-secondary)' }}>
                         <input
                             type="radio"
+                            className="radio-personalizado"
                             name="filtroPlanilla"
                             checked={metodoFiltro === "estado"}
                             onChange={() => {
                                 setMetodoFiltro("estado");
-                                setBusqueda('');
+                                setDesde('');
+                                setHasta('');
                             }}
                         />
                         Estado
@@ -126,40 +133,23 @@ function VistaPlanillas({ abrirPlanilla, abrirPlanillaCerrada }) {
 
                     {/* Input de Búsqueda: cambia según el filtro elegido */}
                     {metodoFiltro === 'fecha' ? (
-                        <input
-                            type="date"
-                            value={busqueda}
-                            onChange={(e) => setBusqueda(e.target.value)}
-                            style={{
-                                flex: 1,
-                                border: '1px solid var(--border)',
-                                borderRadius: 'var(--radius-sm)',
-                                padding: '8px 12px',
-                                outline: 'none',
-                                fontSize: '0.95rem',
-                                backgroundColor: 'var(--surface)',
-                                color: 'var(--text-primary)'
-                            }}
+                        <SelectorFecha
+                            desde={desde}
+                            hasta={hasta}
+                            onCambiar={({ desde: d, hasta: h }) => { setDesde(d); setHasta(h); }}
+                            style={{ flex: 1 }}
                         />
                     ) : (
-                        <select
+                        <SelectPersonalizado
                             value={busqueda}
                             onChange={(e) => setBusqueda(e.target.value)}
-                            style={{
-                                flex: 1,
-                                border: '1px solid var(--border)',
-                                borderRadius: 'var(--radius-sm)',
-                                padding: '8px 12px',
-                                outline: 'none',
-                                fontSize: '0.95rem',
-                                backgroundColor: 'var(--surface)',
-                                color: 'var(--text-primary)'
-                            }}
-                        >
-                            <option value="">Todas</option>
-                            <option value="ABIERTA">Abierta</option>
-                            <option value="CERRADA">Cerrada</option>
-                        </select>
+                            opciones={[
+                                { value: '', label: 'Todas' },
+                                { value: 'ABIERTA', label: 'Abierta' },
+                                { value: 'CERRADA', label: 'Cerrada' },
+                            ]}
+                            style={{ flex: 1 }}
+                        />
                     )}
                 </div>
 

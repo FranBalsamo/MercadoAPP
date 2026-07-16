@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { HiOutlineMagnifyingGlass, HiOutlineArrowRight } from 'react-icons/hi2';
 import '../Estilos/Modal.css';
 import '../Estilos/Botones.css';
+import '../Estilos/Formularios.css';
 
 function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
     const [metodoBusqueda, setMetodoBusqueda] = useState('nombre');
@@ -106,18 +107,20 @@ function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
 
                     <div style={{ display: 'flex', gap: '20px', marginBottom: '15px' }}>
                         <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            <input 
-                                type="radio" 
-                                checked={metodoBusqueda === 'nombre'} 
-                                onChange={() => { setMetodoBusqueda('nombre'); setError(''); }} 
+                            <input
+                                type="radio"
+                                className="radio-personalizado"
+                                checked={metodoBusqueda === 'nombre'}
+                                onChange={() => { setMetodoBusqueda('nombre'); setError(''); }}
                             />
                             Por Nombre
                         </label>
                         <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            <input 
-                                type="radio" 
-                                checked={metodoBusqueda === 'documento'} 
-                                onChange={() => { setMetodoBusqueda('documento'); setError(''); }} 
+                            <input
+                                type="radio"
+                                className="radio-personalizado"
+                                checked={metodoBusqueda === 'documento'}
+                                onChange={() => { setMetodoBusqueda('documento'); setError(''); }}
                             />
                             Por CUIT
                         </label>

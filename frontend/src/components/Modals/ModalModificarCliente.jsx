@@ -2,8 +2,10 @@ import { useState } from 'react'
 import AlertaConfirmacion from '../Alertas/AlertaConfirmacion';
 import CampoDirecciones from './CampoDirecciones';
 import { HiOutlinePencilSquare } from 'react-icons/hi2';
+import SelectPersonalizado from '../UI/SelectPersonalizado';
 import '../Estilos/Modal.css';
 import '../Estilos/Botones.css';
+import '../Estilos/Formularios.css';
 
 function ModalModificarCliente({ cerrarModal, cliente, onClienteModificado }) {
 
@@ -116,13 +118,15 @@ function ModalModificarCliente({ cerrarModal, cliente, onClienteModificado }) {
 
                     <div className="form-group">
                         <label>Tipo de Cliente:</label>
-                        <select
+                        <SelectPersonalizado
                             value={tipoCliente}
                             onChange={(e) => cambiarTipoCliente(e.target.value)}
-                        >
-                            <option value="PERSONA">Persona</option>
-                            <option value="SUPERMERCADO">Supermercado</option>
-                        </select>
+                            opciones={[
+                                { value: 'PERSONA', label: 'Persona' },
+                                { value: 'SUPERMERCADO', label: 'Supermercado' },
+                            ]}
+                            style={{ width: '100%' }}
+                        />
                     </div>
 
                     <div className="form-group">

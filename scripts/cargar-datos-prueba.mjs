@@ -2,7 +2,9 @@
 /*
  * Carga datos de prueba en MercadoApp usando la API REST del backend (productos, clientes,
  * planillas y boletas), para poder visualizar y probar las vistas con datos variados en
- * varias fechas (rango de fechas en Boletas/Planillas, estadisticas, deudas, etc.).
+ * varias fechas (rango de fechas en Boletas/Planillas, estadisticas, deudas, etc.). Genera
+ * planillas cerradas repartidas en los ultimos ~2 meses (densas en las ultimas 2 semanas,
+ * mas espaciadas antes de eso) para poder probar tambien las estadisticas por semana/mes.
  *
  * Requisitos:
  *  - Backend corriendo en http://localhost:8080 (docker compose up, o la app en modo dev).
@@ -23,8 +25,18 @@ import { execSync } from 'node:child_process';
 const BASE_URL = process.env.MERCADOAPP_API_URL || 'http://localhost:8080/api';
 const DB_SERVICE = process.env.MERCADOAPP_DB_SERVICE || 'db';
 const DB_NAME = process.env.DB_NAME || 'mercado_db';
-const DB_ROOT_PASSWORD = process.env.DB_ROOT_PASSWORD || 'mercado_root_pass';
-const CANTIDAD_DIAS_HISTORICOS = 5; // planillas cerradas repartidas en los ultimos N dias (sin contar hoy)
+const DB_ROOT_PASSWORD = process.env.DB_ROOT_PASSWORD || 'root';
+
+// Dias (hacia atras, sin contar hoy) en los que se genera una planilla cerrada: densa en las
+// ultimas 2 semanas (una planilla por dia, para que "Ultimos 7/30 dias" tengan datos bien
+// poblados) y mas espaciada en el resto de los ~2 meses (una cada 3 dias), para cubrir
+// varios meses/semanas distintos sin disparar cientos de llamadas a la API.
+function calcularDiasHistoricos() {
+    const dias = [];
+    for (let d = 1; d <= 14; d++) dias.push(d);
+    for (let d = 17; d <= 60; d += 3) dias.push(d);
+    return dias.sort((a, b) => b - a); // de mas antiguo a mas reciente
+}
 
 const PRODUCTOS_BASE = [
     { nombre: 'banana', descripcion: '' },
@@ -189,7 +201,9 @@ async function main() {
         console.log(`  Hay una planilla abierta (#${abierta.id}, ${abierta.fecha}). No se creo ninguna planilla nueva.`);
         console.log('  Cerrala desde la app y volve a correr el script para generar las planillas historicas.');
     } else {
-        for (let diasAtras = CANTIDAD_DIAS_HISTORICOS; diasAtras >= 1; diasAtras--) {
+        const diasHistoricos = calcularDiasHistoricos();
+        console.log(`  Generando ${diasHistoricos.length} planillas repartidas en los ultimos ${diasHistoricos[0]} dias...`);
+        for (const diasAtras of diasHistoricos) {
             const planilla = await crearPlanillaConStock(idsProductos);
             await crearBoletasParaPlanilla(planilla, idsClientes);
             await apiFetch(`/planilla/close/${planilla.id}`, { method: 'PUT' });

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { HiOutlinePencilSquare } from 'react-icons/hi2';
+import { HiOutlinePencilSquare, HiOutlineCube, HiOutlineExclamationTriangle } from 'react-icons/hi2';
 import '../Estilos/Modal.css';
 import '../Estilos/FormEditarStock.css';
 import AlertaConfirmacion from '../Alertas/AlertaConfirmacion';
+import { formatearFechaVisual } from '../../utils/formatoFecha';
 
 function ModalModificarStock({ cerrarModal, planilla, catalogoProductos, onStockActualizado }) {
     const [stockProductos, setStockProductos] = useState([]);
@@ -167,39 +168,64 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos, onStock
         }
     };
 
+    const cantidadCambios = Object.keys(nuevosStocks).filter(id_prod => {
+        const valorModificado = nuevosStocks[id_prod];
+        if (valorModificado === '') return false;
+        const stockProdOriginal = stockProductos.find(p => String(p.id_producto) === String(id_prod));
+        if (!stockProdOriginal) return false;
+        const disponibleOriginal = stockProdOriginal.stock - stockProdOriginal.stock_vendido;
+        return Number(valorModificado) !== disponibleOriginal;
+    }).length;
+
     return (
         <div className="modal-overlay">
-            <div className="modal-contenido" style={{ width: '95%', maxWidth: '500px', maxHeight: '700px', height:'95%' }}>
+            <div className="modal-contenido" style={{ width: '95%', maxWidth: '560px', maxHeight: '700px', height: '95%' }}>
 
                 <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlinePencilSquare /> Modificar Inventario</h3>
                     <button className="btn-cerrar-modal" onClick={cerrarModal}>×</button>
                 </div>
 
-                <div className="modal-body" style={{height:'100%'}}>
+                <div className="modal-body" style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+
+                    <div style={{
+                        display: 'flex', alignItems: 'center', gap: '8px',
+                        backgroundColor: 'var(--info-soft)', color: 'var(--info-soft-text)',
+                        padding: '10px 15px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)',
+                        fontSize: '0.9rem', fontWeight: 'bold'
+                    }}>
+                        <HiOutlineCube />
+                        Planilla del {planilla?.fecha ? formatearFechaVisual(planilla.fecha) : '-'}
+                        <span style={{ fontWeight: 'normal', color: 'var(--text-secondary)' }}>
+                            — ajustá la cantidad disponible de cada producto
+                        </span>
+                    </div>
+
                     {(error || hayInputsVacios) && (
-                        <p style={{ color: 'var(--danger-soft-text)', fontWeight: 'bold', margin: '0', padding: '10px', backgroundColor: 'var(--danger-soft)', borderRadius: 'var(--radius-sm)' }}>
-                            {error || "Los campos no pueden estar vacíos!"}
+                        <p style={{
+                            display: 'flex', alignItems: 'center', gap: '8px',
+                            color: 'var(--danger-soft-text)', fontWeight: 'bold', margin: 0,
+                            padding: '10px 15px', backgroundColor: 'var(--danger-soft)', borderRadius: 'var(--radius-md)'
+                        }}>
+                            <HiOutlineExclamationTriangle style={{ flexShrink: 0 }} />
+                            {error || "Los campos no pueden estar vacíos."}
                         </p>
                     )}
 
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', marginBottom: '3px' }}>
-                        Ajusta la cantidad disponible de los productos necesarios.
-                    </p>
-
-                    <div style={{maxHeight:'400px', overflowY: 'auto', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)', borderRadius: 'var(--radius-sm)' }}>
-                        <table style={{height:'80%',width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)', borderRadius: 'var(--radius-md)' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                             <thead style={{ backgroundColor: 'var(--surface-inverse)', color: 'var(--text-on-inverse)', position: 'sticky', top: 0, zIndex: 1 }}>
                                 <tr>
                                     <th style={{ padding: '12px' }}>Producto</th>
-                                    <th style={{ padding: '12px', width: '150px', textAlign: 'center' }}>Cant. Disponible</th>
-                                    <th style={{ padding: '12px' }}> </th>
+                                    <th style={{ padding: '12px', width: '90px', textAlign: 'center' }}>Vendido</th>
+                                    <th style={{ padding: '12px', width: '150px', textAlign: 'center' }}>Disponible</th>
+                                    <th style={{ padding: '12px', width: '50px' }} />
                                 </tr>
                             </thead>
-                            <tbody style={{height:'250px'}}>
+                            <tbody>
                                 {stockOrdenado.length === 0 ? (
                                     <tr>
-                                        <td colSpan="3" style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                        <td colSpan="4" style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)' }}>
                                             Cargando inventario...
                                         </td>
                                     </tr>
@@ -209,9 +235,10 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos, onStock
                                         const valorAVisualizar = nuevosStocks[item.id_producto] !== undefined
                                             ? nuevosStocks[item.id_producto]
                                             : disponibleReal;
+                                        const delta = valorAVisualizar === '' ? 0 : Number(valorAVisualizar) - disponibleReal;
 
                                         return (
-                                            <tr key={item.id_producto} style={{borderBottom: '1px solid var(--border)'}}>
+                                            <tr key={item.id_producto} style={{ borderBottom: '1px solid var(--border)' }}>
                                                 <td style={{
                                                     padding: '10px',
                                                     textTransform: 'capitalize',
@@ -220,28 +247,42 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos, onStock
                                                 }}>
                                                     {item.nombre}
                                                 </td>
-                                                <td style={{padding: '10px', textAlign: 'center' }}>
-                                                    <input
-                                                        type="number"
-                                                        min="0"
-                                                        value={valorAVisualizar}
-                                                        onChange={(e) => handleCambioStock(item.id_producto, e.target.value)}
-                                                        style={{
-                                                            width: '100%',
-                                                            padding: '8px',
-                                                            borderRadius: 'var(--radius-sm)',
-                                                            border: '1px solid',
-                                                            borderColor: valorAVisualizar === ''? 'var(--danger)' : 'var(--border)',
-                                                            outline: 'none',
-                                                            textAlign: 'center',
-                                                            fontWeight: 'bold',
-                                                            color: valorAVisualizar ==='' ? 'var(--danger)' : 'var(--text-primary)',
-                                                            backgroundColor: backgroundColorInput(valorAVisualizar, disponibleReal),
-                                                        }}
-                                                    />
+                                                <td style={{ padding: '10px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                                                    {item.stock_vendido}
                                                 </td>
-                                                <td style={{padding: '10px', textAlign:'center'}}>
-                                                    <button 
+                                                <td style={{ padding: '10px' }}>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                                                        <input
+                                                            type="number"
+                                                            min="0"
+                                                            value={valorAVisualizar}
+                                                            onChange={(e) => handleCambioStock(item.id_producto, e.target.value)}
+                                                            style={{
+                                                                width: '100%',
+                                                                padding: '8px',
+                                                                borderRadius: 'var(--radius-sm)',
+                                                                border: '1px solid',
+                                                                borderColor: valorAVisualizar === '' ? 'var(--danger)' : 'var(--border)',
+                                                                outline: 'none',
+                                                                textAlign: 'center',
+                                                                fontWeight: 'bold',
+                                                                color: valorAVisualizar === '' ? 'var(--danger)' : 'var(--text-primary)',
+                                                                backgroundColor: backgroundColorInput(valorAVisualizar, disponibleReal),
+                                                            }}
+                                                        />
+                                                        <span style={{
+                                                            height: '14px',
+                                                            fontSize: '0.72rem',
+                                                            fontWeight: 'bold',
+                                                            color: delta > 0 ? 'var(--success)' : 'var(--danger)',
+                                                            visibility: delta !== 0 ? 'visible' : 'hidden'
+                                                        }}>
+                                                            {delta > 0 ? `+${delta}` : delta}
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td style={{ padding: '10px', textAlign: 'center' }}>
+                                                    <button
                                                         className="btn-eliminar-fila"
                                                         title='Eliminar producto del catalogo'
                                                         onClick={() => solicitarEliminacion(item)}
@@ -259,28 +300,28 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos, onStock
 
                 </div>
 
-                <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '15px', marginTop: '20px' }}>
-                    <button type="button" className="btn-global btn-secundario" onClick={cerrarModal}>Cancelar</button>
-
-                    <button
-                        type="button"
-                        className="btn-global btn-primario-green"
-                        disabled={!hayCambios}
-                        onClick={guardarCambiosStock}
-                    >
-                        Guardar Cambios
-                    </button>
+                <div className="modal-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '15px', marginTop: '20px' }}>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', visibility: cantidadCambios > 0 ? 'visible' : 'hidden' }}>
+                        {cantidadCambios} {cantidadCambios === 1 ? 'producto modificado' : 'productos modificados'}
+                    </span>
+                    <div style={{ display: 'flex', gap: '15px' }}>
+                        <button type="button" className="btn-global btn-secundario" onClick={cerrarModal}>Cancelar</button>
+                        <button
+                            type="button"
+                            className="btn-global btn-primario-green"
+                            disabled={!hayCambios}
+                            onClick={guardarCambiosStock}
+                        >
+                            Guardar Cambios
+                        </button>
+                    </div>
                 </div>
 
             </div>
 
             {mostrarAlertaEliminar && (
-                <AlertaConfirmacion 
-                    mensaje={
-                        `Estás a punto de eliminar "${itemAEliminar?.nombre}" del control de inventario.\n` +
-                        `Esta acción es inmediata y no se puede deshacer.\n\n` +
-                        `¿Estás seguro de continuar?`
-                    }
+                <AlertaConfirmacion
+                    mensaje={`¿Eliminar "${itemAEliminar?.nombre}" del inventario?\nEsta acción no se puede deshacer.`}
                     onConfirmar={confirmarEliminacionStock}
                     onCancelar={() => {
                         setMostrarAlertaEliminar(false);

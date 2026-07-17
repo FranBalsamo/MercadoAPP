@@ -4,6 +4,7 @@ import '../Estilos/Botones.css';
 import InputMoneda from './InputMoneda';
 import SelectPersonalizado from '../UI/SelectPersonalizado';
 import SelectorEstadoEntrega from '../UI/SelectorEstadoEntrega';
+import SelectorEstadoPago from '../UI/SelectorEstadoPago';
 import { HiOutlinePencilSquare, HiOutlineUserCircle, HiOutlineArrowPath } from 'react-icons/hi2';
 
 function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogoProductos, onBoletaEditada }) {
@@ -502,30 +503,26 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                 {/* FOOTER */}
                 <div className="modal-footer" style={{ display: 'flex', flexDirection: 'column', gap: '12px', backgroundColor: 'var(--surface-2)', marginTop: 0 }}>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 'bold' }}>
-                        <input
-                            id='checkbox_pagado_edit' type="checkbox" checked={pagado === 'PAGADO'}
-                            onChange={(e) => setPagado(e.target.checked ? 'PAGADO' : 'NO_PAGADO')}
-                        />
-                        <label htmlFor='checkbox_pagado_edit' style={{ cursor: 'pointer', paddingRight: '10px' }}>
-                            Pagado
-                        </label>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}>
+                            <SelectorEstadoPago value={pagado} onChange={setPagado} />
 
-                        <SelectPersonalizado
-                            value={formaPago}
-                            onChange={(e) => setFormaPago(e.target.value)}
-                            disabled={pagado !== 'PAGADO'}
-                            opciones={[
-                                { value: 'EFECTIVO', label: 'Efectivo' },
-                                { value: 'MERCADO_PAGO', label: 'Mercado Pago' },
-                                { value: 'TRANSFERENCIA_BANCARIA', label: 'Transferencia Bancaria' },
-                                { value: 'OTROS', label: 'Otros' },
-                            ]}
-                            style={{
-                                width: '190px', marginRight: '30px',
-                                visibility: pagado === 'PAGADO' ? 'visible' : 'hidden'
-                            }}
-                        />
+                            <SelectPersonalizado
+                                value={formaPago}
+                                onChange={(e) => setFormaPago(e.target.value)}
+                                disabled={pagado !== 'PAGADO'}
+                                opciones={[
+                                    { value: 'EFECTIVO', label: 'Efectivo' },
+                                    { value: 'MERCADO_PAGO', label: 'Mercado Pago' },
+                                    { value: 'TRANSFERENCIA_BANCARIA', label: 'Transferencia Bancaria' },
+                                    { value: 'OTROS', label: 'Otros' },
+                                ]}
+                                style={{
+                                    width: '190px',
+                                    visibility: pagado === 'PAGADO' ? 'visible' : 'hidden'
+                                }}
+                            />
+                        </div>
 
                         <SelectorEstadoEntrega
                             value={entregado}

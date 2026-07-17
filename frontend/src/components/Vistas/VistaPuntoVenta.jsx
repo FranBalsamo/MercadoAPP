@@ -93,6 +93,13 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
 
     if (!planilla) return <p>Cargando datos de la caja...</p>;
 
+    const capitalizar = (texto) => texto ? texto.replace(/\b\w/g, (letra) => letra.toUpperCase()) : '';
+
+    const nombreClienteDe = (id_cliente) => {
+        const cliente = clientesDia.find(c => String(c.id) === String(id_cliente));
+        return cliente ? capitalizar(cliente.nombre) : 'este cliente';
+    };
+
     const sincronizarStock = async () => {
         if (!planilla || !planilla.id) return;
 
@@ -213,8 +220,8 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
         }}>
 
             {/* HEADER DE LA VISTA */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h2 style={{ color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlineTicket />Estado Planilla: <span style={{color: planilla.estadoPlanilla === 'ABIERTA' ? 'var(--success)': 'var(--danger)' }}> {planilla.estadoPlanilla} </span> - Fecha: {formatearFechaVisual(planilla.fecha)}</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '20px', flexShrink: 0 }}>
+                <h2 style={{ color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}><HiOutlineTicket />Estado Planilla: <span style={{color: planilla.estadoPlanilla === 'ABIERTA' ? 'var(--success)': 'var(--danger)' }}> {planilla.estadoPlanilla} </span> - Fecha: {formatearFechaVisual(planilla.fecha)}</h2>
                 <button
                     onClick={() => setMostrarAlertaCerrarCaja(true)}
                     className="btn-global btn-peligro"
@@ -224,7 +231,7 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
             </div>
 
             {/* CONTENEDOR DE COLUMNAS */}
-            <div style={{ display: 'flex', gap: '10px', flexGrow: 1, overflow: 'hidden' }}>
+            <div style={{ display: 'flex', gap: '10px', flexGrow: 1, minHeight: 0 }}>
                 <ControlStock
                     stockProductos={stockProductos}
                     catalogoProductos={catalogoProductos}
@@ -323,12 +330,8 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
             )}
 
             {mostrarAlertaEliminar && (
-                <AlertaConfirmacion 
-                    mensaje={
-                        "Estás a punto de eliminar permanentemente la Boleta #" + boletaAEliminar?.id + ".\n" +
-                        "Esta acción devolverá los artículos al inventario y no se puede deshacer.\n" +
-                        "¿Estás completamente seguro?"
-                    }
+                <AlertaConfirmacion
+                    mensaje={`¿Eliminar la boleta de ${nombreClienteDe(boletaAEliminar?.id_cliente)}?\nLos artículos volverán al inventario. No se puede deshacer.`}
                     onConfirmar={confirmarEliminacionBoleta}
                     onCancelar={() => {
                         setMostrarAlertaEliminar(false);
@@ -349,12 +352,8 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                 <AlertaConfirmacion
                     mensaje={
                         boletasDia.length === 0
-                            ? "Esta planilla no tiene boletas cargadas.\n" +
-                            "Al confirmar, se ELIMINARÁ en lugar de cerrarse.\n" +
-                            "¿Estás completamente seguro?"
-                            : "Estás a punto de CERRAR definitivamente esta Planilla.\n" +
-                            "Al cerrarla, se calcularán los ingresos y deudas totales, y NO se podrán agregar ni eliminar más boletas.\n" +
-                            "¿Estás completamente seguro de realizar el cierre?"
+                            ? "Esta planilla no tiene boletas.\nSe eliminará en vez de cerrarse. ¿Continuar?"
+                            : "¿Cerrar la planilla?\nSe calcularán los totales y no vas a poder modificar boletas después."
                     }
                     onConfirmar={confirmarCierrePlanilla}
                     onCancelar={() => setMostrarAlertaCerrarCaja(false)}

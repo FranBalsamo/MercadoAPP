@@ -334,7 +334,7 @@ function TabBackup() {
 
             {mostrarConfirmacion && (
                 <AlertaConfirmacion
-                    mensaje={`Vas a reemplazar TODOS los datos actuales por el contenido de "${archivoAImportar?.name}".\nEsta acción no se puede deshacer.\n¿Estás seguro de que querés continuar?`}
+                    mensaje={`¿Reemplazar todos los datos actuales por "${archivoAImportar?.name}"?\nEsta acción no se puede deshacer.`}
                     onConfirmar={confirmarImportacion}
                     onCancelar={cancelarImportacion}
                 />

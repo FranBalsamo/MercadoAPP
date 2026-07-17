@@ -23,6 +23,7 @@ function ControlStock({ stockProductos, catalogoProductos, cargando, abrirModifi
         <div style={{
             flex: 1,
             minWidth: '250px',
+            minHeight: 0,
             backgroundColor: 'var(--surface)',
             border: '1px solid var(--border)',
             padding: '20px',
@@ -31,7 +32,7 @@ function ControlStock({ stockProductos, catalogoProductos, cargando, abrirModifi
             display: 'flex',
             flexDirection: 'column'
         }}>
-            <div className="controlStock-header" style={{display:'flex', flexDirection:'row', justifyContent:'space-between' }}>
+            <div className="controlStock-header" style={{display:'flex', flexDirection:'row', justifyContent:'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                 <h3 style={{ marginTop: 0, padding: '5px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlineCube /> Inventario Hoy</h3>
                 <button
                     className="btn-global btn-primario"

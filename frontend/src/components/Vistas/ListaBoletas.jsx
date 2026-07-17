@@ -3,6 +3,7 @@ import { HiOutlineTicket } from 'react-icons/hi2';
 import "../Estilos/Botones.css";
 import AlertaEmergente from "../Alertas/AlertaEmergente";
 import ModalVerBoleta from "../Modals/ModalVerBoleta";
+import MenuAccionesInline from "../UI/MenuAccionesInline";
 
 function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBoleta ,boletas = [], clientes = [], catalogoProductos = [] }) {
     const [error, setError] = useState('');
@@ -10,6 +11,7 @@ function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBol
     const [mensajeAlerta, setMensajeAlerta] = useState(null);
     const [configOrden, setConfigOrden] = useState({ columna: null, direccion: 'asc' });
     const [boletaAVer, setBoletaAVer] = useState(null);
+    const [filaSobreCursor, setFilaSobreCursor] = useState(null);
 
     const nombreCliente = (id_cliente) => {
         const clienteEncontrado = clientes.find(cliente => cliente.id === id_cliente);
@@ -109,7 +111,7 @@ function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBol
     };
 
     return (
-        <div style={{ flex: 3, backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '20px', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ flex: 3, minHeight: 0, backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '20px', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', display: 'flex', flexDirection: 'column' }}>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', marginBottom: '10px' }}>
                 <input
@@ -158,12 +160,17 @@ function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBol
                                 </th>
                                 <th style={{ padding: '12px' }}>Forma de Pago</th>
                                 <th style={{ padding: '12px' }}>Total</th>
-                                <th style={{ padding: '12px', textAlign: 'center' }}>Acciones</th>
+                                <th style={{ padding: '12px', textAlign: 'center', width: '240px' }}>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             {boletasProcesadas.map((boleta, index) => (
-                                <tr key={boleta.id || index} style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer' }}>
+                                <tr
+                                    key={boleta.id || index}
+                                    style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
+                                    onMouseEnter={() => setFilaSobreCursor(boleta.id || index)}
+                                    onMouseLeave={() => setFilaSobreCursor(null)}
+                                >
                                     <td style={{ padding: '12px', fontWeight: 'bold', textTransform: 'capitalize', color: 'var(--text-primary)' }}>
                                         {nombreCliente(boleta.id_cliente)}
                                     </td>
@@ -191,35 +198,17 @@ function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBol
                                     <td style={{ padding: '12px', fontWeight: 'bold', color: 'var(--text-primary)' }}>
                                         {boleta.total.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}
                                     </td>
-                                    <td style={{ padding: '12px', textAlign: 'center', display: 'flex', gap: '15px', justifyContent: 'center', alignItems: 'center' }}>
-                                        <button
-                                            className='btn-global btn-secundario'
-                                            onClick={() => setBoletaAVer(boleta)}
-                                            style={{
-                                                fontSize:'0.9rem', padding: '4px 8px',
-                                            }}
-                                            title="Ver Boleta"
-                                        >
-                                            Ver
-                                        </button>
-                                        <button
-                                            className='btn-global btn-primario'
-                                            onClick={() => abrirModalModificarBoleta(boleta, nombreCliente(boleta.id_cliente))}
-                                            style={{
-                                                fontSize:'0.9rem', padding: '4px 8px',
-                                            }}
-                                            title="Modificar Boleta"
-                                        >
-                                            Modificar
-                                        </button>
-                                        <button
-                                            className='btn-eliminar-fila'
-                                            onClick={() => intentarEliminar(boleta)}
-                                            style={{ width: '25px', height: '25px',padding:'4px 8px',fontSize: '1.2rem',fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
-                                            title="Eliminar Boleta"
-                                        >
-                                            X
-                                        </button>
+                                    <td style={{ padding: '12px', textAlign: 'center' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                            <MenuAccionesInline
+                                                mostrarPorHover={filaSobreCursor === (boleta.id || index)}
+                                                acciones={[
+                                                    { label: 'Ver', onClick: () => setBoletaAVer(boleta) },
+                                                    { label: 'Modificar', onClick: () => abrirModalModificarBoleta(boleta, nombreCliente(boleta.id_cliente)), variante: 'primario' },
+                                                    { label: 'Eliminar', onClick: () => intentarEliminar(boleta), variante: 'peligro' },
+                                                ]}
+                                            />
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

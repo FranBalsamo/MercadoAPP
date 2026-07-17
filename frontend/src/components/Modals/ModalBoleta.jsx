@@ -5,6 +5,7 @@ import AlertaConfirmacion from '../Alertas/AlertaConfirmacion';
 import InputMoneda from './InputMoneda';
 import SelectPersonalizado from '../UI/SelectPersonalizado';
 import SelectorEstadoEntrega from '../UI/SelectorEstadoEntrega';
+import SelectorEstadoPago from '../UI/SelectorEstadoPago';
 import { HiOutlineTicket, HiOutlineUserCircle, HiOutlineArrowPath } from 'react-icons/hi2';
 
 function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBoletaGuardada, volverABuscarCliente }) {
@@ -428,36 +429,26 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
                         backgroundColor: 'var(--surface-2)',
                         marginTop: 0
                     }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap:'5px' ,fontWeight:'bold'}}>
-                        <input
-                            id='checkbox_pagado'
-                            type="checkbox"
-                            checked={pagado === 'PAGADO'}
-                            value={'PAGADO'}
-                            onChange={(e) => setPagado(e.target.checked ? 'PAGADO' : 'NO_PAGADO')}
-                        />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}>
+                            <SelectorEstadoPago value={pagado} onChange={setPagado} />
 
-                        <label
-                            htmlFor='checkbox_pagado'
-                            style={{ cursor: 'pointer', paddingRight: '10px' }}>
-                            Pagado
-                        </label>
-
-                        <SelectPersonalizado
-                            value={formaPago}
-                            onChange={(e) => setFormaPago(e.target.value)}
-                            disabled={pagado !== 'PAGADO'}
-                            opciones={[
-                                { value: 'EFECTIVO', label: 'Efectivo' },
-                                { value: 'MERCADO_PAGO', label: 'Mercado Pago' },
-                                { value: 'TRANSFERENCIA_BANCARIA', label: 'Transferencia Bancaria' },
-                                { value: 'OTROS', label: 'Otros' },
-                            ]}
-                            style={{
-                                width: '190px', marginRight: '30px',
-                                visibility: pagado === 'PAGADO' ? 'visible' : 'hidden'
-                            }}
-                        />
+                            <SelectPersonalizado
+                                value={formaPago}
+                                onChange={(e) => setFormaPago(e.target.value)}
+                                disabled={pagado !== 'PAGADO'}
+                                opciones={[
+                                    { value: 'EFECTIVO', label: 'Efectivo' },
+                                    { value: 'MERCADO_PAGO', label: 'Mercado Pago' },
+                                    { value: 'TRANSFERENCIA_BANCARIA', label: 'Transferencia Bancaria' },
+                                    { value: 'OTROS', label: 'Otros' },
+                                ]}
+                                style={{
+                                    width: '190px',
+                                    visibility: pagado === 'PAGADO' ? 'visible' : 'hidden'
+                                }}
+                            />
+                        </div>
 
                         <SelectorEstadoEntrega
                             value={entregado}
@@ -485,9 +476,7 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
             {/* ALERTA DE CONFIRMACION PARA VOLVER */}
             {mostrarAlertaVolver && (
                 <AlertaConfirmacion 
-                    mensaje={"Tienes productos cargados en esta boleta. \n"+ 
-                        "Si vuelves a la selección de cliente, perderás estos datos.\n" +
-                        "¿Estás seguro de que deseas volver?"}
+                    mensaje={"Vas a perder los productos cargados si cambiás de cliente.\n¿Continuar?"}
                     onConfirmar={() => {
                         setMostrarAlertaVolver(false);
                         volverABuscarCliente();

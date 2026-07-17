@@ -3,6 +3,7 @@ import ModalModificarCliente from '../Modals/ModalModificarCliente';
 import ModalModificarSaldoCliente from '../Modals/ModalModificarSaldoCliente';
 import { HiOutlineUsers } from 'react-icons/hi2';
 import SelectPersonalizado from '../UI/SelectPersonalizado';
+import MenuAccionesInline from '../UI/MenuAccionesInline';
 import '../Estilos/Botones.css';
 import '../Estilos/Formularios.css';
 
@@ -24,6 +25,7 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCl
     const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
     const [mostrarModalSaldo, setMostrarModalSaldo] = useState(false);
     const [clienteParaSaldo, setClienteParaSaldo] = useState(null);
+    const [filaSobreCursor, setFilaSobreCursor] = useState(null);
 
     // --- EFECTOS Y FETCH ---
     useEffect(() => {
@@ -217,7 +219,7 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCl
                 boxShadow: 'var(--shadow-sm)',
                 marginBottom:'0px'
             }}>
-                <table style={{ width: '100%', borderCollapse:'collapse', textAlign: 'left' }}>
+                <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse:'collapse', textAlign: 'left' }}>
                     <thead style={{ backgroundColor: 'var(--surface-inverse)', position: 'sticky', top: 0, zIndex: 1 }}>
                         <tr style={{ color: 'var(--text-on-inverse)' }}>
                             <th style={{ padding: '12px 15px' }}>Nombre</th>
@@ -226,7 +228,7 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCl
                             <th style={{ padding: '12px 15px' }}>Telefono</th>
                             <th style={{ padding: '12px 15px' }}>{"Direccion(es)"}</th>
                             <th style={{ padding: '12px 15px' }}>Saldo del Cliente</th>
-                            <th style={{ padding: '12px 15px' }}></th>
+                            <th style={{ padding: '12px 15px', textAlign: 'center', width: '380px' }}>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -238,7 +240,12 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCl
                             </tr>
                         ) : (
                             clientesFiltrados.map((cliente) => (
-                                <tr key={cliente.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                                <tr
+                                    key={cliente.id}
+                                    style={{ borderBottom: '1px solid var(--border)' }}
+                                    onMouseEnter={() => setFilaSobreCursor(cliente.id)}
+                                    onMouseLeave={() => setFilaSobreCursor(null)}
+                                >
                                     <td style={{ padding: '10px 15px', textTransform: 'capitalize', fontWeight: '500', color: 'var(--text-primary)' }}>
                                         {cliente.nombre}
                                     </td>
@@ -263,28 +270,17 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCl
                                     <td style={{ padding: '10px 15px', fontWeight: '500', color: cliente.saldo_a_favor > 0 ? 'var(--success)' : 'var(--text-primary)' }}>
                                         {formatearMoneda(cliente.saldo_a_favor)}
                                     </td>
-                                    <td style={{ padding: '10px 15px', textTransform: 'capitalize', fontWeight: '500', display: 'flex', gap: '8px' }}>
-                                        <button
-                                            className="btn-global btn-primario"
-                                            style={{padding:'4px 4px', fontSize:'0.9rem'}}
-                                            onClick={() => abrirModificarCliente(cliente)}
-                                        >
-                                            Modificar
-                                        </button>
-                                        <button
-                                            className="btn-global btn-secundario"
-                                            style={{padding:'4px 4px', fontSize:'0.9rem'}}
-                                            onClick={() => abrirModificarSaldo(cliente)}
-                                        >
-                                            Modificar Saldo
-                                        </button>
-                                        <button
-                                            className="btn-global btn-peligro"
-                                            style={{padding:'4px 4px', fontSize:'0.9rem'}}
-                                            onClick={() => abrirVistaDeudasCliente(cliente)}
-                                        >
-                                            Ver Deudas
-                                        </button>
+                                    <td style={{ padding: '10px 15px', textAlign: 'center' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                            <MenuAccionesInline
+                                                mostrarPorHover={filaSobreCursor === cliente.id}
+                                                acciones={[
+                                                    { label: 'Modificar', onClick: () => abrirModificarCliente(cliente), variante: 'primario' },
+                                                    { label: 'Modificar Saldo', onClick: () => abrirModificarSaldo(cliente) },
+                                                    { label: 'Ver Deudas', onClick: () => abrirVistaDeudasCliente(cliente), variante: 'peligro' },
+                                                ]}
+                                            />
+                                        </div>
                                     </td>
                                 </tr>
                             ))

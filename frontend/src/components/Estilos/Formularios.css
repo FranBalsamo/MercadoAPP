@@ -211,11 +211,13 @@
     font-weight: 600;
 }
 
-/* ---- Selector de estado de entrega (segmented control) ---- */
+/* ---- Selector de estado (segmented control): usado tanto para estado de entrega (3
+   opciones) como para estado de pago (2 opciones, ver SelectorEstadoPago.jsx). La cantidad
+   de columnas es variable via --segmented-columnas (default 3). ---- */
 .segmented-entrega {
     position: relative;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(var(--segmented-columnas, 3), 1fr);
     gap: 4px;
     padding: 4px;
     background-color: var(--surface-2);
@@ -228,7 +230,7 @@
     top: 4px;
     bottom: 4px;
     left: 4px;
-    width: calc((100% - 8px) / 3);
+    width: calc((100% - 8px) / var(--segmented-columnas, 3));
     border-radius: var(--radius-sm);
     background-color: var(--segmented-color, var(--accent));
     transform: translateX(calc(var(--segmented-indice, 0) * 100%));

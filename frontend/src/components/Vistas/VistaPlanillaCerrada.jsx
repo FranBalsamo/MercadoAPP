@@ -9,6 +9,7 @@ import AlertaEmergente from '../Alertas/AlertaEmergente';
 import { formatearFechaVisual } from '../../utils/formatoFecha';
 import { HiOutlineLockClosed, HiOutlineDocumentArrowDown, HiOutlineCube, HiOutlineTicket } from 'react-icons/hi2';
 import SelectPersonalizado from '../UI/SelectPersonalizado';
+import MenuAccionesInline from '../UI/MenuAccionesInline';
 import '../Estilos/Formularios.css';
 import '../Estilos/Botones.css';
 
@@ -46,6 +47,7 @@ function VistaPlanillaCerrada({ planilla, volver }) {
     const [boletaAEditar, setBoletaAEditar] = useState(null);
     const [mostrarModalEditar, setMostrarModalEditar] = useState(false);
     const [boletaAVer, setBoletaAVer] = useState(null);
+    const [filaSobreCursor, setFilaSobreCursor] = useState(null);
     const [mensajeExport, setMensajeExport] = useState(null);
     const [tipoExport, setTipoExport] = useState('exito');
     const [empresa, setEmpresa] = useState(null);
@@ -237,15 +239,25 @@ function VistaPlanillaCerrada({ planilla, volver }) {
             cursorY += 5 + lineasStock.length * 4 + 4;
         }
 
+        const textoEntregaPDF = (estadoEntrega) => {
+            if (estadoEntrega === 'ENTREGADO') return 'ENTREGADO';
+            if (estadoEntrega === 'PARCIAL') return 'ENTREGA PARCIAL';
+            return 'NO ENTREGADO';
+        };
+
         const filas = boletasProcesadas.map(boleta => {
+            const esParcial = boleta.estadoEntrega === 'PARCIAL';
             const productos = (boleta.ventas || [])
-                .map(v => `${v.cantidad}x ${capitalizar(nombreProducto(v.id_producto))} - ${formatearMoneda(v.precio_unitario)} c/u / vacío: ${v.precio_vacio > 0 ? formatearMoneda(v.precio_vacio) : 'Sin Vacio'}`)
+                .map(v => {
+                    const base = `${v.cantidad}x ${capitalizar(nombreProducto(v.id_producto))} - ${formatearMoneda(v.precio_unitario)} c/u / vacío: ${v.precio_vacio > 0 ? formatearMoneda(v.precio_vacio) : 'Sin Vacio'}`;
+                    return esParcial ? `${base} (Entregado: ${v.cantidad_entregada || 0}/${v.cantidad})` : base;
+                })
                 .join('\n');
 
             return [
                 capitalizar(nombreCliente(boleta.id_cliente)),
                 boleta.estadoPago === 'NO_PAGADO' ? 'NO PAGADO' : 'PAGADO',
-                boleta.estadoEntrega === 'NO_ENTREGADO' ? 'NO ENTREGADO' : 'ENTREGADO',
+                textoEntregaPDF(boleta.estadoEntrega),
                 formaPagoLegible(boleta),
                 productos,
                 formatearMoneda(boleta.total),
@@ -270,8 +282,8 @@ function VistaPlanillaCerrada({ planilla, volver }) {
                     data.cell.styles.fontStyle = 'bold';
                 }
                 if (data.section === 'body' && data.column.index === 2) {
-                    const esEntregado = data.cell.raw === 'ENTREGADO';
-                    data.cell.styles.textColor = esEntregado ? [41, 128, 185] : [192, 57, 43];
+                    const valor = data.cell.raw;
+                    data.cell.styles.textColor = valor === 'ENTREGADO' ? [41, 128, 185] : valor === 'ENTREGA PARCIAL' ? [230, 126, 34] : [192, 57, 43];
                     data.cell.styles.fontStyle = 'bold';
                 }
             },
@@ -475,7 +487,7 @@ function VistaPlanillaCerrada({ planilla, volver }) {
                                     <th style={{ padding: '12px', width: '12%' }}>Forma de Pago</th>
                                     <th style={{ padding: '12px', width: '30%' }}>Productos Vendidos</th>
                                     <th style={{ padding: '12px', textAlign: 'right' }}>Total Boleta</th>
-                                    <th style={{ padding: '12px', textAlign: 'center' }}>Acciones</th>
+                                    <th style={{ padding: '12px', textAlign: 'center', width: '170px' }}>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -489,7 +501,12 @@ function VistaPlanillaCerrada({ planilla, volver }) {
                                     </tr>
                                 ) : (
                                     boletasProcesadas.map((boleta, idx) => (
-                                        <tr key={boleta.id} style={{ borderBottom: '1px solid var(--border)', backgroundColor: idx % 2 === 0 ? 'var(--surface)' : 'var(--surface-2)' }}>
+                                        <tr
+                                            key={boleta.id}
+                                            style={{ borderBottom: '1px solid var(--border)', backgroundColor: idx % 2 === 0 ? 'var(--surface)' : 'var(--surface-2)' }}
+                                            onMouseEnter={() => setFilaSobreCursor(boleta.id)}
+                                            onMouseLeave={() => setFilaSobreCursor(null)}
+                                        >
                                             <td style={{ padding: '12px', fontWeight: 'bold', textTransform: 'capitalize', verticalAlign: 'top', color: 'var(--text-primary)' }}>
                                                 {nombreCliente(boleta.id_cliente)}
                                             </td>
@@ -542,23 +559,16 @@ function VistaPlanillaCerrada({ planilla, volver }) {
                                             </td>
 
                                             {/* Acciones */}
-                                            <td style={{ padding: '12px', textAlign: 'center', verticalAlign: 'top', display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                                                <button
-                                                    className="btn-global btn-secundario"
-                                                    onClick={() => setBoletaAVer(boleta)}
-                                                    style={{ fontSize: '0.85rem', padding: '4px 10px' }}
-                                                    title="Ver Boleta"
-                                                >
-                                                    Ver
-                                                </button>
-                                                <button
-                                                    className="btn-global btn-primario"
-                                                    onClick={() => abrirEdicionBoleta(boleta)}
-                                                    style={{ fontSize: '0.85rem', padding: '4px 10px' }}
-                                                    title="Modificar Boleta"
-                                                >
-                                                    Modificar
-                                                </button>
+                                            <td style={{ padding: '12px', textAlign: 'center', verticalAlign: 'top' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                                    <MenuAccionesInline
+                                                        mostrarPorHover={filaSobreCursor === boleta.id}
+                                                        acciones={[
+                                                            { label: 'Ver', onClick: () => setBoletaAVer(boleta) },
+                                                            { label: 'Modificar', onClick: () => abrirEdicionBoleta(boleta), variante: 'primario' },
+                                                        ]}
+                                                    />
+                                                </div>
                                             </td>
                                         </tr>
                                     ))

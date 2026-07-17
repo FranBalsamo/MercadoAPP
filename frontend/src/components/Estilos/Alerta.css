@@ -17,31 +17,30 @@
     background-color: var(--surface);
     border: 1px solid var(--border);
     width: 90%;
-    max-width: 450px; /* Crece hasta 450px, ideal para celulares y PC */
+    max-width: 420px; /* Crece hasta 420px, ideal para celulares y PC */
     /* Eliminamos el height fijo para que se adapte al texto */
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
     overflow: hidden; /* Hace que el header respete los bordes redondeados */
-    text-align: center;
-    animation: aparecer 0.1s ease-out; /* Una pequeña animación opcional */
+    animation: aparecer 0.15s ease-out; /* Una pequeña animación opcional */
 }
 
 /* 3. Encabezado */
 .alerta-header {
     background-color: var(--surface-inverse);
     color: var(--text-on-inverse);
-    padding: 15px;
-    /* Eliminamos los márgenes negativos, ya no son necesarios gracias al padding general 0 */
+    padding: 14px 20px;
+    text-align: center;
 }
 
 /* 4. Cuerpo del Mensaje */
 .alerta-mensaje {
-    padding: 20px 25px;
-    font-size: 1.05rem;
+    padding: 18px 24px;
+    font-size: 1rem;
     color: var(--text-primary);
     line-height: 1.5;
     white-space: pre-wrap; /*Esto hace que React respete los saltos de línea (enters) de tu texto */
-    text-align: center;
+    text-align: left;
 }
 .alerta-mensaje p{
     margin: 0;

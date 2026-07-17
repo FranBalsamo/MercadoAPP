@@ -206,16 +206,14 @@
 
 .selector-fecha-footer {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-sm);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
     padding: 10px 14px;
     border-top: 1px solid var(--border);
 }
 
 .selector-fecha-preview {
-    flex: 1;
-    min-width: 0;
     font-size: 0.8rem;
     color: var(--text-secondary);
     overflow: hidden;
@@ -225,7 +223,7 @@
 
 .selector-fecha-footer-botones {
     display: flex;
-    flex-shrink: 0;
+    justify-content: flex-end;
     gap: 6px;
 }
 

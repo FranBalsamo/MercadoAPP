@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
 import ModalBuscarCliente from '../Modals/ModalBuscarCliente';
+import ModalVerBoleta from '../Modals/ModalVerBoleta';
+import ModalModificarBoleta from '../Modals/ModalModificarBoleta';
 import { formatearFechaVisual } from '../../utils/formatoFecha';
 import { HiOutlineMagnifyingGlass, HiOutlineTicket } from 'react-icons/hi2';
 import SelectPersonalizado from '../UI/SelectPersonalizado';
 import SelectorFecha from '../UI/SelectorFecha';
+import MenuAccionesInline from '../UI/MenuAccionesInline';
 import '../Estilos/Botones.css';
 import '../Estilos/Formularios.css';
 
@@ -35,6 +38,9 @@ function VistaBuscarBoletas() {
     const [cargando, setCargando] = useState(false);
     const [error, setError] = useState('');
     const [busquedaRealizada, setBusquedaRealizada] = useState(false);
+    const [boletaAVer, setBoletaAVer] = useState(null);
+    const [boletaAEditar, setBoletaAEditar] = useState(null);
+    const [filaSobreCursor, setFilaSobreCursor] = useState(null);
 
     useEffect(() => {
         const cargarCatalogos = async () => {
@@ -67,6 +73,14 @@ function VistaBuscarBoletas() {
     const fechaPlanilla = (id_planilla) => {
         const p = planillas.find(pla => String(pla.id) === String(id_planilla));
         return p ? p.fecha : '-';
+    };
+
+    const planillaDeBoleta = (id_planilla) => planillas.find(pla => String(pla.id) === String(id_planilla));
+
+    const handleBoletaEditada = (boletaActualizada) => {
+        if (boletaActualizada) {
+            setBoletas(prev => prev.map(b => b.id === boletaActualizada.id ? boletaActualizada : b));
+        }
     };
 
     const formatearMoneda = (val) => (val ?? 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
@@ -133,13 +147,19 @@ function VistaBuscarBoletas() {
         setFiltroEntrega('');
     };
 
-    const boletasFiltradas = boletas.filter(boleta =>
-        (!filtroPago || boleta.estadoPago === filtroPago) &&
-        (!filtroEntrega || boleta.estadoEntrega === filtroEntrega)
-    );
+    const boletasFiltradas = boletas
+        .filter(boleta =>
+            (!filtroPago || boleta.estadoPago === filtroPago) &&
+            (!filtroEntrega || boleta.estadoEntrega === filtroEntrega)
+        )
+        .sort((a, b) => {
+            const fechaA = fechaPlanilla(a.id_planilla);
+            const fechaB = fechaPlanilla(b.id_planilla);
+            return fechaA === fechaB ? 0 : (fechaA < fechaB ? 1 : -1); // más reciente primero
+        });
 
     return (
-        <main style={{ padding: '20px', backgroundColor: 'var(--bg)', minHeight: '100%', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <main style={{ padding: '20px', backgroundColor: 'var(--bg)', height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
             <div style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '15px 20px', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)' }}>
                 <h2 style={{ margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlineMagnifyingGlass /> Buscar Boletas</h2>
@@ -190,6 +210,7 @@ function VistaBuscarBoletas() {
                         opciones={[
                             { value: '', label: 'Todas las entregas' },
                             { value: 'ENTREGADO', label: 'Entregadas' },
+                            { value: 'PARCIAL', label: 'Entregas Parciales'},
                             { value: 'NO_ENTREGADO', label: 'No Entregadas' },
                         ]}
                         style={{ width: '190px' }}
@@ -228,8 +249,8 @@ function VistaBuscarBoletas() {
             </div>
 
             {/* RESULTADOS */}
-            <div style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '20px', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', flexGrow: 1 }}>
-                <h3 style={{ marginTop: 0, color: 'var(--text-primary)', borderBottom: '1px solid var(--border)', paddingBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '20px', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', flexGrow: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+                <h3 style={{ marginTop: 0, color: 'var(--text-primary)', borderBottom: '1px solid var(--border)', paddingBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                     <HiOutlineTicket /> Boletas Encontradas
                 </h3>
 
@@ -244,9 +265,9 @@ function VistaBuscarBoletas() {
                         No se encontraron boletas con esos filtros.
                     </p>
                 ) : (
-                    <div style={{ overflowX: 'auto' }}>
+                    <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.95rem' }}>
-                            <thead style={{ backgroundColor: 'var(--surface-inverse)', color: 'var(--text-on-inverse)' }}>
+                            <thead style={{ backgroundColor: 'var(--surface-inverse)', color: 'var(--text-on-inverse)', position: 'sticky', top: 0 }}>
                                 <tr>
                                     <th style={{ padding: '12px' }}>Fecha</th>
                                     <th style={{ padding: '12px' }}>Cliente</th>
@@ -255,11 +276,17 @@ function VistaBuscarBoletas() {
                                     <th style={{ padding: '12px' }}>Forma de Pago</th>
                                     <th style={{ padding: '12px', width: '30%' }}>Productos Vendidos</th>
                                     <th style={{ padding: '12px', textAlign: 'right' }}>Total Boleta</th>
+                                    <th style={{ padding: '12px', textAlign: 'center', width: '170px' }}>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {boletasFiltradas.map((boleta, idx) => (
-                                    <tr key={boleta.id} style={{ borderBottom: '1px solid var(--border)', backgroundColor: idx % 2 === 0 ? 'var(--surface)' : 'var(--surface-2)' }}>
+                                    <tr
+                                        key={boleta.id}
+                                        style={{ borderBottom: '1px solid var(--border)', backgroundColor: idx % 2 === 0 ? 'var(--surface)' : 'var(--surface-2)' }}
+                                        onMouseEnter={() => setFilaSobreCursor(boleta.id)}
+                                        onMouseLeave={() => setFilaSobreCursor(null)}
+                                    >
                                         <td style={{ padding: '12px', verticalAlign: 'top', fontWeight: 'bold', color: 'var(--text-primary)' }}>
                                             {formatearFechaVisual(fechaPlanilla(boleta.id_planilla))}
                                         </td>
@@ -303,6 +330,17 @@ function VistaBuscarBoletas() {
                                         <td style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold', fontSize: '1.05rem', color: 'var(--text-primary)', verticalAlign: 'top' }}>
                                             {formatearMoneda(boleta.total)}
                                         </td>
+                                        <td style={{ padding: '12px', textAlign: 'center', verticalAlign: 'top' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                                <MenuAccionesInline
+                                                    mostrarPorHover={filaSobreCursor === boleta.id}
+                                                    acciones={[
+                                                        { label: 'Ver', onClick: () => setBoletaAVer(boleta) },
+                                                        { label: 'Modificar', onClick: () => setBoletaAEditar(boleta), variante: 'primario' },
+                                                    ]}
+                                                />
+                                            </div>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -315,6 +353,30 @@ function VistaBuscarBoletas() {
                 <ModalBuscarCliente
                     cerrarModal={() => setMostrarModalBuscarCliente(false)}
                     onClienteEncontrado={handleClienteEncontrado}
+                />
+            )}
+
+            {boletaAVer && (
+                <ModalVerBoleta
+                    boleta={boletaAVer}
+                    nombreCliente={nombreCliente(boletaAVer.id_cliente)}
+                    nombreProducto={nombreProducto}
+                    formatearMoneda={formatearMoneda}
+                    cerrarModal={() => setBoletaAVer(null)}
+                />
+            )}
+
+            {boletaAEditar && (
+                <ModalModificarBoleta
+                    boleta={boletaAEditar}
+                    cliente={nombreCliente(boletaAEditar.id_cliente)}
+                    planilla={planillaDeBoleta(boletaAEditar.id_planilla)}
+                    catalogoProductos={catalogoProductos}
+                    cerrarModal={() => setBoletaAEditar(null)}
+                    onBoletaEditada={(boletaActualizada) => {
+                        handleBoletaEditada(boletaActualizada);
+                        setBoletaAEditar(null);
+                    }}
                 />
             )}
 

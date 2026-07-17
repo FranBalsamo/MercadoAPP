@@ -13,8 +13,10 @@
     "windows": [
       {
         "title": "MercadoApp",
-        "width": 800,
-        "height": 600,
+        "width": 1536,
+        "height": 816,
+        "minWidth": 1536,
+        "minHeight": 816,
         "decorations": false
       }
     ],

@@ -19,8 +19,8 @@ function AlertaEmergente({ mensaje, onClose, tipo = 'error' }) {
     return (
         <div className="alerta-emergente-contenedor">
             <div className={`alerta-emergente-contenido ${tipo === 'exito' ? 'exito' : ''}`}>
-                <span style={{ fontSize: '1.2rem', display: 'inline-flex' }}>{tipo === 'exito' ? <HiOutlineCheckCircle /> : <HiOutlineExclamationTriangle />}</span>
-                <span>{mensaje}</span>
+                <span style={{ fontSize: '1.2rem', display: 'inline-flex', flexShrink: 0 }}>{tipo === 'exito' ? <HiOutlineCheckCircle /> : <HiOutlineExclamationTriangle />}</span>
+                <span className="alerta-emergente-texto">{mensaje}</span>
             </div>
         </div>
     );

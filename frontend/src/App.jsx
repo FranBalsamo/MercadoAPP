@@ -16,11 +16,14 @@ import VistaEstadisticas from "./components/Vistas/VistaEstadisticas";
 import VistaBuscarBoletas from "./components/Vistas/VistaBuscarBoletas";
 import VistaConfiguracion from "./components/Vistas/VistaConfiguracion";
 import PantallaCarga from "./components/PantallaCarga";
+import { useLimitarZoom } from "./utils/limitarZoom";
 
 import "./components/Estilos/tokens.css";
 import "./App.css";
 
 function App() {
+
+  useLimitarZoom();
 
   const [tema, setTema] = useState(() => localStorage.getItem('tema') || 'light');
 

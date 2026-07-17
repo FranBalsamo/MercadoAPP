@@ -3,6 +3,7 @@ import com.franbalsamo.mercadoapp.modules.boleta.EstadoPago;
 import com.franbalsamo.mercadoapp.modules.boleta.EstadoEntrega;
 import com.franbalsamo.mercadoapp.modules.boleta.FormaPago;
 import com.franbalsamo.mercadoapp.modules.cliente.model.Cliente;
+import com.franbalsamo.mercadoapp.modules.cobro.model.Cobro;
 import com.franbalsamo.mercadoapp.modules.planilla.model.Planilla;
 import com.franbalsamo.mercadoapp.modules.venta.model.Venta;
 import jakarta.persistence.*;
@@ -46,6 +47,13 @@ public class Boleta {
 
     @Enumerated(EnumType.STRING)
     private FormaPago formaPago;
+
+    // Se completa recien cuando la boleta se paga: referencia al Cobro (operacion de pago) que
+    // la salda, para poder reconstruir que boletas se pagaron juntas y cuando. Null mientras
+    // este NO_PAGADO, o si se pago antes de que existiera este registro.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_cobro", nullable = true)
+    private Cobro cobro;
 
     public Boleta(){}
 

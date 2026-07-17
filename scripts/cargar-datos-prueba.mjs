@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 /*
  * Carga datos de prueba en MercadoApp usando la API REST del backend (productos, clientes,
- * planillas y boletas), para poder visualizar y probar las vistas con datos variados en
- * varias fechas (rango de fechas en Boletas/Planillas, estadisticas, deudas, etc.). Genera
- * planillas cerradas repartidas en los ultimos ~2 meses (densas en las ultimas 2 semanas,
- * mas espaciadas antes de eso) para poder probar tambien las estadisticas por semana/mes.
+ * planillas, boletas y pagos de deuda), para poder visualizar y probar las vistas con datos
+ * variados en varias fechas (rango de fechas en Boletas/Planillas/Operaciones, estadisticas,
+ * deudas, etc.). Genera planillas cerradas repartidas en los ultimos ~2 meses (densas en las
+ * ultimas 2 semanas, mas espaciadas antes de eso) para poder probar tambien las estadisticas
+ * por semana/mes, y ademas cobra (parcialmente) la deuda de algunos clientes al azar, para
+ * que la busqueda de Operaciones tenga pagos reales para mostrar.
  *
  * Requisitos:
  *  - Backend corriendo en http://localhost:8080 (docker compose up, o la app en modo dev).
@@ -55,6 +57,11 @@ const CLIENTES_BASE = [
     { documento: '23987654321', nombre: 'carlos gomez', telefono: '1166778899', tipoCliente: 'PERSONA', direcciones: [] },
     { documento: '30712345678', nombre: 'supermercado el sol', telefono: '1144556677', tipoCliente: 'SUPERMERCADO', direcciones: ['av. siempre viva 123', 'ruta 8 km 45'] },
     { documento: '30798765432', nombre: 'almacen la esquina', telefono: '1133445566', tipoCliente: 'SUPERMERCADO', direcciones: ['calle falsa 456'] },
+    { documento: '27444555666', nombre: 'lucia fernandez', telefono: '1177889900', tipoCliente: 'PERSONA', direcciones: [] },
+    { documento: '20555666777', nombre: 'martin torres', telefono: '1188990011', tipoCliente: 'PERSONA', direcciones: [] },
+    { documento: '27666777888', nombre: 'sofia castro', telefono: '1199001122', tipoCliente: 'PERSONA', direcciones: [] },
+    { documento: '20777888999', nombre: 'diego romero', telefono: '1100112233', tipoCliente: 'PERSONA', direcciones: [] },
+    { documento: '30888999000', nombre: 'mercado central', telefono: '1122556677', tipoCliente: 'SUPERMERCADO', direcciones: ['ruta 9 km 12'] },
 ];
 
 const FORMAS_PAGO = ['EFECTIVO', 'MERCADO_PAGO', 'TRANSFERENCIA_BANCARIA', 'OTROS'];
@@ -113,12 +120,12 @@ async function asegurarCliente({ documento, nombre, telefono, tipoCliente, direc
 }
 
 async function crearPlanillaConStock(idsProductos) {
-    const cantidadProductos = randomInt(3, Math.min(5, idsProductos.length));
+    const cantidadProductos = randomInt(4, Math.min(7, idsProductos.length));
     const productosElegidos = mezclar(idsProductos).slice(0, cantidadProductos);
 
     const stockProductos = productosElegidos.map((id_producto) => ({
         id_producto,
-        stock: randomInt(20, 60),
+        stock: randomInt(60, 150),
     }));
 
     const res = await apiFetch('/planilla/new', { method: 'POST', body: JSON.stringify({ stockProductos }) });
@@ -126,7 +133,7 @@ async function crearPlanillaConStock(idsProductos) {
 }
 
 async function crearBoletasParaPlanilla(planilla, idsClientes) {
-    const cantidadBoletas = randomInt(2, 4);
+    const cantidadBoletas = randomInt(6, 12);
     const stockRestante = new Map(planilla.stockProductos.map((sp) => [sp.id_producto, sp.stock - sp.stock_vendido]));
 
     for (let i = 0; i < cantidadBoletas; i++) {
@@ -173,6 +180,47 @@ function backdatearPlanilla(idPlanilla, diasAtras) {
     );
 }
 
+function backdatearCobro(idCobro, diasAtras) {
+    const sql = `UPDATE cobros SET fecha = DATE_SUB(CURDATE(), INTERVAL ${diasAtras} DAY) WHERE id = ${idCobro};`;
+    execSync(
+        `docker compose exec -T ${DB_SERVICE} mysql -u root -p${DB_ROOT_PASSWORD} ${DB_NAME} -e "${sql}"`,
+        { stdio: 'pipe' }
+    );
+}
+
+// Simula que algunos clientes van pagando (parte de) su deuda con el tiempo: para cada
+// cliente con boletas impagas en planillas ya cerradas, con cierta probabilidad se cobra un
+// subconjunto de sus boletas mas viejas (pago a cuenta) y el Cobro resultante se backdatea a
+// un dia al azar de las ultimas ~3 semanas, para poder probar "Buscar Operaciones" con datos
+// repartidos en varias fechas. A proposito no se paga TODA la deuda de nadie, para que
+// "Clientes mas deudores" y las vistas de deuda sigan teniendo datos para mostrar.
+async function pagarAlgunasDeudas(idsClientes) {
+    for (const idCliente of idsClientes) {
+        if (Math.random() < 0.35) continue; // no todos los clientes pagan algo
+
+        const resDeudas = await apiFetch(`/boleta/cliente/${idCliente}/deudas`);
+        const deudas = await resDeudas.json();
+        if (deudas.length === 0) continue;
+
+        const cantidadAPagar = randomInt(1, Math.max(1, Math.ceil(deudas.length / 2)));
+        const monto = deudas.slice(0, cantidadAPagar).reduce((suma, b) => suma + b.total, 0);
+        if (monto <= 0) continue;
+
+        const formaPago = randomChoice(FORMAS_PAGO);
+        const resPago = await apiFetch(`/boleta/cobrar_deuda/cliente/${idCliente}/monto/${monto}?formaPago=${formaPago}`, { method: 'PUT' });
+        const boletasPagadas = await resPago.json();
+
+        const resCobros = await apiFetch(`/cobro/cliente/${idCliente}`);
+        const cobrosCliente = await resCobros.json();
+        if (cobrosCliente.length === 0) continue;
+        const ultimoCobro = cobrosCliente.reduce((max, c) => (c.id > max.id ? c : max), cobrosCliente[0]);
+
+        const diasAtras = randomInt(0, 20);
+        backdatearCobro(ultimoCobro.id, diasAtras);
+        console.log(`  cliente #${idCliente}: pago ${boletasPagadas.length} boleta(s) por $${monto} (${formaPago}) -> hace ${diasAtras} dia(s)`);
+    }
+}
+
 async function main() {
     console.log('== Cargando datos de prueba en MercadoApp ==\n');
 
@@ -216,7 +264,12 @@ async function main() {
         console.log(`  planilla #${planillaHoy.id} -> hoy (queda ABIERTA para seguir probando desde la app)`);
     }
 
-    console.log('\nListo. Ya podes ver los datos en la app (Planillas, Boletas, Clientes, Estadisticas).');
+    // Independiente de si hay una planilla abierta o no: solo toca deudas de boletas que ya
+    // estan en planillas CERRADAS, asi que no interfiere con la planilla del dia en curso.
+    console.log('\nPagos de deuda (Operaciones):');
+    await pagarAlgunasDeudas(idsClientes);
+
+    console.log('\nListo. Ya podes ver los datos en la app (Planillas, Boletas, Clientes, Operaciones, Estadisticas).');
 }
 
 main().catch((error) => {

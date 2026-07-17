@@ -14,6 +14,7 @@ import VistaPlanillaCerrada from "./components/Vistas/VistaPlanillaCerrada";
 import VistaClienteDeudas from "./components/Vistas/VistaClienteDeudas";
 import VistaEstadisticas from "./components/Vistas/VistaEstadisticas";
 import VistaBuscarBoletas from "./components/Vistas/VistaBuscarBoletas";
+import VistaBuscarOperaciones from "./components/Vistas/VistaBuscarOperaciones";
 import VistaConfiguracion from "./components/Vistas/VistaConfiguracion";
 import PantallaCarga from "./components/PantallaCarga";
 import { useLimitarZoom } from "./utils/limitarZoom";
@@ -156,6 +157,11 @@ function App() {
     setVistaActiva('buscarBoletas');
   }
 
+  const abrirVistaOperaciones = () => {
+    setVistaAnterior(vistaActiva);
+    setVistaActiva('operaciones');
+  }
+
   const abrirVistaConfiguracion = () => {
     setVistaAnterior(vistaActiva);
     setVistaActiva('configuracion');
@@ -226,6 +232,9 @@ function App() {
     else if (vistaActiva === 'buscarBoletas') {
       return <VistaBuscarBoletas />
     }
+    else if (vistaActiva === 'operaciones') {
+      return <VistaBuscarOperaciones />
+    }
     else if (vistaActiva === 'configuracion') {
       return <VistaConfiguracion />
     }
@@ -265,6 +274,7 @@ function App() {
           abrirVistaProductos={abrirVistaProductos}
           abrirVistaEstadisticas={abrirVistaEstadisticas}
           abrirVistaBuscarBoletas={abrirVistaBuscarBoletas}
+          abrirVistaOperaciones={abrirVistaOperaciones}
           abrirVistaConfiguracion={abrirVistaConfiguracion}
           planillaActiva={planillaActiva}
           abrirPlanilla={abrirPlanilla}

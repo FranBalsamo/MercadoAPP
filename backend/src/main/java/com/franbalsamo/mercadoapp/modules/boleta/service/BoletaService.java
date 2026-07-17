@@ -20,6 +20,8 @@ import com.franbalsamo.mercadoapp.modules.boleta.model.TicketPromedioDTO;
 import com.franbalsamo.mercadoapp.modules.cliente.model.ClienteDeudorDTO;
 import com.franbalsamo.mercadoapp.modules.venta.model.VentaDTO;
 import com.franbalsamo.mercadoapp.modules.cliente.service.ClienteService;
+import com.franbalsamo.mercadoapp.modules.cobro.model.Cobro;
+import com.franbalsamo.mercadoapp.modules.cobro.service.CobroService;
 import com.franbalsamo.mercadoapp.modules.producto.service.ProductoService;
 import com.franbalsamo.mercadoapp.modules.planilla.service.PlanillaService;
 import com.franbalsamo.mercadoapp.modules.stockproducto.service.StockProductoService;
@@ -56,6 +58,9 @@ public class BoletaService {
 
     @Autowired
     public BoletaMapper boletaMapper;
+
+    @Autowired
+    public CobroService cobroService;
 
     private void cargarVentas(BoletaDTO boletaDTO, Boleta nuevaBoleta){
         float totalCalculado = 0;
@@ -384,10 +389,21 @@ public class BoletaService {
             clienteService.save(cliente);
         }
 
+        Cobro cobro = new Cobro();
+        cobro.setCliente(cliente);
+        cobro.setFormaPago(formaPago);
+        cobro.setMontoEntregado(montoEntregado);
+        cobro.setSaldoAplicado(saldoAplicado);
+        cobro.setMontoTotalBoletas(totalSeleccionado);
+        cobro.setVuelto(vuelto);
+        cobro.setSaldoGenerado(0);
+        cobro = cobroService.save(cobro);
+
         Set<Planilla> planillasAfectadas = new HashSet<>();
         for(Boleta boleta : listaBoletas){
             boleta.setEstadoPago(EstadoPago.PAGADO);
             boleta.setFormaPago(formaPago);
+            boleta.setCobro(cobro);
             boletaRepository.save(boleta);
             planillasAfectadas.add(boleta.getPlanilla());
         }
@@ -417,9 +433,13 @@ public class BoletaService {
         List<Boleta> listaBoletasPagadas = new ArrayList<>();
         Set<Planilla> planillasAfectadas = new HashSet<>();
 
+        float montoEntregadoOriginal = monto_pago;
+        float saldoPrevio = cliente.getSaldo_a_favor();
+
         //Se agrega el saldo a favor del cliente para pagar las deudas.
-        monto_pago += cliente.getSaldo_a_favor();
+        monto_pago += saldoPrevio;
         cliente.setSaldo_a_favor(0);
+        float montoTotalBoletas = 0;
         for(Boleta boletaDeuda : listaBoletasDeudas){
             //Si el monto no alcanza para cubrir esta boleta, se corta aca: el resto queda como saldo a favor
             //y las siguientes boletas (mas nuevas) no se tocan, para no dejar deudas viejas sin pagar por error.
@@ -427,10 +447,10 @@ public class BoletaService {
                 break;
             }
             monto_pago -= boletaDeuda.getTotal();
+            montoTotalBoletas += boletaDeuda.getTotal();
             boletaDeuda.setEstadoPago(EstadoPago.PAGADO);
             boletaDeuda.setFormaPago(formaPago);
             listaBoletasPagadas.add(boletaDeuda);
-            boletaRepository.save(boletaDeuda);
             planillasAfectadas.add(boletaDeuda.getPlanilla());
         }
         //Sobro dinero y no es posible pagar una boleta en su totalidad entonces se almacena en saldo a favor
@@ -439,6 +459,21 @@ public class BoletaService {
         }
 
         clienteService.save(cliente);
+
+        Cobro cobro = new Cobro();
+        cobro.setCliente(cliente);
+        cobro.setFormaPago(formaPago);
+        cobro.setMontoEntregado(montoEntregadoOriginal);
+        cobro.setSaldoAplicado(saldoPrevio);
+        cobro.setMontoTotalBoletas(montoTotalBoletas);
+        cobro.setVuelto(0);
+        cobro.setSaldoGenerado(Math.max(monto_pago, 0));
+        cobro = cobroService.save(cobro);
+
+        for(Boleta boletaPagada : listaBoletasPagadas){
+            boletaPagada.setCobro(cobro);
+            boletaRepository.save(boletaPagada);
+        }
 
         for(Planilla planilla : planillasAfectadas){
             recalcularTotalesSiCerrada(planilla);

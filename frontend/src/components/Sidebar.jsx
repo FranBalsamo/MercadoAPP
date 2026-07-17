@@ -11,6 +11,7 @@ import {
     HiOutlineMoon,
     HiOutlineShoppingBag,
     HiOutlineCog6Tooth,
+    HiOutlineBanknotes,
 } from 'react-icons/hi2';
 import './Estilos/Sidebar.css';
 
@@ -26,6 +27,7 @@ function Sidebar({
     abrirVistaClientes,
     abrirModalCliente,
     abrirVistaBuscarBoletas,
+    abrirVistaOperaciones,
     abrirVistaEstadisticas,
     abrirVistaConfiguracion,
     planillaActiva,
@@ -73,6 +75,13 @@ function Sidebar({
             icono: HiOutlineTicket,
             activaEn: ['buscarBoletas'],
             onClick: abrirVistaBuscarBoletas,
+        },
+        {
+            id: 'operaciones',
+            label: 'Operaciones',
+            icono: HiOutlineBanknotes,
+            activaEn: ['operaciones'],
+            onClick: abrirVistaOperaciones,
         },
         {
             id: 'estadisticas',

@@ -24,6 +24,17 @@
       "csp": null
     }
   },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDNCMzlDOEQ2ODI4M0UxNjEKUldSaDRZT0Mxc2c1T3ozR2k1VFNJMHNlZFBxNVduUFY2M0RMdm5NSXJ1dGdqQkRXaFhSejVDcC8K",
+      "endpoints": [
+        "https://github.com/FranBalsamo/MercadoAPP/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
+  },
   "bundle": {
     "active": true,
     "targets": ["nsis"],

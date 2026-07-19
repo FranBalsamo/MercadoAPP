@@ -252,11 +252,20 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         .setup(|app| {
-            let handle = app.handle().clone();
-            std::thread::spawn(move || {
-                iniciar_backend_local(&handle);
-            });
+            // 'tauri dev' compila en modo debug y ahora tambien copia los recursos empaquetados
+            // (MercadoAppBackend.bin, mysql-portable) dentro de target/debug, asi que sin este
+            // chequeo terminaria arrancando el backend nativo local en paralelo a Docker incluso
+            // en desarrollo. Solo la app instalada (build release) debe levantar su propio
+            // MySQL/backend; en dev siempre se usa el backend de Docker (ver README).
+            if !cfg!(debug_assertions) {
+                let handle = app.handle().clone();
+                std::thread::spawn(move || {
+                    iniciar_backend_local(&handle);
+                });
+            }
             Ok(())
         })
         .on_window_event(|window, event| {

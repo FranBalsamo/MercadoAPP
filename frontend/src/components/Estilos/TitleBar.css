@@ -23,9 +23,15 @@
     justify-content: center;
     width: 18px;
     height: 18px;
-    color: var(--accent);
-    font-size: 1.05rem;
     flex-shrink: 0;
+    overflow: hidden;
+    border-radius: 4px;
+}
+
+.titlebar-icono img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
 .titlebar-texto {

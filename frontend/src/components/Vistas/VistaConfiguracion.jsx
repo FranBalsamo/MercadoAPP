@@ -2,13 +2,15 @@ import { useState } from 'react';
 import TabEmpresa from './TabEmpresa';
 import TabBaseDeDatos from './TabBaseDeDatos';
 import TabBackup from './TabBackup';
-import { HiOutlineCog6Tooth, HiOutlineBuildingOffice2, HiOutlineCircleStack, HiOutlineShieldExclamation } from 'react-icons/hi2';
+import TabActualizaciones from './TabActualizaciones';
+import { HiOutlineCog6Tooth, HiOutlineBuildingOffice2, HiOutlineCircleStack, HiOutlineShieldExclamation, HiOutlineArrowPath } from 'react-icons/hi2';
 import '../Estilos/Botones.css';
 
 const PESTANIAS = [
     { id: 'empresa', etiqueta: 'Empresa', icono: HiOutlineBuildingOffice2 },
     { id: 'baseDeDatos', etiqueta: 'Base de Datos', icono: HiOutlineCircleStack },
     { id: 'backup', etiqueta: 'Backup', icono: HiOutlineShieldExclamation },
+    { id: 'actualizaciones', etiqueta: 'Actualizaciones', icono: HiOutlineArrowPath },
 ];
 
 function VistaConfiguracion() {
@@ -43,6 +45,7 @@ function VistaConfiguracion() {
                 {pestaniaActiva === 'empresa' && <TabEmpresa />}
                 {pestaniaActiva === 'baseDeDatos' && <TabBaseDeDatos />}
                 {pestaniaActiva === 'backup' && <TabBackup />}
+                {pestaniaActiva === 'actualizaciones' && <TabActualizaciones />}
             </div>
 
         </main>

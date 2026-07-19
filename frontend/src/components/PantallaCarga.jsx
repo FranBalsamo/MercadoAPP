@@ -1,4 +1,4 @@
-import { HiOutlineShoppingBag } from 'react-icons/hi2';
+import iconoApp from '../assets/icono-app.png';
 
 function PantallaCarga({ tardandoMucho }) {
     return (
@@ -7,13 +7,7 @@ function PantallaCarga({ tardandoMucho }) {
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             gap: '16px', backgroundColor: 'var(--bg)'
         }}>
-            <span style={{
-                width: '64px', height: '64px', borderRadius: 'var(--radius-lg)',
-                backgroundColor: 'var(--accent)', color: 'var(--text-on-accent)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem'
-            }}>
-                <HiOutlineShoppingBag />
-            </span>
+            <img src={iconoApp} alt="MercadoApp" style={{ width: '64px', height: '64px', borderRadius: 'var(--radius-lg)' }} />
             <h2 style={{ margin: 0, color: 'var(--text-primary)' }}>MercadoApp</h2>
             <p style={{ margin: 0, color: 'var(--text-secondary)' }}>Iniciando...</p>
             {tardandoMucho && (

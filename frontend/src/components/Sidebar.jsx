@@ -9,10 +9,10 @@ import {
     HiOutlineArrowRightCircle,
     HiOutlineSun,
     HiOutlineMoon,
-    HiOutlineShoppingBag,
     HiOutlineCog6Tooth,
     HiOutlineBanknotes,
 } from 'react-icons/hi2';
+import iconoApp from '../assets/icono-app.png';
 import './Estilos/Sidebar.css';
 
 function Sidebar({
@@ -102,7 +102,7 @@ function Sidebar({
     return (
         <aside className="sidebar">
             <div className="sidebar-logo">
-                <span className="sidebar-logo-badge"><HiOutlineShoppingBag /></span>
+                <span className="sidebar-logo-badge"><img src={iconoApp} alt="MercadoApp" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /></span>
                 <span className="sidebar-logo-texto">MercadoApp</span>
             </div>
 

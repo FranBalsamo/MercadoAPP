@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import {
-    HiOutlineShoppingBag,
     HiOutlineMinus,
     HiOutlineSquare2Stack,
     HiOutlineStop,
     HiOutlineXMark,
 } from 'react-icons/hi2';
+import iconoApp from '../assets/icono-app.png';
 import './Estilos/TitleBar.css';
 
 function TitleBar() {
@@ -51,7 +51,7 @@ function TitleBar() {
                 data-tauri-drag-region
                 onDoubleClick={() => ventana?.toggleMaximize()}
             >
-                <span className="titlebar-icono"><HiOutlineShoppingBag /></span>
+                <span className="titlebar-icono"><img src={iconoApp} alt="" /></span>
                 <span className="titlebar-texto">MercadoApp</span>
             </div>
 

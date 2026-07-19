@@ -41,7 +41,7 @@ function ModalVerBoleta({ boleta, nombreCliente, nombreProducto, formatearMoneda
 
                 <div className="modal-header">
                     <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <HiOutlineTicket /> Boleta #{boleta.id}
+                        <HiOutlineTicket /> Boleta
                     </h3>
                     <button className="btn-cerrar-modal" onClick={cerrarModal}>X</button>
                 </div>

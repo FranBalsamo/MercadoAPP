@@ -1,0 +1,97 @@
+/* 1. Fondo Oscuro y Centrado Absoluto */
+.alerta-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    background-color: var(--overlay);
+    display: flex; /* Flexbox para centrar mágicamente */
+    justify-content: center;
+    align-items: center;
+}
+
+/* 2. Caja del Modal */
+.alerta-contenido {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    width: 90%;
+    max-width: 420px; /* Crece hasta 420px, ideal para celulares y PC */
+    /* Eliminamos el height fijo para que se adapte al texto */
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden; /* Hace que el header respete los bordes redondeados */
+    animation: aparecer 0.15s ease-out; /* Una pequeña animación opcional */
+}
+
+/* 3. Encabezado */
+.alerta-header {
+    background-color: var(--surface-inverse);
+    color: var(--text-on-inverse);
+    padding: 14px 20px;
+    text-align: center;
+}
+
+/* 4. Cuerpo del Mensaje */
+.alerta-mensaje {
+    padding: 18px 24px;
+    font-size: 1rem;
+    color: var(--text-primary);
+    line-height: 1.5;
+    white-space: pre-wrap; /*Esto hace que React respete los saltos de línea (enters) de tu texto */
+    text-align: left;
+}
+.alerta-mensaje p{
+    margin: 0;
+}
+
+/* 5. Contenedor de Botones */
+.alerta-botones {
+    display: flex;
+    justify-content: center;
+    gap: 15px; /* Separación entre botones */
+    padding: 0 25px 25px 25px;
+}
+
+/* 6. Botón Confirmar (Rojo para acciones destructivas) */
+.botones-confirmacion {
+    background-color: var(--danger);
+    color: var(--text-on-accent);
+    border: none;
+    padding: 10px 0;
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    flex: 1; /* Hace que ambos botones midan exactamente lo mismo */
+    transition: filter 0.2s;
+}
+
+.botones-confirmacion:hover {
+    filter: brightness(0.9);
+}
+
+/* 7. Botón Cancelar (Neutro) */
+.botones-cancelar {
+    background-color: var(--surface-2);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    padding: 10px 0;
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    flex: 1;
+    transition: background-color 0.2s;
+}
+
+.botones-cancelar:hover {
+    background-color: var(--border);
+}
+
+/* Bonus: Animación suave al abrir */
+@keyframes aparecer {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}

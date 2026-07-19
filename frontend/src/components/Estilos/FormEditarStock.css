@@ -1,0 +1,21 @@
+/* Agregar estas propiedades si no están definidas en Modal.css */
+
+.form-modificar-stock {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.form-modificar-stock label {
+    font-weight: bold;
+    color: var(--text-secondary);
+}
+
+.form-modificar-stock select,
+.form-modificar-stock input {
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background-color: var(--surface);
+    color: var(--text-primary);
+}

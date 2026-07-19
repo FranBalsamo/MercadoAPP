@@ -1,0 +1,94 @@
+/* ============================================================
+   Menú de acciones inline ("..." que se abre en la misma línea):
+   ver MenuAccionesInline.jsx. Pensado para reemplazar filas de
+   botones sueltos (Ver / Modificar / Eliminar) en tablas.
+   ============================================================ */
+
+.menu-acciones-inline {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.menu-acciones-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background-color: var(--surface);
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.menu-acciones-trigger:hover {
+    background-color: var(--surface-2);
+    color: var(--text-primary);
+}
+
+.menu-acciones-trigger.abierto {
+    color: var(--accent);
+    border-color: var(--accent);
+    background-color: var(--accent-soft);
+}
+
+/* Cada acción va envuelta en una celda cuyo ancho se anima entre 0 y el
+   ancho natural medido del botón (ver MenuAccionesInline.jsx), dando el
+   efecto de que se "despliega" desde el centro (el trigger) hacia cada
+   costado. */
+.menu-acciones-celda {
+    flex-grow: 0;
+    flex-shrink: 0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: flex-basis 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.16s ease;
+}
+
+.menu-acciones-celda.abierta {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.menu-acciones-boton {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    padding: 5px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background-color: var(--surface);
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.menu-acciones-boton:hover {
+    background-color: var(--surface-2);
+}
+
+.menu-acciones-boton.primario {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.menu-acciones-boton.primario:hover {
+    background-color: var(--accent-soft);
+}
+
+.menu-acciones-boton.peligro {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.menu-acciones-boton.peligro:hover {
+    background-color: var(--danger-soft);
+}

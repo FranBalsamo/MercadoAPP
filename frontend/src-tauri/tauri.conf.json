@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "frontend",
+  "productName": "MercadoApp",
   "version": "0.1.0",
   "identifier": "com.franbalsamo.mercadoapp",
   "build": {
@@ -12,24 +12,43 @@
   "app": {
     "windows": [
       {
-        "title": "frontend",
-        "width": 800,
-        "height": 600
+        "title": "MercadoApp",
+        "width": 1536,
+        "height": 816,
+        "minWidth": 1536,
+        "minHeight": 816,
+        "decorations": false
       }
     ],
     "security": {
       "csp": null
     }
   },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IERGQTE1QUMxOTMwRjEyQjAKUldTd0VnK1R3VnFoM3pVSUk3QmlNWFhmME5wbjdFTHNwazJNWW5KQjEyN0pCczhGM29mRThOVGMK",
+      "endpoints": [
+        "https://github.com/FranBalsamo/MercadoAPP/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
+  },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["nsis"],
+    "createUpdaterArtifacts": true,
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "resources": {
+      "../../vendor/mysql-8.4.10-winx64": "mysql-portable",
+      "../../backend/dist/jpackage-output/MercadoAppBackend": "MercadoAppBackend"
+    }
   }
 }

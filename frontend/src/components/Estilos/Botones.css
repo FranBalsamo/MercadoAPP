@@ -1,0 +1,147 @@
+/* =========================================
+ESTILOS BASE (Se aplican a todos los botones)
+========================================= */
+.btn-global {
+    border: none;
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+
+    /*HOVER SUAVE */
+    transition: background-color var(--transition-base), transform 0.1s ease, box-shadow var(--transition-base);
+}
+
+/* Opcional: Este pequeño truco hace que el botón se "hunda" un poquito al hacerle clic */
+.btn-global:active {
+    transform: scale(0.97);
+}
+
+.btn-global:disabled {
+    background-color: var(--surface-2);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    transform: none;
+    /* Quitamos el hundimiento si está deshabilitado */
+}
+
+.btn-flecha-carrusel {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background-color: var(--surface);
+    color: var(--text-primary);
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.btn-flecha-carrusel:hover {
+    background-color: var(--surface-2);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-cerrar-modal {
+    background-color: transparent;
+    color: var(--text-muted);
+    border: none;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    padding: 4px 8px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    /* La magia de la transición suave */
+    transition: background-color var(--transition-base), color var(--transition-base), transform 0.1s ease;
+}
+
+.btn-eliminar-fila {
+    background-color: transparent; /* Fondo transparente inicial */
+    color: var(--danger);          /* Texto rojo inicial */
+    border: 1px solid transparent; /* Borde invisible para que no "salte" el tamaño al hacer hover */
+    border-radius: var(--radius-sm);
+    padding: 4px 8px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+
+    /* Le decimos que anime tanto el color de fondo como el del texto */
+    transition: background-color var(--transition-base), color var(--transition-base), transform 0.1s ease;
+}
+
+
+/* =========================================
+   TIPOS DE BOTONES (Colores y Hover)
+   ========================================= */
+
+/* 1. Botón Primario (Acento - Para "Cargar Nueva Boleta", "Guardar") */
+.btn-primario {
+    background-color: var(--accent);
+    color: var(--text-on-accent);
+}
+
+.btn-primario:hover:not(:disabled) {
+    background-color: var(--accent-hover);
+}
+
+/* 2. Botón de Éxito (Verde - Para "Agregar al carrito") */
+.btn-primario-green {
+    background-color: var(--success);
+    color: var(--text-on-accent);
+}
+
+.btn-primario-green:hover:not(:disabled) {
+    filter: brightness(0.92);
+}
+
+/* 3. Botón de Peligro (Rojo - Para "Eliminar", "Cerrar Caja") */
+.btn-peligro {
+    background-color: var(--danger);
+    color: var(--text-on-accent);
+}
+
+.btn-peligro:hover:not(:disabled) {
+    filter: brightness(0.9);
+}
+
+/* 4. Botón Secundario (Neutro - Para "Cancelar", "Volver") */
+.btn-secundario {
+    background-color: var(--surface-2);
+    color: var(--text-primary);
+}
+
+.btn-secundario:hover:not(:disabled) {
+    background-color: var(--border);
+}
+
+/* 5. Boton Cerrar Header*/
+.btn-cerrar-modal:hover {
+    background-color: var(--danger);
+    color: var(--text-on-accent);
+}
+
+.btn-cerrar-modal:active {
+    transform: scale(0.9);
+}
+
+/* Boton de eliminar fila */
+.btn-eliminar-fila:hover {
+    background-color: var(--danger);
+    color: var(--text-on-accent);
+}
+
+/* Pequeño hundimiento al hacer clic */
+.btn-eliminar-fila:active {
+    transform: scale(0.90);
+}

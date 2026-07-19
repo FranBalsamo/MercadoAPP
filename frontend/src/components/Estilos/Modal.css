@@ -1,0 +1,109 @@
+/* El fondo oscuro que tapa toda la pantalla */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--overlay);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 500; /* Asegura que esté por encima de TODO, incluso el Header */
+}
+
+/* La cajita del formulario */
+.modal-contenido {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  width: 400px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: 90vh;
+
+  animation: aparecerModal 0.2s ease-out;
+  /* - aparecerModal: El nombre de la animación que definimos abajo.
+       - 0.2s: La duración (igual que en la alerta para consistencia).
+       - ease-out: Hace que la animación empiece rápido y desacelere al final.
+    */
+}
+
+.modal-header {
+  background-color: var(--surface-inverse);
+  color: var(--text-on-inverse);
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+
+.modal-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  color: var(--text-primary);
+
+  overflow-y:auto;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-align: left;
+}
+
+.form-group label {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.form-group input, .form-group textarea, .form-group select {
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  background-color: var(--surface);
+  color: var(--text-primary);
+}
+
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.modal-footer {
+  padding: 15px 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  background-color: var(--surface-2);
+  border-top: 1px solid var(--border);
+}
+
+@keyframes aparecerModal {
+  from {
+    transform: scale(0.9);
+    /* Empieza un poco más pequeño */
+    opacity: 0;
+    /* Y completamente transparente */
+  }
+
+  to {
+    transform: scale(1);
+    /* Termina en su tamaño original */
+    opacity: 1;
+    /* Y totalmente visible */
+  }
+}

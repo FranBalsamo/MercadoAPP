@@ -120,12 +120,12 @@ https://github.com/FranBalsamo/MercadoAPP/releases/latest/download/latest.json
 ```
 Esto apunta siempre al **último Release** del repo en GitHub, así que hay que crear un Release por cada versión, con el instalador `.exe` y un `latest.json` como assets.
 
-**1. Clave de firma**: los updates tienen que estar firmados (si no, la app los rechaza). Ya existe un par de claves generado (`tauri signer generate`); la privada vive en `C:\Users\Usuario\.tauri-keys\mercadoapp.key`, **fuera del repo** — no se sube a git y hay que hacerle backup en un lugar seguro. Si se pierde, no se puede firmar ninguna actualización nueva y los usuarios van a tener que volver a instalar a mano.
+**1. Clave de firma**: los updates tienen que estar firmados (si no, la app los rechaza). Ya existe un par de claves generado (`tauri signer generate`), protegido con contraseña (el CLI de Tauri tiene un bug/comportamiento inconsistente cuando la clave no tiene contraseña, así que se generó con una). La privada y su contraseña viven **fuera del repo**, en `C:\Users\Usuario\.tauri-keys\` (`mercadoapp.key` y `mercadoapp.key.password.txt`) — no se suben a git y hay que hacerles backup en un lugar seguro. Si se pierden, no se puede firmar ninguna actualización nueva y los usuarios van a tener que volver a instalar a mano.
 
 Antes de compilar, setear estas variables de entorno (en la misma terminal donde se corre `npm run tauri build`):
 ```powershell
 $env:TAURI_SIGNING_PRIVATE_KEY = Get-Content "$env:USERPROFILE\.tauri-keys\mercadoapp.key" -Raw
-$env:TAURI_SIGNING_PRIVATE_KEY_PASSWORD = ""   # la clave se genero sin contraseña
+$env:TAURI_SIGNING_PRIVATE_KEY_PASSWORD = Get-Content "$env:USERPROFILE\.tauri-keys\mercadoapp.key.password.txt" -Raw
 ```
 
 **2. Subir la version** en `frontend/package.json`, `frontend/src-tauri/Cargo.toml` y `frontend/src-tauri/tauri.conf.json` (los tres campos `"version"`/`version` tienen que coincidir).
@@ -135,6 +135,12 @@ $env:TAURI_SIGNING_PRIVATE_KEY_PASSWORD = ""   # la clave se genero sin contrase
 frontend\src-tauri\target\release\bundle\nsis\MercadoApp_<version>_x64-setup.exe
 frontend\src-tauri\target\release\bundle\nsis\MercadoApp_<version>_x64-setup.exe.sig
 ```
+
+La compresión LZMA por defecto del instalador (`.exe` de ~220MB) tarda unos ~20 minutos en el paso "Running makensis". Para iterar más rápido mientras se prueba el ciclo de publicación (sin importar el peso final), se puede agregar esto a `frontend/src-tauri/tauri.conf.json` dentro de `bundle`:
+```json
+"windows": { "nsis": { "compression": "none" } }
+```
+Con esto el build baja mucho de tiempo, pero el instalador sale sin comprimir (~1.5GB). **Sacar este bloque (o dejarlo en `"lzma"`) antes de publicar la versión real** que van a descargar los usuarios — si no, el auto-update también va a bajar ese instalador pesado en cada actualización (Tauri no hace descargas parciales/delta, baja el instalador completo siempre).
 
 **4. Armar `latest.json`** con el contenido del `.sig` y la URL final del instalador (reemplazar `<version>` en ambos lugares):
 ```json
@@ -153,7 +159,25 @@ frontend\src-tauri\target\release\bundle\nsis\MercadoApp_<version>_x64-setup.exe
 
 **5. Crear el Release en GitHub** con tag `v<version>`, y subir como assets tanto `MercadoApp_<version>_x64-setup.exe` como `latest.json` (el nombre del segundo tiene que ser exactamente `latest.json`, sin la versión en el nombre).
 
+Por consola, con [GitHub CLI](https://cli.github.com/) (`gh`) ya instalado y logueado (`gh auth login`), desde la raíz del repo:
+```powershell
+gh release create v<version> `
+  "frontend\src-tauri\target\release\bundle\nsis\MercadoApp_<version>_x64-setup.exe" `
+  "frontend\src-tauri\target\release\bundle\nsis\latest.json" `
+  --title "v<version>" `
+  --notes "Descripcion breve de los cambios"
+```
+
 Listo — cualquier instalación existente de MercadoApp va a detectar esta versión la próxima vez que el usuario abra la pestaña Actualizaciones (o cuando se agregue una revisión automática al abrir la app).
+
+**Reemplazar los assets de un Release ya publicado** (por ejemplo, si se subió primero el instalador sin comprimir para probar más rápido y después se quiere subir la versión comprimida final, sin cambiar el número de versión): recompilar/reformar el `latest.json` como en los pasos 3-4 (la firma cambia porque el archivo cambia) y subir con `--clobber` para sobrescribir en vez de crear un Release nuevo:
+```powershell
+gh release upload v<version> `
+  "frontend\src-tauri\target\release\bundle\nsis\MercadoApp_<version>_x64-setup.exe" `
+  "frontend\src-tauri\target\release\bundle\nsis\latest.json" `
+  --clobber
+```
+Ojo: si alguien ya instaló la versión vieja de ese mismo Release, no le va a aparecer como actualización disponible (el updater compara número de versión, no si el archivo cambió) — se queda con lo que ya instaló hasta que se publique una versión nueva de verdad.
 
 ### Cómo arranca la app por dentro
 

@@ -26,7 +26,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDNCMzlDOEQ2ODI4M0UxNjEKUldSaDRZT0Mxc2c1T3ozR2k1VFNJMHNlZFBxNVduUFY2M0RMdm5NSXJ1dGdqQkRXaFhSejVDcC8K",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IERGQTE1QUMxOTMwRjEyQjAKUldTd0VnK1R3VnFoM3pVSUk3QmlNWFhmME5wbjdFTHNwazJNWW5KQjEyN0pCczhGM29mRThOVGMK",
       "endpoints": [
         "https://github.com/FranBalsamo/MercadoAPP/releases/latest/download/latest.json"
       ],
@@ -38,6 +38,7 @@
   "bundle": {
     "active": true,
     "targets": ["nsis"],
+    "createUpdaterArtifacts": true,
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

@@ -103,11 +103,57 @@ frontend\src-tauri\target\release\bundle\nsis\MercadoApp_<version>_x64-setup.exe
 
 ### Actualizar la app a una versión nueva
 
+**Manual** (siempre funciona, no depende de nada externo):
 1. Generar el instalador nuevo (pasos de la sección anterior).
 2. Desinstalar la versión vieja: Configuración de Windows → Aplicaciones → MercadoApp → Desinstalar (o correr directamente `%LOCALAPPDATA%\MercadoApp\uninstall.exe`).
 3. Instalar el `.exe` nuevo.
 
 Los datos (clientes, boletas, planillas) no se pierden entre medio, porque viven aparte de la carpeta del programa (ver arriba).
+
+**Automática**: la app instalada busca actualizaciones sola (pestaña Configuración → Actualizaciones → "Buscar actualizaciones"), las descarga firmadas y se reinicia sola. Para que esto funcione hay que *publicar* cada versión nueva correctamente — ver la sección siguiente.
+
+### Publicar una actualización (para que el auto-update la vea)
+
+El auto-update (`tauri-plugin-updater`) busca un archivo `latest.json` en:
+```
+https://github.com/FranBalsamo/MercadoAPP/releases/latest/download/latest.json
+```
+Esto apunta siempre al **último Release** del repo en GitHub, así que hay que crear un Release por cada versión, con el instalador `.exe` y un `latest.json` como assets.
+
+**1. Clave de firma**: los updates tienen que estar firmados (si no, la app los rechaza). Ya existe un par de claves generado (`tauri signer generate`); la privada vive en `C:\Users\Usuario\.tauri-keys\mercadoapp.key`, **fuera del repo** — no se sube a git y hay que hacerle backup en un lugar seguro. Si se pierde, no se puede firmar ninguna actualización nueva y los usuarios van a tener que volver a instalar a mano.
+
+Antes de compilar, setear estas variables de entorno (en la misma terminal donde se corre `npm run tauri build`):
+```powershell
+$env:TAURI_SIGNING_PRIVATE_KEY = Get-Content "$env:USERPROFILE\.tauri-keys\mercadoapp.key" -Raw
+$env:TAURI_SIGNING_PRIVATE_KEY_PASSWORD = ""   # la clave se genero sin contraseña
+```
+
+**2. Subir la version** en `frontend/package.json`, `frontend/src-tauri/Cargo.toml` y `frontend/src-tauri/tauri.conf.json` (los tres campos `"version"`/`version` tienen que coincidir).
+
+**3. Compilar** (con las variables de entorno del paso 1 ya seteadas): repetir los pasos de "Generar el instalador de escritorio". Al estar firmado, junto al instalador aparece un archivo `.sig`:
+```
+frontend\src-tauri\target\release\bundle\nsis\MercadoApp_<version>_x64-setup.exe
+frontend\src-tauri\target\release\bundle\nsis\MercadoApp_<version>_x64-setup.exe.sig
+```
+
+**4. Armar `latest.json`** con el contenido del `.sig` y la URL final del instalador (reemplazar `<version>` en ambos lugares):
+```json
+{
+  "version": "<version>",
+  "notes": "Descripcion breve de los cambios",
+  "pub_date": "2026-01-01T00:00:00Z",
+  "platforms": {
+    "windows-x86_64": {
+      "signature": "<pegar aca el contenido completo del archivo .sig>",
+      "url": "https://github.com/FranBalsamo/MercadoAPP/releases/download/v<version>/MercadoApp_<version>_x64-setup.exe"
+    }
+  }
+}
+```
+
+**5. Crear el Release en GitHub** con tag `v<version>`, y subir como assets tanto `MercadoApp_<version>_x64-setup.exe` como `latest.json` (el nombre del segundo tiene que ser exactamente `latest.json`, sin la versión en el nombre).
+
+Listo — cualquier instalación existente de MercadoApp va a detectar esta versión la próxima vez que el usuario abra la pestaña Actualizaciones (o cuando se agregue una revisión automática al abrir la app).
 
 ### Cómo arranca la app por dentro
 
@@ -160,3 +206,4 @@ Además del selector de carpetas, existe una variable de entorno `BACKUP_HOST_PA
 | `descargar-mysql-portable.ps1` | Descarga el MySQL portable usado por la app de escritorio | Una vez, antes del primer `tauri build` |
 | `empaquetar-backend.ps1` | Compila el backend y lo empaqueta con `jpackage` (JRE incluido) | Cada vez que cambia código del backend, antes de `tauri build` |
 | `refrescar-discos.ps1` | Monta todos los discos de la PC en el contenedor Docker del backend | Solo en desarrollo con Docker, para probar el backup a otro disco |
+| `reparar-build-desktop.ps1` | Arregla los problemas más comunes de `tauri dev`/`tauri build` (archivos de solo lectura que quedan de un build interrumpido, cache de NSIS corrupta, MySQL portable sin extraer) | Si `tauri dev`/`tauri build` falla con "Acceso denegado" o se queda trabado en "Running makensis" |

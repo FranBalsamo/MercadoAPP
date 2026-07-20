@@ -67,12 +67,22 @@ function TabBackup() {
             const carpetaElegida = await open({ directory: true, multiple: false });
             if (!carpetaElegida) return;
 
-            const rutaContenedor = rutaWindowsAContenedor(carpetaElegida);
-            if (!rutaContenedor) {
-                setErrorConfig('No se pudo interpretar esa carpeta. Elegí una ubicación dentro de un disco con letra (ej. D:\\...).');
-                return;
+            // La traduccion a /mnt/<letra> solo tiene sentido cuando el backend corre en
+            // Docker (siempre el caso en 'tauri dev', ver README). La app instalada (build
+            // de produccion) usa un backend nativo de Windows que entiende la ruta tal cual;
+            // traducirla igual ahi rompia el backup (Windows la interpretaba como una ruta
+            // relativa a la raiz de la unidad actual, ej. terminaba escribiendo en
+            // C:\mnt\c\Users\... en vez de en la carpeta elegida).
+            if (import.meta.env.DEV) {
+                const rutaContenedor = rutaWindowsAContenedor(carpetaElegida);
+                if (!rutaContenedor) {
+                    setErrorConfig('No se pudo interpretar esa carpeta. Elegí una ubicación dentro de un disco con letra (ej. D:\\...).');
+                    return;
+                }
+                actualizarCampoConfig('rutaDestino', rutaContenedor);
+            } else {
+                actualizarCampoConfig('rutaDestino', carpetaElegida);
             }
-            actualizarCampoConfig('rutaDestino', rutaContenedor);
         } catch (err) {
             console.error(err);
             setErrorConfig('No se pudo abrir el selector de carpetas.');

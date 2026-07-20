@@ -33,6 +33,15 @@ fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
+// El instalador de actualizaciones corre (en modo pasivo) mientras la app todavia esta viva,
+// y pisa MercadoAppBackend.bin/mysqld.exe en el disco: si esos procesos siguen corriendo,
+// Windows tiene el archivo bloqueado y el instalador falla con "Error opening file for writing".
+// El frontend llama a este comando justo antes de 'downloadAndInstall' para soltar los archivos.
+#[tauri::command]
+fn detener_backend_para_actualizar(app: tauri::AppHandle) {
+    detener_backend_local(&app);
+}
+
 fn puerto_abierto(host: &str, puerto: u16) -> bool {
     format!("{host}:{puerto}")
         .parse()
@@ -273,7 +282,7 @@ pub fn run() {
                 detener_backend_local(window.app_handle());
             }
         })
-        .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![greet, detener_backend_para_actualizar])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

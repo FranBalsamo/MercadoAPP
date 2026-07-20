@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getVersion } from '@tauri-apps/api/app';
+import { invoke } from '@tauri-apps/api/core';
 import { check } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { HiOutlineArrowPath, HiOutlineCheckCircle, HiOutlineArrowDownTray, HiOutlineExclamationTriangle } from 'react-icons/hi2';
@@ -43,6 +44,14 @@ function TabActualizaciones() {
         setError('');
         setProgreso(0);
         try {
+            // El instalador corre en modo pasivo mientras la app sigue viva, y necesita
+            // sobreescribir el .bin del backend y mysqld.exe: si siguen corriendo, Windows
+            // los tiene bloqueados y la instalacion falla con "Error opening file for writing".
+            // Los apagamos antes de descargar/instalar para liberar esos archivos a tiempo.
+            await invoke('detener_backend_para_actualizar').catch((err) =>
+                console.error('No se pudo detener el backend local antes de actualizar:', err)
+            );
+
             let totalDescargado = 0;
             let tamanioTotal = 0;
             await update.downloadAndInstall((evento) => {

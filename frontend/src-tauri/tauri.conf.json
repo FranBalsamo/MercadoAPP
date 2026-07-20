@@ -50,6 +50,7 @@
     "resources": {
       "../../vendor/mysql-8.4.10-winx64": "mysql-portable",
       "../../backend/dist/jpackage-output/MercadoAppBackend": "MercadoAppBackend"
-    }
+    },
+    "windows": { "nsis": { "compression": "none" } }
   }
 }

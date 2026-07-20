@@ -1,5 +1,6 @@
 package com.franbalsamo.mercadoapp.modules.cliente.model;
 import com.franbalsamo.mercadoapp.modules.cliente.TipoCliente;
+import com.franbalsamo.mercadoapp.modules.cliente.TipoDocumento;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,6 +20,12 @@ public class Cliente {
 
     @Column(unique = true, nullable = false)
     private String documento;
+
+    // Un SUPERMERCADO siempre usa CUIT_L (se fuerza en ClienteService); solo un PERSONA
+    // puede elegir entre DNI o CUIT_L.
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "VARCHAR(20) DEFAULT 'DNI'")
+    private TipoDocumento tipoDocumento = TipoDocumento.DNI;
 
     @Column(nullable = false)
     private String nombre;

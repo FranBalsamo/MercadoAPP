@@ -1,5 +1,6 @@
 import {useState, useEffect} from 'react';
 import SelectPersonalizado from '../UI/SelectPersonalizado';
+import InputNumero from '../UI/InputNumero';
 import '../Estilos/Modal.css';
 import '../Estilos/Botones.css';
 import '../Estilos/Formularios.css';
@@ -146,14 +147,13 @@ function ModalPlanilla({cerrarModal, onPlanillaCreada}) {
                                 capitalizarOpciones
                             />
                             
-                            <input
-                                type="number"
+                            <InputNumero
                                 style={{ flex: 1, padding: '8px', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
                                 placeholder="inventario"
                                 value={fila.stock}
                                 onChange={(e) => actualizarFila(index, 'stock', e.target.value)}
                                 min="1"
-                                step="0.5" 
+                                step="0.5"
                             />
 
                             <button

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import ModalBuscarCliente from '../Modals/ModalBuscarCliente';
 import ModalVerBoleta from '../Modals/ModalVerBoleta';
 import ModalModificarBoleta from '../Modals/ModalModificarBoleta';
@@ -21,6 +21,79 @@ const formaPagoLegible = (boleta) => {
     if (boleta.estadoPago === 'NO_PAGADO') return '-';
     return NOMBRES_FORMA_PAGO[boleta.formaPago] || '-';
 };
+
+// Funcion pura (no depende de props/estado): se define afuera del componente para que
+// tenga identidad estable entre renders, en vez de recrearse cada vez.
+const formatearMoneda = (val) => (val ?? 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
+
+// Fila memoizada: al pasarle solo props primitivas/datos ya resueltos (nada de funciones
+// recreadas en cada render del padre, salvo las que son estables via useCallback/setState),
+// React.memo puede saltear el re-render de una fila cuando el mouse pasa por OTRA fila
+// (evita que el hover de una tabla larga re-renderice todas las filas en cada scroll).
+const FilaBoleta = memo(function FilaBoleta({ boleta, idx, resaltada, onHoverStart, onHoverEnd, onVer, onModificar }) {
+    return (
+        <tr
+            style={{ borderBottom: '1px solid var(--border)', backgroundColor: idx % 2 === 0 ? 'var(--surface)' : 'var(--surface-2)' }}
+            onMouseEnter={() => onHoverStart(boleta.id)}
+            onMouseLeave={onHoverEnd}
+        >
+            <td style={{ padding: '12px', verticalAlign: 'top', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                {formatearFechaVisual(boleta._fecha)}
+            </td>
+            <td style={{ padding: '12px', verticalAlign: 'top', fontWeight: 'bold', textTransform: 'capitalize', color: 'var(--text-primary)' }}>
+                {boleta._nombreCliente}
+            </td>
+            <td style={{ padding: '12px', verticalAlign: 'top' }}>
+                <span style={{
+                    padding: '4px 8px', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontWeight: 'bold',
+                    backgroundColor: boleta.estadoPago === 'PAGADO' ? 'var(--success-soft)' : 'var(--danger-soft)',
+                    color: boleta.estadoPago === 'PAGADO' ? 'var(--success-soft-text)' : 'var(--danger-soft-text)'
+                }}>
+                    {boleta.estadoPago}
+                </span>
+            </td>
+            <td style={{ padding: '12px', verticalAlign: 'top' }}>
+                <span style={{
+                    padding: '4px 8px', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontWeight: 'bold',
+                    backgroundColor: boleta.estadoEntrega === 'ENTREGADO' ? 'var(--success-soft)' : boleta.estadoEntrega === 'PARCIAL' ? 'var(--warning-soft)' : 'var(--danger-soft)',
+                    color: boleta.estadoEntrega === 'ENTREGADO' ? 'var(--success-soft-text)' : boleta.estadoEntrega === 'PARCIAL' ? 'var(--warning-soft-text)' : 'var(--danger-soft-text)'
+                }}>
+                    {boleta.estadoEntrega}
+                </span>
+            </td>
+            <td style={{ padding: '12px', verticalAlign: 'top', fontSize: '0.9rem', color: 'var(--text-primary)' }}>
+                {formaPagoLegible(boleta)}
+            </td>
+            <td style={{ padding: '12px', verticalAlign: 'top' }}>
+                <ul style={{ margin: 0, paddingLeft: '15px', listStyleType: 'square', color: 'var(--text-secondary)' }}>
+                    {boleta._ventasConNombre.map((itemProd, i) => (
+                        <li key={i} style={{ marginBottom: '3px', textTransform: 'capitalize' }}>
+                            <strong>{itemProd.cantidad}x</strong> {itemProd._nombreProducto}
+                            <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}> ({formatearMoneda(itemProd.precio_unitario)} c/u)</span>
+                            <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                                {' '}- Vacío: {itemProd.precio_vacio > 0 ? formatearMoneda(itemProd.precio_vacio) : 'Sin Vacio'}
+                            </span>
+                        </li>
+                    ))}
+                </ul>
+            </td>
+            <td style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold', fontSize: '1.05rem', color: 'var(--text-primary)', verticalAlign: 'top' }}>
+                {formatearMoneda(boleta.total)}
+            </td>
+            <td style={{ padding: '12px', textAlign: 'center', verticalAlign: 'top' }}>
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <MenuAccionesInline
+                        mostrarPorHover={resaltada}
+                        acciones={[
+                            { label: 'Ver', onClick: () => onVer(boleta) },
+                            { label: 'Modificar', onClick: () => onModificar(boleta), variante: 'primario' },
+                        ]}
+                    />
+                </div>
+            </td>
+        </tr>
+    );
+});
 
 function VistaBuscarBoletas() {
     const [metodoFiltro, setMetodoFiltro] = useState('cliente');
@@ -60,22 +133,16 @@ function VistaBuscarBoletas() {
         cargarCatalogos();
     }, []);
 
-    const nombreProducto = (id) => {
-        const p = catalogoProductos.find(prod => String(prod.id) === String(id));
-        return p ? p.nombre : `Prod #${id}`;
-    };
+    // Mapas en vez de repetir un .find() (O(n)) por cada boleta/producto en cada render:
+    // con muchas boletas/clientes/productos, esto es una busqueda O(1) por id.
+    const mapaClientes = useMemo(() => new Map(clientes.map((c) => [String(c.id), c])), [clientes]);
+    const mapaProductos = useMemo(() => new Map(catalogoProductos.map((p) => [String(p.id), p])), [catalogoProductos]);
+    const mapaPlanillas = useMemo(() => new Map(planillas.map((p) => [String(p.id), p])), [planillas]);
 
-    const nombreCliente = (id_cliente) => {
-        const c = clientes.find(cliente => String(cliente.id) === String(id_cliente));
-        return c ? c.nombre : `Cliente #${id_cliente}`;
-    };
-
-    const fechaPlanilla = (id_planilla) => {
-        const p = planillas.find(pla => String(pla.id) === String(id_planilla));
-        return p ? p.fecha : '-';
-    };
-
-    const planillaDeBoleta = (id_planilla) => planillas.find(pla => String(pla.id) === String(id_planilla));
+    const nombreProducto = (id) => mapaProductos.get(String(id))?.nombre || `Prod #${id}`;
+    const nombreCliente = (id_cliente) => mapaClientes.get(String(id_cliente))?.nombre || `Cliente #${id_cliente}`;
+    const fechaPlanilla = (id_planilla) => mapaPlanillas.get(String(id_planilla))?.fecha || '-';
+    const planillaDeBoleta = (id_planilla) => mapaPlanillas.get(String(id_planilla));
 
     const handleBoletaEditada = (boletaActualizada) => {
         if (boletaActualizada) {
@@ -83,7 +150,9 @@ function VistaBuscarBoletas() {
         }
     };
 
-    const formatearMoneda = (val) => (val ?? 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
+    // Referencias estables (no se recrean en cada render) para que React.memo en FilaBoleta
+    // pueda saltear el re-render de las filas no afectadas por un cambio de hover.
+    const limpiarHover = useCallback(() => setFilaSobreCursor(null), []);
 
     const buscarPorCliente = async (cliente) => {
         setCargando(true);
@@ -147,16 +216,24 @@ function VistaBuscarBoletas() {
         setFiltroEntrega('');
     };
 
-    const boletasFiltradas = boletas
-        .filter(boleta =>
-            (!filtroPago || boleta.estadoPago === filtroPago) &&
-            (!filtroEntrega || boleta.estadoEntrega === filtroEntrega)
-        )
-        .sort((a, b) => {
-            const fechaA = fechaPlanilla(a.id_planilla);
-            const fechaB = fechaPlanilla(b.id_planilla);
-            return fechaA === fechaB ? 0 : (fechaA < fechaB ? 1 : -1); // más reciente primero
-        });
+    // Se recalcula solo cuando cambian los datos/filtros reales (antes se filtraba, ordenaba
+    // y resolvian nombres de cliente/producto en CADA render, incluidos los que disparaba
+    // el hover de una fila al scrollear con el mouse encima). Ademas resuelve fecha/nombre
+    // de cliente/nombres de producto UNA vez por boleta aca, en vez de en cada fila.
+    const boletasFiltradas = useMemo(() => {
+        return boletas
+            .filter(boleta =>
+                (!filtroPago || boleta.estadoPago === filtroPago) &&
+                (!filtroEntrega || boleta.estadoEntrega === filtroEntrega)
+            )
+            .map(boleta => ({
+                ...boleta,
+                _fecha: fechaPlanilla(boleta.id_planilla),
+                _nombreCliente: nombreCliente(boleta.id_cliente),
+                _ventasConNombre: (boleta.ventas || []).map(v => ({ ...v, _nombreProducto: nombreProducto(v.id_producto) })),
+            }))
+            .sort((a, b) => (a._fecha === b._fecha ? 0 : (a._fecha < b._fecha ? 1 : -1))); // más reciente primero
+    }, [boletas, filtroPago, filtroEntrega, mapaPlanillas, mapaClientes, mapaProductos]);
 
     return (
         <main style={{ padding: '20px', backgroundColor: 'var(--bg)', height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -281,67 +358,16 @@ function VistaBuscarBoletas() {
                             </thead>
                             <tbody>
                                 {boletasFiltradas.map((boleta, idx) => (
-                                    <tr
+                                    <FilaBoleta
                                         key={boleta.id}
-                                        style={{ borderBottom: '1px solid var(--border)', backgroundColor: idx % 2 === 0 ? 'var(--surface)' : 'var(--surface-2)' }}
-                                        onMouseEnter={() => setFilaSobreCursor(boleta.id)}
-                                        onMouseLeave={() => setFilaSobreCursor(null)}
-                                    >
-                                        <td style={{ padding: '12px', verticalAlign: 'top', fontWeight: 'bold', color: 'var(--text-primary)' }}>
-                                            {formatearFechaVisual(fechaPlanilla(boleta.id_planilla))}
-                                        </td>
-                                        <td style={{ padding: '12px', verticalAlign: 'top', fontWeight: 'bold', textTransform: 'capitalize', color: 'var(--text-primary)' }}>
-                                            {nombreCliente(boleta.id_cliente)}
-                                        </td>
-                                        <td style={{ padding: '12px', verticalAlign: 'top' }}>
-                                            <span style={{
-                                                padding: '4px 8px', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontWeight: 'bold',
-                                                backgroundColor: boleta.estadoPago === 'PAGADO' ? 'var(--success-soft)' : 'var(--danger-soft)',
-                                                color: boleta.estadoPago === 'PAGADO' ? 'var(--success-soft-text)' : 'var(--danger-soft-text)'
-                                            }}>
-                                                {boleta.estadoPago}
-                                            </span>
-                                        </td>
-                                        <td style={{ padding: '12px', verticalAlign: 'top' }}>
-                                            <span style={{
-                                                padding: '4px 8px', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontWeight: 'bold',
-                                                backgroundColor: boleta.estadoEntrega === 'ENTREGADO' ? 'var(--success-soft)' : boleta.estadoEntrega === 'PARCIAL' ? 'var(--warning-soft)' : 'var(--danger-soft)',
-                                                color: boleta.estadoEntrega === 'ENTREGADO' ? 'var(--success-soft-text)' : boleta.estadoEntrega === 'PARCIAL' ? 'var(--warning-soft-text)' : 'var(--danger-soft-text)'
-                                            }}>
-                                                {boleta.estadoEntrega}
-                                            </span>
-                                        </td>
-                                        <td style={{ padding: '12px', verticalAlign: 'top', fontSize: '0.9rem', color: 'var(--text-primary)' }}>
-                                            {formaPagoLegible(boleta)}
-                                        </td>
-                                        <td style={{ padding: '12px', verticalAlign: 'top' }}>
-                                            <ul style={{ margin: 0, paddingLeft: '15px', listStyleType: 'square', color: 'var(--text-secondary)' }}>
-                                                {(boleta.ventas || []).map((itemProd, i) => (
-                                                    <li key={i} style={{ marginBottom: '3px', textTransform: 'capitalize' }}>
-                                                        <strong>{itemProd.cantidad}x</strong> {nombreProducto(itemProd.id_producto)}
-                                                        <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}> ({formatearMoneda(itemProd.precio_unitario)} c/u)</span>
-                                                        <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                                                            {' '}- Vacío: {itemProd.precio_vacio > 0 ? formatearMoneda(itemProd.precio_vacio) : 'Sin Vacio'}
-                                                        </span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </td>
-                                        <td style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold', fontSize: '1.05rem', color: 'var(--text-primary)', verticalAlign: 'top' }}>
-                                            {formatearMoneda(boleta.total)}
-                                        </td>
-                                        <td style={{ padding: '12px', textAlign: 'center', verticalAlign: 'top' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'center' }}>
-                                                <MenuAccionesInline
-                                                    mostrarPorHover={filaSobreCursor === boleta.id}
-                                                    acciones={[
-                                                        { label: 'Ver', onClick: () => setBoletaAVer(boleta) },
-                                                        { label: 'Modificar', onClick: () => setBoletaAEditar(boleta), variante: 'primario' },
-                                                    ]}
-                                                />
-                                            </div>
-                                        </td>
-                                    </tr>
+                                        boleta={boleta}
+                                        idx={idx}
+                                        resaltada={filaSobreCursor === boleta.id}
+                                        onHoverStart={setFilaSobreCursor}
+                                        onHoverEnd={limpiarHover}
+                                        onVer={setBoletaAVer}
+                                        onModificar={setBoletaAEditar}
+                                    />
                                 ))}
                             </tbody>
                         </table>

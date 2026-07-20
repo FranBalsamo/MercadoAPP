@@ -364,10 +364,10 @@ function VistaPlanillaCerrada({ planilla, volver }) {
         });
 
     return (
-        <main style={{ padding: '20px', backgroundColor: 'var(--bg)', minHeight: '100%', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <main style={{ padding: '20px', backgroundColor: 'var(--bg)', height: '100%', display: 'flex', flexDirection: 'column', gap: '20px', overflow: 'hidden' }}>
 
             {/* ENCABEZADO Y BOTÓN VOLVER */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '15px 20px', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)' }}>
+            <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '15px 20px', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)' }}>
                 <div>
                     <h2 style={{ margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlineLockClosed /> Resumen de Planilla Cerrada</h2>
                     <p style={{ margin: '5px 0 0 0', color: 'var(--text-secondary)' }}>
@@ -385,7 +385,7 @@ function VistaPlanillaCerrada({ planilla, volver }) {
             </div>
 
             {/* SECCIÓN 1: MÉTRICAS Y STOCK SOBRANTE */}
-            <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+            <div style={{ flexShrink: 0, display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
 
                 {/* Cajita de Ingresos */}
                 <div style={{ flex: 1, minWidth: '200px', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '15px', borderRadius: 'var(--radius-lg)', borderLeft: '5px solid var(--success)', boxShadow: 'var(--shadow-sm)' }}>
@@ -420,13 +420,13 @@ function VistaPlanillaCerrada({ planilla, volver }) {
             </div>
 
             {/* SECCIÓN 2: TABLA DETALLADA DE BOLETAS */}
-            <div style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '20px', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', flexGrow: 1 }}>
-                <h3 style={{ marginTop: 0, color: 'var(--text-primary)', borderBottom: '1px solid var(--border)', paddingBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '20px', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', flexGrow: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                <h3 style={{ flexShrink: 0, marginTop: 0, color: 'var(--text-primary)', borderBottom: '1px solid var(--border)', paddingBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <HiOutlineTicket /> Detalle de Boletas Emitidas
                 </h3>
 
                 {/* FILTROS */}
-                <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', margin: '15px 0' }}>
+                <div style={{ flexShrink: 0, display: 'flex', gap: '15px', flexWrap: 'wrap', margin: '15px 0' }}>
                     <input
                         type="text"
                         placeholder="Filtrar por cliente..."
@@ -459,9 +459,9 @@ function VistaPlanillaCerrada({ planilla, volver }) {
                 {cargando ? (
                     <p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>Cargando detalles...</p>
                 ) : (
-                    <div style={{ overflowX: 'auto' }}>
+                    <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.95rem' }}>
-                            <thead style={{ backgroundColor: 'var(--surface-inverse)', color: 'var(--text-on-inverse)' }}>
+                            <thead style={{ backgroundColor: 'var(--surface-inverse)', color: 'var(--text-on-inverse)', position: 'sticky', top: 0, zIndex: 1 }}>
                                 <tr>
                                     <th
                                         onClick={() => solicitarOrden('cliente')}

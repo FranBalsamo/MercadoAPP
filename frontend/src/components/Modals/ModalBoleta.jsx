@@ -6,6 +6,7 @@ import InputMoneda from './InputMoneda';
 import SelectPersonalizado from '../UI/SelectPersonalizado';
 import SelectorEstadoEntrega from '../UI/SelectorEstadoEntrega';
 import SelectorEstadoPago from '../UI/SelectorEstadoPago';
+import InputNumero from '../UI/InputNumero';
 import { HiOutlineTicket, HiOutlineUserCircle, HiOutlineArrowPath } from 'react-icons/hi2';
 
 function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBoletaGuardada, volverABuscarCliente }) {
@@ -274,7 +275,7 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
                     {/* DATOS DEL CLIENTE */}
                     <div style={{ backgroundColor: 'var(--info-soft)', padding: '10px 15px', borderRadius: 'var(--radius-md)', marginBottom: '15px', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><strong style={{ color: 'var(--info-soft-text)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}><HiOutlineUserCircle /> Cliente:</strong> <span style={{ textTransform: 'capitalize' }}>{cliente?.nombre}</span></div>
-                        <div><strong style={{ color: 'var(--info-soft-text)' }}>CUIT:</strong> {cliente?.documento}</div>
+                        <div><strong style={{ color: 'var(--info-soft-text)' }}>{cliente?.tipoDocumento === 'CUIT_L' ? 'CUIT/L' : 'DNI'}:</strong> {cliente?.documento}</div>
                     </div>
 
                     {/* BLOQUEO VISUAL MIENTRAS CARGA EL STOCK */}
@@ -316,8 +317,8 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
                                         {(stockDisponibleActual > 0 && !excedeStock) ? `disponible: ${stockDisponibleActual}` : 'Sin Inventario'}
                                     </div>
                                     <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Cantidad:</label>
-                                    <input
-                                        type="number" min="1" step="0.5"
+                                    <InputNumero
+                                        min="1" step="0.5"
                                         value={cantidad}
                                         onChange={(e) => setCantidad(e.target.value)}
                                         style={{
@@ -325,7 +326,6 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
                                             border: excedeStock ? '2px solid var(--danger)' : '1px solid var(--border)',
                                             backgroundColor: excedeStock ? 'var(--danger-soft)' : 'var(--surface)',
                                             color: 'var(--text-primary)',
-                                            outline: 'none'
                                         }}
                                     />
                                 </div>
@@ -392,12 +392,12 @@ function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBole
                                             <td style={{ padding: '10px', fontWeight: 'bold', color: 'var(--success)' }}>{fila.subtotal.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}</td>
                                             {entregado === 'PARCIAL' && (
                                                 <td style={{ padding: '10px' }}>
-                                                    <input
-                                                        type="number" min="0" max={fila.cantidad} step="0.5"
+                                                    <InputNumero
+                                                        min="0" max={fila.cantidad} step="0.5"
                                                         value={fila.cantidad_entregada}
                                                         onChange={(e) => actualizarCantidadEntregada(fila.id_fila, e.target.value)}
                                                         onBlur={() => confirmarCantidadEntregada(fila.id_fila)}
-                                                        style={{ width: '70px', padding: '4px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', textAlign: 'center', backgroundColor: 'var(--surface)', color: 'var(--text-primary)', outline: 'none' }}
+                                                        style={{ width: '85px', padding: '4px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', textAlign: 'center', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
                                                     />
                                                     <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}> / {fila.cantidad}</span>
                                                 </td>

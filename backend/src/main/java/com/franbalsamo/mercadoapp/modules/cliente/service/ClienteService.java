@@ -3,6 +3,7 @@ package com.franbalsamo.mercadoapp.modules.cliente.service;
 import com.franbalsamo.mercadoapp.modules.cliente.repository.ClienteRepository;
 import com.franbalsamo.mercadoapp.modules.cliente.model.Cliente;
 import com.franbalsamo.mercadoapp.modules.cliente.TipoCliente;
+import com.franbalsamo.mercadoapp.modules.cliente.TipoDocumento;
 import com.franbalsamo.mercadoapp.shared.exception.RecursoNoEncontradoException;
 import com.franbalsamo.mercadoapp.shared.exception.ReglaNegocioException;
 import com.franbalsamo.mercadoapp.modules.cliente.model.ClienteDTO;
@@ -23,6 +24,16 @@ public class ClienteService {
 
     public Cliente save(Cliente cliente){
         return clienteRepository.save(cliente);
+    }
+
+    // Un SUPERMERCADO siempre factura con CUIT_L: no tiene sentido elegir DNI para ese tipo
+    // de cliente, asi que se fuerza aca en vez de confiar en lo que mande el frontend.
+    private void forzarTipoDocumentoSegunTipoCliente(ClienteDTO dto){
+        if(dto.getTipoCliente() == TipoCliente.SUPERMERCADO){
+            dto.setTipoDocumento(TipoDocumento.CUIT_L);
+        } else if(dto.getTipoDocumento() == null){
+            dto.setTipoDocumento(TipoDocumento.DNI);
+        }
     }
 
     private void validarDirecciones(ClienteDTO dto){
@@ -46,6 +57,7 @@ public class ClienteService {
 
     @Transactional
     public ClienteDTO saveCliente(ClienteDTO dto){
+        forzarTipoDocumentoSegunTipoCliente(dto);
         validarDirecciones(dto);
         Cliente nuevoCliente = clienteMapper.toEntity(dto);
         nuevoCliente.setDirecciones(normalizarDirecciones(dto.getDirecciones()));
@@ -54,6 +66,7 @@ public class ClienteService {
 
     @Transactional
     public ClienteDTO modificarCliente(ClienteDTO dto){
+        forzarTipoDocumentoSegunTipoCliente(dto);
         validarDirecciones(dto);
 
         Cliente cliente = clienteRepository.findById(dto.getId())
@@ -65,6 +78,7 @@ public class ClienteService {
 
         cliente.setNombre(dto.getNombre());
         cliente.setDocumento(dto.getDocumento());
+        cliente.setTipoDocumento(dto.getTipoDocumento());
         cliente.setTelefono(dto.getTelefono());
         cliente.setTipoCliente(dto.getTipoCliente());
 

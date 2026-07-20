@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { HiOutlinePlusCircle } from 'react-icons/hi2';
 import SelectPersonalizado from '../UI/SelectPersonalizado';
+import InputNumero from '../UI/InputNumero';
 import '../Estilos/Modal.css';
 import '../Estilos/Botones.css';
 import '../Estilos/Formularios.css';
@@ -143,14 +144,13 @@ function ModalAgregarProducto({ cerrarModal, planilla, catalogoProductos, stockP
                                     capitalizarOpciones
                                 />
 
-                                <input
-                                    type="number"
+                                <InputNumero
                                     min="0.5"
                                     step="0.5"
                                     placeholder="Cant."
                                     value={fila.cantidad}
                                     onChange={(e) => actualizarFila(index, 'cantidad', e.target.value)}
-                                    style={{ flex: 1, padding: '8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', outline: 'none', textAlign: 'center', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
+                                    style={{ flex: 1, padding: '8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', textAlign: 'center', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
                                 />
 
                                 <button

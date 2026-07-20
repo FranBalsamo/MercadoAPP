@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { HiOutlineUserCircle } from 'react-icons/hi2';
 import CampoDirecciones from './CampoDirecciones';
-import SelectPersonalizado from '../UI/SelectPersonalizado';
+import SelectorSegmentado from '../UI/SelectorSegmentado';
 import '../Estilos/Modal.css';
 import '../Estilos/Botones.css';
 import '../Estilos/Formularios.css';
@@ -10,6 +10,7 @@ function ModalCliente({ cerrarModal, onClienteAgregado }) {
 
     const [nombre, setNombre] = useState('');
     const [documento, setDocumento] = useState('');
+    const [tipoDocumento, setTipoDocumento] = useState('DNI');
     const [tipoCliente, setTipoCliente] = useState('PERSONA');
     const [direcciones, setDirecciones] = useState([]);
     const [telefono, setTelefono] = useState('');
@@ -18,6 +19,9 @@ function ModalCliente({ cerrarModal, onClienteAgregado }) {
 
     const cambiarTipoCliente = (nuevoTipo) => {
         setTipoCliente(nuevoTipo);
+        if (nuevoTipo === 'SUPERMERCADO') {
+            setTipoDocumento('CUIT_L');
+        }
         if (nuevoTipo === 'PERSONA' && direcciones.length > 1) {
             setDirecciones(direcciones.slice(0, 1));
         }
@@ -26,6 +30,7 @@ function ModalCliente({ cerrarModal, onClienteAgregado }) {
     const nuevoCliente = {
         nombre: nombre,
         documento: documento,
+        tipoDocumento: tipoDocumento,
         tipoCliente: tipoCliente,
         direcciones: direcciones,
         telefono: telefono
@@ -101,25 +106,32 @@ function ModalCliente({ cerrarModal, onClienteAgregado }) {
                     </div>
 
                     <div className="form-group">
-                        <label>Cuit:</label>
-                        <input
-                            type="text"
-                            placeholder="Cuit"
-                            value={documento}
-                            onChange={(e) => setDocumento(e.target.value)}
-                        />
-                    </div>
-
-                    <div className="form-group">
                         <label>Tipo de Cliente:</label>
-                        <SelectPersonalizado
+                        <SelectorSegmentado
                             value={tipoCliente}
-                            onChange={(e) => cambiarTipoCliente(e.target.value)}
+                            onChange={cambiarTipoCliente}
                             opciones={[
                                 { value: 'PERSONA', label: 'Persona' },
                                 { value: 'SUPERMERCADO', label: 'Supermercado' },
                             ]}
-                            style={{ width: '100%' }}
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label>Documento:</label>
+                        <SelectorSegmentado
+                            value={tipoDocumento}
+                            onChange={setTipoDocumento}
+                            opciones={[
+                                { value: 'DNI', label: 'DNI', disabled: tipoCliente === 'SUPERMERCADO' },
+                                { value: 'CUIT_L', label: 'CUIT/L' },
+                            ]}
+                        />
+                        <input
+                            type="text"
+                            placeholder={tipoDocumento.replace('_', '/')}
+                            value={documento}
+                            onChange={(e) => setDocumento(e.target.value)}
                         />
                     </div>
 

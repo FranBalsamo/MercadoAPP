@@ -5,6 +5,7 @@ import InputMoneda from './InputMoneda';
 import SelectPersonalizado from '../UI/SelectPersonalizado';
 import SelectorEstadoEntrega from '../UI/SelectorEstadoEntrega';
 import SelectorEstadoPago from '../UI/SelectorEstadoPago';
+import InputNumero from '../UI/InputNumero';
 import { HiOutlinePencilSquare, HiOutlineUserCircle, HiOutlineArrowPath } from 'react-icons/hi2';
 
 function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogoProductos, onBoletaEditada }) {
@@ -355,9 +356,9 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                                         {(stockDisponibleActual > 0 && !excedeStock) ? `disp: ${stockDisponibleActual}` : 'Sin Inventario'}
                                     </div>
                                     <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Cantidad:</label>
-                                    <input
-                                        type="number" min="1" step="0.5" value={cantidad} onChange={(e) => setCantidad(e.target.value)}
-                                        style={{ width: '100%', padding: '8px', borderRadius: 'var(--radius-sm)', border: excedeStock ? '2px solid var(--danger)' : '1px solid var(--border)', backgroundColor: excedeStock ? 'var(--danger-soft)' : 'var(--surface)', color: 'var(--text-primary)', outline: 'none' }}
+                                    <InputNumero
+                                        min="1" step="0.5" value={cantidad} onChange={(e) => setCantidad(e.target.value)}
+                                        style={{ width: '100%', padding: '8px', borderRadius: 'var(--radius-sm)', border: excedeStock ? '2px solid var(--danger)' : '1px solid var(--border)', backgroundColor: excedeStock ? 'var(--danger-soft)' : 'var(--surface)', color: 'var(--text-primary)' }}
                                     />
                                 </div>
 
@@ -431,12 +432,12 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
 
                                             {/* Input de Cantidad */}
                                             <td style={{ padding: '10px' }}>
-                                                <input
-                                                    type="number" min="0.5" step="0.5"
+                                                <InputNumero
+                                                    min="0.5" step="0.5"
                                                     value={fila.cantidad}
                                                     onChange={(e) => actualizarFilaCarrito(fila.id_fila, 'cantidad', e.target.value)}
                                                     style={{
-                                                        width: '60px', padding: '4px', borderRadius: 'var(--radius-sm)', textAlign: 'center', outline: 'none',
+                                                        width: '75px', padding: '4px', borderRadius: 'var(--radius-sm)', textAlign: 'center',
                                                         border: excedeStockFila ? '2px solid var(--danger)' : '1px solid var(--border)',
                                                         backgroundColor: excedeStockFila ? 'var(--danger-soft)' : 'var(--surface)',
                                                         color: 'var(--text-primary)'
@@ -470,12 +471,12 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                                             {/* Cantidad Entregada (solo en modo Entrega Parcial) */}
                                             {entregado === 'PARCIAL' && (
                                                 <td style={{ padding: '10px' }}>
-                                                    <input
-                                                        type="number" min="0" max={fila.cantidad} step="0.5"
+                                                    <InputNumero
+                                                        min="0" max={fila.cantidad} step="0.5"
                                                         value={fila.cantidad_entregada}
                                                         onChange={(e) => actualizarCantidadEntregada(fila.id_fila, e.target.value)}
                                                         onBlur={() => confirmarCantidadEntregada(fila.id_fila)}
-                                                        style={{ width: '70px', padding: '4px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', textAlign: 'center', backgroundColor: 'var(--surface)', color: 'var(--text-primary)', outline: 'none' }}
+                                                        style={{ width: '85px', padding: '4px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', textAlign: 'center', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
                                                     />
                                                     <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}> / {fila.cantidad}</span>
                                                 </td>

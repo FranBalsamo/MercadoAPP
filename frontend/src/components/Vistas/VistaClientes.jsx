@@ -49,6 +49,7 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCl
                     id: cliente.id,
                     nombre: cliente.nombre,
                     documento: cliente.documento,
+                    tipoDocumento: cliente.tipoDocumento,
                     telefono: cliente.telefono,
                     tipoCliente: cliente.tipoCliente,
                     direcciones: cliente.direcciones || [],
@@ -79,7 +80,7 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCl
     const placeHolderFilter = () => {
         return metodoFiltro === 'nombre'
             ? "Buscar por Nombre..."
-            : "Buscar por CUIT/L...";
+            : "Buscar por Documento...";
     };
 
     // Filtramos los clientes en tiempo real en base al input y el método elegido
@@ -142,7 +143,7 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCl
                         Nombre
                     </label>
 
-                    {/* Radio: CUIT */}
+                    {/* Radio: Documento */}
                     <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.95rem', color: 'var(--text-secondary)' }}>
                         <input
                             type="radio"
@@ -154,7 +155,7 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCl
                                 setBusqueda('');
                             }}
                         />
-                        CUIT/L
+                        Documento
                     </label>
 
                     {/* Radio: Tipo */}
@@ -223,7 +224,7 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCl
                     <thead style={{ backgroundColor: 'var(--surface-inverse)', position: 'sticky', top: 0, zIndex: 1 }}>
                         <tr style={{ color: 'var(--text-on-inverse)' }}>
                             <th style={{ padding: '12px 15px' }}>Nombre</th>
-                            <th style={{ padding: '12px 15px' }}>CUIT/L</th>
+                            <th style={{ padding: '12px 15px' }}>Documento</th>
                             <th style={{ padding: '12px 15px' }}>Tipo</th>
                             <th style={{ padding: '12px 15px' }}>Telefono</th>
                             <th style={{ padding: '12px 15px' }}>{"Direccion(es)"}</th>
@@ -250,6 +251,9 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCl
                                         {cliente.nombre}
                                     </td>
                                     <td style={{ padding: '10px 15px', color: 'var(--text-secondary)' }}>
+                                        <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                                            {cliente.tipoDocumento === 'CUIT_L' ? 'CUIT/L' : 'DNI'}
+                                        </span>{' '}
                                         {cliente.documento}
                                     </td>
                                     <td style={{ padding: '10px 15px', color: 'var(--text-secondary)' }}>

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import AlertaConfirmacion from '../Alertas/AlertaConfirmacion';
 import CampoDirecciones from './CampoDirecciones';
 import { HiOutlinePencilSquare } from 'react-icons/hi2';
-import SelectPersonalizado from '../UI/SelectPersonalizado';
+import SelectorSegmentado from '../UI/SelectorSegmentado';
 import '../Estilos/Modal.css';
 import '../Estilos/Botones.css';
 import '../Estilos/Formularios.css';
@@ -11,6 +11,7 @@ function ModalModificarCliente({ cerrarModal, cliente, onClienteModificado }) {
 
     const [nombre, setNombre] = useState(cliente?.nombre || '');
     const [documento, setDocumento] = useState(cliente?.documento || '');
+    const [tipoDocumento, setTipoDocumento] = useState(cliente?.tipoDocumento || 'DNI');
     const [tipoCliente, setTipoCliente] = useState(cliente?.tipoCliente || 'PERSONA');
     const [direcciones, setDirecciones] = useState(cliente?.direcciones || []);
     const [telefono, setTelefono] = useState(cliente?.telefono || '');
@@ -21,6 +22,9 @@ function ModalModificarCliente({ cerrarModal, cliente, onClienteModificado }) {
 
     const cambiarTipoCliente = (nuevoTipo) => {
         setTipoCliente(nuevoTipo);
+        if (nuevoTipo === 'SUPERMERCADO') {
+            setTipoDocumento('CUIT_L');
+        }
         if (nuevoTipo === 'PERSONA' && direcciones.length > 1) {
             setDirecciones(direcciones.slice(0, 1));
         }
@@ -29,6 +33,7 @@ function ModalModificarCliente({ cerrarModal, cliente, onClienteModificado }) {
     const huboModificacion = () => {
         return nombre.trim() !== (cliente?.nombre || '').trim()
             || documento.trim() !== (cliente?.documento || '').trim()
+            || tipoDocumento !== (cliente?.tipoDocumento || 'DNI')
             || tipoCliente !== (cliente?.tipoCliente || 'PERSONA')
             || JSON.stringify(direcciones) !== JSON.stringify(cliente?.direcciones || [])
             || telefono.trim() !== (cliente?.telefono || '').trim();
@@ -63,7 +68,14 @@ function ModalModificarCliente({ cerrarModal, cliente, onClienteModificado }) {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ nombre, documento, tipoCliente, direcciones, telefono })
+                body: JSON.stringify({
+                    nombre,
+                    documento,
+                    tipoDocumento,
+                    tipoCliente,
+                    direcciones,
+                    telefono,
+                })
             });
 
             if (!respuesta.ok) {
@@ -107,25 +119,32 @@ function ModalModificarCliente({ cerrarModal, cliente, onClienteModificado }) {
                     </div>
 
                     <div className="form-group">
-                        <label>Cuit:</label>
-                        <input
-                            type="text"
-                            placeholder="Cuit"
-                            value={documento}
-                            onChange={(e) => setDocumento(e.target.value)}
-                        />
-                    </div>
-
-                    <div className="form-group">
                         <label>Tipo de Cliente:</label>
-                        <SelectPersonalizado
+                        <SelectorSegmentado
                             value={tipoCliente}
-                            onChange={(e) => cambiarTipoCliente(e.target.value)}
+                            onChange={cambiarTipoCliente}
                             opciones={[
                                 { value: 'PERSONA', label: 'Persona' },
                                 { value: 'SUPERMERCADO', label: 'Supermercado' },
                             ]}
-                            style={{ width: '100%' }}
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label>Documento:</label>
+                        <SelectorSegmentado
+                            value={tipoDocumento}
+                            onChange={setTipoDocumento}
+                            opciones={[
+                                { value: 'DNI', label: 'DNI', disabled: tipoCliente === 'SUPERMERCADO' },
+                                { value: 'CUIT_L', label: 'CUIT/L' },
+                            ]}
+                        />
+                        <input
+                            type="text"
+                            placeholder={tipoDocumento.replace('_', '/')}
+                            value={documento}
+                            onChange={(e) => setDocumento(e.target.value)}
                         />
                     </div>
 

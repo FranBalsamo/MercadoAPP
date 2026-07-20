@@ -3,6 +3,7 @@ import { save, open } from '@tauri-apps/plugin-dialog';
 import { writeFile } from '@tauri-apps/plugin-fs';
 import { HiOutlineArrowDownTray, HiOutlineArrowUpTray, HiOutlineShieldExclamation, HiOutlineClock, HiOutlineFolderOpen } from 'react-icons/hi2';
 import AlertaConfirmacion from '../Alertas/AlertaConfirmacion';
+import InputNumero from '../UI/InputNumero';
 
 const esTauriApp = () => typeof window !== 'undefined' && !!window.__TAURI_INTERNALS__;
 
@@ -207,7 +208,7 @@ function TabBackup() {
     };
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '25px', maxWidth: '700px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
                 <HiOutlineShieldExclamation /> Copia de Seguridad
             </h3>
@@ -215,15 +216,36 @@ function TabBackup() {
             {error && <div style={{ color: 'var(--danger)', fontWeight: 'bold', fontSize: '0.9rem' }}>{error}</div>}
             {mensaje && <div style={{ color: 'var(--success)', fontWeight: 'bold', fontSize: '0.9rem' }}>{mensaje}</div>}
 
-            <div style={{ backgroundColor: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '18px 20px' }}>
-                <h4 style={{ margin: '0 0 6px 0', color: 'var(--text-primary)' }}>Exportar datos</h4>
-                <p style={{ margin: '0 0 12px 0', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                    Descarga un archivo con una copia completa de todos los datos guardados (clientes, productos, planillas, boletas, etc.).
-                </p>
-                <button className="btn-global btn-primario" onClick={handleExportar} disabled={exportando} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                    <HiOutlineArrowDownTray /> {exportando ? 'Generando...' : 'Exportar Backup'}
-                </button>
-            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 1fr) minmax(360px, 1.3fr)', gap: '20px', alignItems: 'start' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    <div style={{ backgroundColor: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '18px 20px' }}>
+                        <h4 style={{ margin: '0 0 6px 0', color: 'var(--text-primary)' }}>Exportar datos</h4>
+                        <p style={{ margin: '0 0 12px 0', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                            Descarga un archivo con una copia completa de todos los datos guardados (clientes, productos, planillas, boletas, etc.).
+                        </p>
+                        <button className="btn-global btn-primario" onClick={handleExportar} disabled={exportando} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                            <HiOutlineArrowDownTray /> {exportando ? 'Generando...' : 'Exportar Backup'}
+                        </button>
+                    </div>
+
+                    <div style={{ backgroundColor: 'var(--danger-soft)', border: '1px solid var(--danger)', borderRadius: 'var(--radius-md)', padding: '18px 20px' }}>
+                        <h4 style={{ margin: '0 0 6px 0', color: 'var(--danger-soft-text)' }}>Importar datos</h4>
+                        <p style={{ margin: '0 0 12px 0', color: 'var(--danger-soft-text)', fontSize: '0.9rem' }}>
+                            ⚠️ Restaurar un backup <strong>reemplaza todos los datos actuales</strong> por los del archivo elegido. Esta acción no se puede deshacer.
+                        </p>
+                        <label className="btn-global btn-secundario" style={{ cursor: importando ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                            <HiOutlineArrowUpTray /> {importando ? 'Restaurando...' : 'Importar Backup'}
+                            <input
+                                ref={inputArchivoRef}
+                                type="file"
+                                accept=".sql"
+                                onChange={handleSeleccionarArchivo}
+                                disabled={importando}
+                                style={{ display: 'none' }}
+                            />
+                        </label>
+                    </div>
+                </div>
 
             <div style={{ backgroundColor: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '18px 20px' }}>
                 <h4 style={{ margin: '0 0 6px 0', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -255,11 +277,11 @@ function TabBackup() {
                         <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', marginBottom: '12px' }}>
                             <div>
                                 <label style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>Cada cuántas horas:</label>
-                                <input
-                                    type="number" min="1" step="1"
+                                <InputNumero
+                                    min="1" step="1"
                                     value={configAuto.intervaloHoras}
                                     onChange={(e) => actualizarCampoConfig('intervaloHoras', Number(e.target.value) || 1)}
-                                    style={{ width: '100px', padding: '8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', backgroundColor: 'var(--surface)', color: 'var(--text-primary)', outline: 'none' }}
+                                    style={{ width: '100px', padding: '8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
                                 />
                             </div>
                             <div style={{ flex: 1, minWidth: '260px' }}>
@@ -313,23 +335,6 @@ function TabBackup() {
                     </>
                 )}
             </div>
-
-            <div style={{ backgroundColor: 'var(--danger-soft)', border: '1px solid var(--danger)', borderRadius: 'var(--radius-md)', padding: '18px 20px' }}>
-                <h4 style={{ margin: '0 0 6px 0', color: 'var(--danger-soft-text)' }}>Importar datos</h4>
-                <p style={{ margin: '0 0 12px 0', color: 'var(--danger-soft-text)', fontSize: '0.9rem' }}>
-                    ⚠️ Restaurar un backup <strong>reemplaza todos los datos actuales</strong> por los del archivo elegido. Esta acción no se puede deshacer.
-                </p>
-                <label className="btn-global btn-secundario" style={{ cursor: importando ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                    <HiOutlineArrowUpTray /> {importando ? 'Restaurando...' : 'Importar Backup'}
-                    <input
-                        ref={inputArchivoRef}
-                        type="file"
-                        accept=".sql"
-                        onChange={handleSeleccionarArchivo}
-                        disabled={importando}
-                        style={{ display: 'none' }}
-                    />
-                </label>
             </div>
 
             {mostrarConfirmacion && (

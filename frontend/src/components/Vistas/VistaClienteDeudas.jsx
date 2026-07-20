@@ -225,7 +225,7 @@ function VistaClienteDeudas({ cliente, volver }) {
         doc.setFontSize(10);
         doc.setTextColor(85, 85, 85);
         doc.text(capitalizar(clienteActual.nombre), anchoPagina - 14, 15, { align: 'right' });
-        doc.text(`CUIT/L: ${clienteActual.documento}`, anchoPagina - 14, 20, { align: 'right' });
+        doc.text(`${clienteActual.tipoDocumento === 'CUIT_L' ? 'CUIT/L' : 'DNI'}: ${clienteActual.documento}`, anchoPagina - 14, 20, { align: 'right' });
         doc.setTextColor(150, 150, 150);
         doc.text(`Generado: ${new Date().toLocaleString('es-AR', { hour12: false })}`, anchoPagina - 14, 25, { align: 'right' });
 
@@ -319,14 +319,14 @@ function VistaClienteDeudas({ cliente, volver }) {
     };
 
     return (
-        <main style={{ padding: '20px', backgroundColor: 'var(--bg)', minHeight: '100%', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <main style={{ padding: '20px', backgroundColor: 'var(--bg)', height: '100%', display: 'flex', flexDirection: 'column', gap: '20px', overflow: 'hidden' }}>
 
             {/* ENCABEZADO Y BOTÓN VOLVER */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '15px 20px', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)' }}>
+            <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '15px 20px', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)' }}>
                 <div>
                     <h2 style={{ margin: 0, color: 'var(--text-primary)', textTransform: 'capitalize', display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlineBanknotes style={{ textTransform: 'none' }} /> Deudas de {clienteActual.nombre}</h2>
                     <p style={{ margin: '5px 0 0 0', color: 'var(--text-secondary)' }}>
-                        CUIT/L: <strong>{clienteActual.documento}</strong>
+                        {clienteActual.tipoDocumento === 'CUIT_L' ? 'CUIT/L' : 'DNI'}: <strong>{clienteActual.documento}</strong>
                         {clienteActual.telefono ? <> | Tel: <strong>{clienteActual.telefono}</strong></> : null}
                         {clienteActual.direcciones?.length > 0 ? <> | Dirección: <strong>{clienteActual.direcciones.join(', ')}</strong></> : null}
                     </p>
@@ -344,7 +344,7 @@ function VistaClienteDeudas({ cliente, volver }) {
             {error && <p style={{ color: 'var(--danger)', fontWeight: 'bold', margin: 0 }}>{error}</p>}
 
             {/* CAJITAS DE DEUDA / SALDO A FAVOR + ACCIÓN DE PAGO */}
-            <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'stretch' }}>
+            <div style={{ flexShrink: 0, display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'stretch' }}>
                 <div style={{ flex: 1, minWidth: '220px', backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '15px', borderRadius: 'var(--radius-lg)', borderLeft: '5px solid var(--danger)', boxShadow: 'var(--shadow-sm)' }}>
                     <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                         Deuda Total
@@ -423,6 +423,7 @@ function VistaClienteDeudas({ cliente, volver }) {
             {/* BARRA DE SELECCIÓN DE BOLETAS */}
             {modoSeleccion && (
                 <div style={{
+                    flexShrink: 0,
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                     backgroundColor: 'var(--warning-soft)', border: '1px solid var(--warning)', borderRadius: 'var(--radius-lg)',
                     padding: '12px 20px'
@@ -457,8 +458,8 @@ function VistaClienteDeudas({ cliente, volver }) {
             )}
 
             {/* LISTADO DE BOLETAS IMPAGAS */}
-            <div style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '20px', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', flexGrow: 1 }}>
-                <h3 style={{ marginTop: 0, color: 'var(--text-primary)', borderBottom: '1px solid var(--border)', paddingBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '20px', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', flexGrow: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                <h3 style={{ flexShrink: 0, marginTop: 0, color: 'var(--text-primary)', borderBottom: '1px solid var(--border)', paddingBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <HiOutlineTicket /> Boletas Pendientes de Pago
                 </h3>
 
@@ -469,7 +470,7 @@ function VistaClienteDeudas({ cliente, volver }) {
                         Este cliente no tiene boletas pendientes de pago en planillas cerradas.
                     </p>
                 ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '15px' }}>
+                    <div style={{ flex: 1, minHeight: 0, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '15px' }}>
                         {boletasOrdenadas.map((boleta) => (
                             <div key={boleta.id} style={{
                                 display: 'flex', alignItems: 'flex-start', gap: '12px',

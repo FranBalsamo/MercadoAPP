@@ -2,6 +2,44 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+/* Scrollbar con el estilo de la app en vez del nativo del sistema, para cualquier
+   contenedor con scroll (listas desplegables, modales, tablas, etc). */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--border-strong);
+  border: 2px solid transparent;
+  border-radius: 20px;
+  background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-muted);
+}
+
+/* Las flechas nativas de <input type="number"> no se pueden re-estilar para que sigan el
+   diseño de la app: se ocultan globalmente. InputNumero.jsx las reemplaza por unas propias
+   donde tiene sentido incrementar/decrementar (cantidades); en el resto (ej. buscar por
+   numero de documento) simplemente quedan sin flechas, que es lo esperado ahi. */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 html,

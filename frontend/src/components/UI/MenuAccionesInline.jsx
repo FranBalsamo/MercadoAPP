@@ -12,11 +12,17 @@ function CeldaAnimada({ visible, children, className = '' }) {
     const botonRef = useRef(null);
     const [anchoNatural, setAnchoNatural] = useState(0);
 
+    // Se mide una sola vez al montar (no en cada render): el boton nunca se comprime
+    // (flex-shrink:0 + white-space:nowrap en .menu-acciones-boton, ver MenuAcciones.css),
+    // asi que su ancho natural es siempre el mismo sin importar si esta visible o no. Medirlo
+    // en cada render (como antes, sin array de dependencias) forzaba una lectura de layout
+    // sincronica (getBoundingClientRect) en cada apertura/cierre de cada fila, que se notaba
+    // como micro-trabas al scrollear una tabla larga con el mouse encima.
     useLayoutEffect(() => {
         if (botonRef.current) {
             setAnchoNatural(botonRef.current.getBoundingClientRect().width);
         }
-    });
+    }, []);
 
     return (
         <div

@@ -109,37 +109,44 @@
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     background-color: var(--surface);
-    color: var(--text-primary);
-    font-family: var(--font-sans);
-    font-size: 0.95rem;
-    text-align: left;
-    cursor: pointer;
+    cursor: text;
     transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.select-personalizado-disparador:hover:not(:disabled) {
+.select-personalizado-disparador:hover:not(.deshabilitado) {
     border-color: var(--border-strong);
 }
 
-.select-personalizado-disparador:focus-visible,
+.select-personalizado-disparador:focus-within,
 .select-personalizado-disparador.abierto {
-    outline: none;
     border-color: var(--accent);
     box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
-.select-personalizado-disparador:disabled {
+.select-personalizado-disparador.deshabilitado {
     opacity: 0.6;
     cursor: not-allowed;
 }
 
-.select-personalizado-etiqueta {
-    overflow: hidden;
+.select-personalizado-input {
+    flex-grow: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 0;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
     text-overflow: ellipsis;
-    white-space: nowrap;
+    cursor: inherit;
 }
 
-.select-personalizado-placeholder {
+.select-personalizado-input:disabled {
+    cursor: not-allowed;
+}
+
+.select-personalizado-input::placeholder {
     color: var(--text-muted);
 }
 
@@ -151,6 +158,7 @@
     flex-shrink: 0;
     color: var(--text-muted);
     font-size: 0.9rem;
+    cursor: pointer;
     transition: transform var(--transition-fast);
 }
 
@@ -201,7 +209,8 @@
     transition: background-color var(--transition-fast);
 }
 
-.select-personalizado-opcion:hover {
+.select-personalizado-opcion:hover,
+.select-personalizado-opcion.resaltada {
     background-color: var(--surface-2);
 }
 
@@ -209,6 +218,80 @@
     background-color: var(--accent-soft);
     color: var(--accent-soft-text);
     font-weight: 600;
+}
+
+.select-personalizado-sin-resultados {
+    padding: 8px 10px;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+/* ---- InputNumero: el 'style' que recibe el componente define el look de esta caja
+   (borde, fondo, padding, ancho), igual que tenian los <input type="number"> que reemplaza. ---- */
+.input-numero {
+    display: flex;
+    align-items: stretch;
+    overflow: hidden;
+}
+
+.input-numero.deshabilitado {
+    opacity: 0.6;
+}
+
+.input-numero-campo {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    text-align: inherit;
+}
+
+.input-numero-campo::-webkit-inner-spin-button,
+.input-numero-campo::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.input-numero-campo {
+    -moz-appearance: textfield;
+}
+
+.input-numero-flechas {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    margin-left: 4px;
+}
+
+.input-numero-flechas button {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0;
+    font-size: 0.7rem;
+    line-height: 1;
+    border-radius: 3px;
+}
+
+.input-numero-flechas button:hover:not(:disabled) {
+    background-color: var(--surface-2);
+    color: var(--text-primary);
+}
+
+.input-numero-flechas button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
 }
 
 /* ---- Selector de estado (segmented control): usado tanto para estado de entrega (3

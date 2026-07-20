@@ -3,6 +3,7 @@ import { HiOutlinePencilSquare, HiOutlineCube, HiOutlineExclamationTriangle } fr
 import '../Estilos/Modal.css';
 import '../Estilos/FormEditarStock.css';
 import AlertaConfirmacion from '../Alertas/AlertaConfirmacion';
+import InputNumero from '../UI/InputNumero';
 import { formatearFechaVisual } from '../../utils/formatoFecha';
 
 function ModalModificarStock({ cerrarModal, planilla, catalogoProductos, onStockActualizado }) {
@@ -252,8 +253,7 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos, onStock
                                                 </td>
                                                 <td style={{ padding: '10px' }}>
                                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-                                                        <input
-                                                            type="number"
+                                                        <InputNumero
                                                             min="0"
                                                             value={valorAVisualizar}
                                                             onChange={(e) => handleCambioStock(item.id_producto, e.target.value)}
@@ -263,7 +263,6 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos, onStock
                                                                 borderRadius: 'var(--radius-sm)',
                                                                 border: '1px solid',
                                                                 borderColor: valorAVisualizar === '' ? 'var(--danger)' : 'var(--border)',
-                                                                outline: 'none',
                                                                 textAlign: 'center',
                                                                 fontWeight: 'bold',
                                                                 color: valorAVisualizar === '' ? 'var(--danger)' : 'var(--text-primary)',

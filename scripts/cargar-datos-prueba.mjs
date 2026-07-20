@@ -52,16 +52,21 @@ const PRODUCTOS_BASE = [
 ];
 
 const CLIENTES_BASE = [
-    { documento: '20111222333', nombre: 'juan perez', telefono: '1122334455', tipoCliente: 'PERSONA', direcciones: [] },
-    { documento: '27333444555', nombre: 'maria lopez', telefono: '1155667788', tipoCliente: 'PERSONA', direcciones: [] },
-    { documento: '23987654321', nombre: 'carlos gomez', telefono: '1166778899', tipoCliente: 'PERSONA', direcciones: [] },
-    { documento: '30712345678', nombre: 'supermercado el sol', telefono: '1144556677', tipoCliente: 'SUPERMERCADO', direcciones: ['av. siempre viva 123', 'ruta 8 km 45'] },
-    { documento: '30798765432', nombre: 'almacen la esquina', telefono: '1133445566', tipoCliente: 'SUPERMERCADO', direcciones: ['calle falsa 456'] },
-    { documento: '27444555666', nombre: 'lucia fernandez', telefono: '1177889900', tipoCliente: 'PERSONA', direcciones: [] },
-    { documento: '20555666777', nombre: 'martin torres', telefono: '1188990011', tipoCliente: 'PERSONA', direcciones: [] },
-    { documento: '27666777888', nombre: 'sofia castro', telefono: '1199001122', tipoCliente: 'PERSONA', direcciones: [] },
-    { documento: '20777888999', nombre: 'diego romero', telefono: '1100112233', tipoCliente: 'PERSONA', direcciones: [] },
-    { documento: '30888999000', nombre: 'mercado central', telefono: '1122556677', tipoCliente: 'SUPERMERCADO', direcciones: ['ruta 9 km 12'] },
+    // tipoDocumento mezclado a proposito entre las PERSONA (para probar ambos casos en la UI);
+    // los SUPERMERCADO siempre van CUIT_L (el backend lo fuerza igual, ver ClienteService).
+    // El numero de documento se dejo igual que antes (aunque no "parezca" un DNI real en
+    // los casos marcados DNI) para no romper el matching por documento de asegurarCliente
+    // y terminar creando clientes duplicados en una base ya cargada.
+    { documento: '20111222333', tipoDocumento: 'DNI', nombre: 'juan perez', telefono: '1122334455', tipoCliente: 'PERSONA', direcciones: [] },
+    { documento: '27333444555', tipoDocumento: 'CUIT_L', nombre: 'maria lopez', telefono: '1155667788', tipoCliente: 'PERSONA', direcciones: [] },
+    { documento: '23987654321', tipoDocumento: 'DNI', nombre: 'carlos gomez', telefono: '1166778899', tipoCliente: 'PERSONA', direcciones: [] },
+    { documento: '30712345678', tipoDocumento: 'CUIT_L', nombre: 'supermercado el sol', telefono: '1144556677', tipoCliente: 'SUPERMERCADO', direcciones: ['av. siempre viva 123', 'ruta 8 km 45'] },
+    { documento: '30798765432', tipoDocumento: 'CUIT_L', nombre: 'almacen la esquina', telefono: '1133445566', tipoCliente: 'SUPERMERCADO', direcciones: ['calle falsa 456'] },
+    { documento: '27444555666', tipoDocumento: 'DNI', nombre: 'lucia fernandez', telefono: '1177889900', tipoCliente: 'PERSONA', direcciones: [] },
+    { documento: '20555666777', tipoDocumento: 'CUIT_L', nombre: 'martin torres', telefono: '1188990011', tipoCliente: 'PERSONA', direcciones: [] },
+    { documento: '27666777888', tipoDocumento: 'DNI', nombre: 'sofia castro', telefono: '1199001122', tipoCliente: 'PERSONA', direcciones: [] },
+    { documento: '20777888999', tipoDocumento: 'CUIT_L', nombre: 'diego romero', telefono: '1100112233', tipoCliente: 'PERSONA', direcciones: [] },
+    { documento: '30888999000', tipoDocumento: 'CUIT_L', nombre: 'mercado central', telefono: '1122556677', tipoCliente: 'SUPERMERCADO', direcciones: ['ruta 9 km 12'] },
 ];
 
 const FORMAS_PAGO = ['EFECTIVO', 'MERCADO_PAGO', 'TRANSFERENCIA_BANCARIA', 'OTROS'];
@@ -103,10 +108,10 @@ async function asegurarProducto({ nombre, descripcion }) {
     return existente.id;
 }
 
-async function asegurarCliente({ documento, nombre, telefono, tipoCliente, direcciones }) {
+async function asegurarCliente({ documento, tipoDocumento, nombre, telefono, tipoCliente, direcciones }) {
     const resCrear = await apiFetch('/clientes/new', {
         method: 'POST',
-        body: JSON.stringify({ documento, nombre, telefono, tipoCliente, direcciones }),
+        body: JSON.stringify({ documento, tipoDocumento, nombre, telefono, tipoCliente, direcciones }),
     });
     if (resCrear.status === 201) {
         const creado = await resCrear.json();
@@ -115,7 +120,14 @@ async function asegurarCliente({ documento, nombre, telefono, tipoCliente, direc
     }
     const resBuscar = await apiFetch(`/clientes/buscar/documento/${encodeURIComponent(documento)}`);
     const existente = await resBuscar.json();
-    console.log(`  = cliente ya existia: ${nombre} (id ${existente.id})`);
+
+    // Si ya existia (ej. de una corrida anterior del script, antes de que se agregara
+    // tipoDocumento), lo actualizamos igual para que quede con los datos actuales del seed.
+    await apiFetch(`/clientes/${existente.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ documento, tipoDocumento, nombre, telefono, tipoCliente, direcciones }),
+    });
+    console.log(`  = cliente ya existia, actualizado: ${nombre} (id ${existente.id})`);
     return existente.id;
 }
 

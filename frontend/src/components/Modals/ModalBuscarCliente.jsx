@@ -49,7 +49,7 @@ function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
 
     const handleBuscarDocumento = async () => {
         if (busquedaDocumento.trim() === '') {
-            setError('Ingresa un CUIT para buscar.');
+            setError('Ingresa un documento para buscar.');
             return;
         }
 
@@ -61,7 +61,7 @@ function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
             const respuesta = await fetch(url);
 
             if (!respuesta.ok) {
-                setError('Cliente no encontrado por CUIT.');
+                setError('Cliente no encontrado por documento.');
                 return;
             }
 
@@ -122,7 +122,7 @@ function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
                                 checked={metodoBusqueda === 'documento'}
                                 onChange={() => { setMetodoBusqueda('documento'); setError(''); }}
                             />
-                            Por CUIT
+                            Por Documento
                         </label>
                     </div>
 
@@ -168,7 +168,7 @@ function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
                                             color: 'var(--text-on-inverse)'
                                         }}>
                                             <th style={{ padding: '8px', textAlign: 'left' }}>Nombre</th>
-                                            <th style={{ padding: '8px', textAlign: 'left' }}>CUIT/L</th>
+                                            <th style={{ padding: '8px', textAlign: 'left' }}>Documento</th>
                                         </tr>
                                     </thead>
                                     <tbody style={{
@@ -208,7 +208,16 @@ function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
                                                         onClick={() => seleccionarCliente(cliente)}
                                                     >
                                                         <td style={{ padding: '8px', borderBottom: '1px solid var(--border)', textTransform: 'capitalize' }}>{cliente.nombre}</td>
-                                                        <td style={{ padding: '8px', borderBottom: '1px solid var(--border)' }}>{cliente.documento || '-'}</td>
+                                                        <td style={{ padding: '8px', borderBottom: '1px solid var(--border)' }}>
+                                                            {cliente.documento ? (
+                                                                <>
+                                                                    <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                                                                        {cliente.tipoDocumento === 'CUIT_L' ? 'CUIT/L' : 'DNI'}
+                                                                    </span>{' '}
+                                                                    {cliente.documento}
+                                                                </>
+                                                            ) : '-'}
+                                                        </td>
                                                     </tr>
                                                 );
                                             })
@@ -223,7 +232,7 @@ function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
                             <div className="form-group" style={{ marginBottom: '20px' }}>
                                 <input
                                     type="number"
-                                    placeholder="Ej: 20334445556"
+                                    placeholder="Numero de documento"
                                     value={busquedaDocumento}
                                     onChange={(e) => setBusquedaDocumento(e.target.value)}
                                     style={{ width: '100%', padding: '10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}

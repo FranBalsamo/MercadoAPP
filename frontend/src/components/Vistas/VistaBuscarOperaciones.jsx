@@ -217,7 +217,7 @@ function VistaBuscarOperaciones() {
                 ) : (
                     <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
                         <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.95rem' }}>
-                            <thead style={{ backgroundColor: 'var(--surface-inverse)', color: 'var(--text-on-inverse)', position: 'sticky', top: 0 }}>
+                            <thead style={{ backgroundColor: 'var(--surface-inverse)', color: 'var(--text-on-inverse)', position: 'sticky', top: 0, zIndex: 1 }}>
                                 <tr>
                                     <th style={{ padding: '12px', width: '110px' }}>Fecha</th>
                                     <th style={{ padding: '12px' }}>Cliente</th>

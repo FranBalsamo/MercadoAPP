@@ -135,7 +135,7 @@ function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBol
                     </p>
                 ) : (
                     <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.95rem' }}>
-                        <thead style={{ backgroundColor: 'var(--surface-inverse)', position: 'sticky', top: 0 }}>
+                        <thead style={{ backgroundColor: 'var(--surface-inverse)', position: 'sticky', top: 0, zIndex: 1 }}>
                             <tr style={{ color: 'var(--text-on-inverse)' }}>
                                 <th
                                     onClick={() => solicitarOrden('nombre')}

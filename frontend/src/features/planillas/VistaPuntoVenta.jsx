@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import ControlStock from './ControlStock';
-import ListaBoletas from './ListaBoletas';
-import ModalBoleta from '../Modals/ModalBoleta';
+import ListaBoletas from '@/components/Vistas/ListaBoletas';
+import ModalBoleta from '@/components/Modals/ModalBoleta';
 import ModalBuscarCliente from '@/features/clientes/ModalBuscarCliente';
 import ModalModificarStock from '@/features/productos/ModalModificarStock';
-import ModalModificarBoleta from '../Modals/ModalModificarBoleta';
+import ModalModificarBoleta from '@/components/Modals/ModalModificarBoleta';
 import AlertaConfirmacion from '@/shared/ui/AlertaConfirmacion';
 import AlertaEmergente from '@/shared/ui/AlertaEmergente';
 import ModalAgregarProducto from '@/features/productos/ModalAgregarProducto';

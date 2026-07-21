@@ -13,7 +13,7 @@ import VistaPlanillas from "@/features/planillas/VistaPlanillas";
 import VistaPlanillaCerrada from "@/features/planillas/VistaPlanillaCerrada";
 import VistaClienteDeudas from "@/features/clientes/VistaClienteDeudas";
 import VistaEstadisticas from "@/components/Vistas/VistaEstadisticas";
-import VistaBuscarBoletas from "@/components/Vistas/VistaBuscarBoletas";
+import VistaBuscarBoletas from "@/features/boletas/VistaBuscarBoletas";
 import VistaBuscarOperaciones from "@/components/Vistas/VistaBuscarOperaciones";
 import VistaConfiguracion from "@/components/Vistas/VistaConfiguracion";
 import { useLimitarZoom } from "@/shared/utils/limitarZoom";

@@ -5,7 +5,7 @@ import { save } from '@tauri-apps/plugin-dialog';
 import { writeFile } from '@tauri-apps/plugin-fs';
 import ModalResumenCobro from '@/components/Modals/ModalResumenCobro';
 import ModalPagoACuenta from '@/components/Modals/ModalPagoACuenta';
-import ModalVerBoleta from '@/components/Modals/ModalVerBoleta';
+import ModalVerBoleta from '@/features/boletas/ModalVerBoleta';
 import AlertaEmergente from '@/shared/ui/AlertaEmergente';
 import { formatearFechaVisual } from '@/shared/utils/formatoFecha';
 import { HiOutlineBanknotes, HiOutlineDocumentArrowDown, HiOutlineTicket, HiOutlineCalendarDays } from 'react-icons/hi2';

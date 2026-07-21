@@ -7,7 +7,7 @@ import SelectPersonalizado from '@/shared/ui/SelectPersonalizado';
 import SelectorEstadoEntrega from '@/shared/ui/SelectorEstadoEntrega';
 import SelectorEstadoPago from '@/shared/ui/SelectorEstadoPago';
 import InputNumero from '@/shared/ui/InputNumero';
-import { useCarritoBoleta } from '../../hooks/useCarritoBoleta';
+import { useCarritoBoleta } from './useCarritoBoleta';
 import { HiOutlineTicket, HiOutlineUserCircle, HiOutlineArrowPath } from 'react-icons/hi2';
 
 function ModalBoleta({ cerrarModal, cliente, planilla, catalogoProductos, onBoletaGuardada, volverABuscarCliente }) {

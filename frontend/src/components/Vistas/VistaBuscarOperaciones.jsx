@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import ModalBuscarCliente from '@/features/clientes/ModalBuscarCliente';
 import ModalVerCobro from '../Modals/ModalVerCobro';
-import ModalVerBoleta from '../Modals/ModalVerBoleta';
+import ModalVerBoleta from '@/features/boletas/ModalVerBoleta';
 import { formatearFechaVisual } from '@/shared/utils/formatoFecha';
 import { HiOutlineBanknotes, HiOutlineMagnifyingGlass } from 'react-icons/hi2';
 import SelectorFecha from '@/shared/ui/SelectorFecha';

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import ModalBuscarCliente from '@/features/clientes/ModalBuscarCliente';
-import ModalVerBoleta from '../Modals/ModalVerBoleta';
-import ModalModificarBoleta from '../Modals/ModalModificarBoleta';
+import ModalVerBoleta from './ModalVerBoleta';
+import ModalModificarBoleta from './ModalModificarBoleta';
 import { formatearFechaVisual } from '@/shared/utils/formatoFecha';
 import { HiOutlineMagnifyingGlass, HiOutlineTicket } from 'react-icons/hi2';
 import SelectPersonalizado from '@/shared/ui/SelectPersonalizado';

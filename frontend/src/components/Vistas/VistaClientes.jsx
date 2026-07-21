@@ -2,11 +2,11 @@ import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import ModalModificarCliente from '../Modals/ModalModificarCliente';
 import ModalModificarSaldoCliente from '../Modals/ModalModificarSaldoCliente';
 import { HiOutlineUsers } from 'react-icons/hi2';
-import SelectPersonalizado from '../UI/SelectPersonalizado';
-import MenuAccionesInline from '../UI/MenuAccionesInline';
-import Paginador from '../UI/Paginador';
-import '../Estilos/Botones.css';
-import '../Estilos/Formularios.css';
+import SelectPersonalizado from '@/shared/ui/SelectPersonalizado';
+import MenuAccionesInline from '@/shared/ui/MenuAccionesInline';
+import Paginador from '@/shared/ui/Paginador';
+import '@/shared/styles/Botones.css';
+import '@/shared/styles/Formularios.css';
 
 const TAMANIO_PAGINA = 50;
 

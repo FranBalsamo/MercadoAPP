@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import AlertaConfirmacion from '../Alertas/AlertaConfirmacion';
+import AlertaConfirmacion from '@/shared/ui/AlertaConfirmacion';
 import CampoDirecciones from './CampoDirecciones';
 import { HiOutlinePencilSquare } from 'react-icons/hi2';
-import SelectorSegmentado from '../UI/SelectorSegmentado';
-import '../Estilos/Modal.css';
-import '../Estilos/Botones.css';
-import '../Estilos/Formularios.css';
+import SelectorSegmentado from '@/shared/ui/SelectorSegmentado';
+import '@/shared/styles/Modal.css';
+import '@/shared/styles/Botones.css';
+import '@/shared/styles/Formularios.css';
 
 function ModalModificarCliente({ cerrarModal, cliente, onClienteModificado }) {
 

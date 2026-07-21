@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { HiOutlinePlusCircle } from 'react-icons/hi2';
-import SelectPersonalizado from '../UI/SelectPersonalizado';
-import InputNumero from '../UI/InputNumero';
-import '../Estilos/Modal.css';
-import '../Estilos/Botones.css';
-import '../Estilos/Formularios.css';
+import SelectPersonalizado from '@/shared/ui/SelectPersonalizado';
+import InputNumero from '@/shared/ui/InputNumero';
+import '@/shared/styles/Modal.css';
+import '@/shared/styles/Botones.css';
+import '@/shared/styles/Formularios.css';
 
 function ModalAgregarProducto({ cerrarModal, planilla, catalogoProductos, stockProductos, onStockAgregado }) {
     // Iniciamos con una fila vacía por defecto

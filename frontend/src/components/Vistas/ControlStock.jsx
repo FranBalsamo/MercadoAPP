@@ -1,5 +1,5 @@
 import { HiOutlineCube } from 'react-icons/hi2';
-import '../Estilos/Botones.css'
+import '@/shared/styles/Botones.css'
 
 function ControlStock({ stockProductos, catalogoProductos, cargando, abrirModificarStock , abrirAgregarProducto}) {
     const obtenerNombreProducto = (idBusqueda) => {

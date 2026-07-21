@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { HiOutlineCube } from 'react-icons/hi2';
-import '../Estilos/Modal.css';
-import '../Estilos/Botones.css';
+import '@/shared/styles/Modal.css';
+import '@/shared/styles/Botones.css';
 
 function ModalProducto({ cerrarModal, onProductoAgregado }) {
     

@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import '../Estilos/Modal.css';
-import '../Estilos/Botones.css';
-import AlertaConfirmacion from '../Alertas/AlertaConfirmacion';
-import InputMoneda from './InputMoneda';
-import SelectPersonalizado from '../UI/SelectPersonalizado';
-import SelectorEstadoEntrega from '../UI/SelectorEstadoEntrega';
-import SelectorEstadoPago from '../UI/SelectorEstadoPago';
-import InputNumero from '../UI/InputNumero';
+import '@/shared/styles/Modal.css';
+import '@/shared/styles/Botones.css';
+import AlertaConfirmacion from '@/shared/ui/AlertaConfirmacion';
+import InputMoneda from '@/shared/ui/InputMoneda';
+import SelectPersonalizado from '@/shared/ui/SelectPersonalizado';
+import SelectorEstadoEntrega from '@/shared/ui/SelectorEstadoEntrega';
+import SelectorEstadoPago from '@/shared/ui/SelectorEstadoPago';
+import InputNumero from '@/shared/ui/InputNumero';
 import { useCarritoBoleta } from '../../hooks/useCarritoBoleta';
 import { HiOutlineTicket, HiOutlineUserCircle, HiOutlineArrowPath } from 'react-icons/hi2';
 

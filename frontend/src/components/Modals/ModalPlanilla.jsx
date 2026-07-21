@@ -1,9 +1,9 @@
 import {useState, useEffect} from 'react';
-import SelectPersonalizado from '../UI/SelectPersonalizado';
-import InputNumero from '../UI/InputNumero';
-import '../Estilos/Modal.css';
-import '../Estilos/Botones.css';
-import '../Estilos/Formularios.css';
+import SelectPersonalizado from '@/shared/ui/SelectPersonalizado';
+import InputNumero from '@/shared/ui/InputNumero';
+import '@/shared/styles/Modal.css';
+import '@/shared/styles/Botones.css';
+import '@/shared/styles/Formularios.css';
 
 function ModalPlanilla({cerrarModal, onPlanillaCreada}) {
     

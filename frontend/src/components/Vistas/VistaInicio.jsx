@@ -8,9 +8,9 @@ import {
     HiOutlineUserGroup,
 } from 'react-icons/hi2';
 import CarruselEstadisticas from './CarruselEstadisticas';
-import { formatearFechaVisual } from '../../utils/formatoFecha';
-import { formatearFechaLocal } from '../../utils/rangoFechas';
-import '../Estilos/Botones.css';
+import { formatearFechaVisual } from '@/shared/utils/formatoFecha';
+import { formatearFechaLocal } from '@/shared/utils/rangoFechas';
+import '@/shared/styles/Botones.css';
 
 function VistaInicio({ abrirModalPlanilla, abrirPlanilla, abrirPlanillaCerrada, planilla }) {
     const [ultimasPlanillas, setUltimasPlanillas] = useState([]);

@@ -1,6 +1,6 @@
 import { HiOutlineBanknotes, HiOutlineUserCircle, HiOutlineCalendarDays } from 'react-icons/hi2';
-import '../Estilos/Modal.css';
-import '../Estilos/Botones.css';
+import '@/shared/styles/Modal.css';
+import '@/shared/styles/Botones.css';
 
 const NOMBRES_FORMA_PAGO = {
     EFECTIVO: 'Efectivo',

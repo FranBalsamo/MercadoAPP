@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import AlertaConfirmacion from '../Alertas/AlertaConfirmacion';
+import AlertaConfirmacion from '@/shared/ui/AlertaConfirmacion';
 import { HiOutlinePencilSquare } from 'react-icons/hi2';
-import '../Estilos/Modal.css';
-import '../Estilos/Botones.css';
+import '@/shared/styles/Modal.css';
+import '@/shared/styles/Botones.css';
 
 function ModalModificarProducto({ cerrarModal, producto, onProductoModificado }) {
 

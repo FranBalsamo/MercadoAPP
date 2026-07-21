@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { HiOutlinePencilSquare, HiOutlineCube, HiOutlineExclamationTriangle } from 'react-icons/hi2';
-import '../Estilos/Modal.css';
+import '@/shared/styles/Modal.css';
 import '../Estilos/FormEditarStock.css';
-import AlertaConfirmacion from '../Alertas/AlertaConfirmacion';
-import InputNumero from '../UI/InputNumero';
-import { formatearFechaVisual } from '../../utils/formatoFecha';
+import AlertaConfirmacion from '@/shared/ui/AlertaConfirmacion';
+import InputNumero from '@/shared/ui/InputNumero';
+import { formatearFechaVisual } from '@/shared/utils/formatoFecha';
 
 function ModalModificarStock({ cerrarModal, planilla, catalogoProductos, onStockActualizado }) {
     const [stockProductos, setStockProductos] = useState([]);

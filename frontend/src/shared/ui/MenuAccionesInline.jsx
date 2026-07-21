@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import '../Estilos/MenuAcciones.css';
+import './MenuAcciones.css';
 
 // Una celda animada de ancho variable: mide el ancho natural de su botón (no se estira, así
 // que su tamaño real no depende de que el contenedor esté colapsado) y anima el ancho del

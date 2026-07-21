@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import ModalModificarProducto from '../Modals/ModalModificarProducto';
 import { HiOutlineCube } from 'react-icons/hi2';
-import Paginador from '../UI/Paginador';
-import '../Estilos/Botones.css';
+import Paginador from '@/shared/ui/Paginador';
+import '@/shared/styles/Botones.css';
 
 const TAMANIO_PAGINA = 50;
 

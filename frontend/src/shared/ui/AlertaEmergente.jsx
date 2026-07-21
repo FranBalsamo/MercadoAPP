@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { HiOutlineCheckCircle, HiOutlineExclamationTriangle } from 'react-icons/hi2';
-import '../Estilos/AlertaEmergente.css';
+import './AlertaEmergente.css';
 
 function AlertaEmergente({ mensaje, onClose, tipo = 'error' }) {
 

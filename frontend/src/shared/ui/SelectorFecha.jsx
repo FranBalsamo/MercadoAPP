@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { HiOutlineCalendarDays, HiOutlineChevronLeft, HiOutlineChevronRight } from 'react-icons/hi2';
-import { formatearFechaLocal } from '../../utils/rangoFechas';
-import { formatearFechaVisual } from '../../utils/formatoFecha';
-import '../Estilos/SelectorFecha.css';
+import { formatearFechaLocal } from '@/shared/utils/rangoFechas';
+import { formatearFechaVisual } from '@/shared/utils/formatoFecha';
+import './SelectorFecha.css';
 
 const DIAS_SEMANA = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
 const MESES = [

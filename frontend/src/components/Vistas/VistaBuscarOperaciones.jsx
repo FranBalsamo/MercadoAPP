@@ -2,12 +2,12 @@ import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import ModalBuscarCliente from '../Modals/ModalBuscarCliente';
 import ModalVerCobro from '../Modals/ModalVerCobro';
 import ModalVerBoleta from '../Modals/ModalVerBoleta';
-import { formatearFechaVisual } from '../../utils/formatoFecha';
+import { formatearFechaVisual } from '@/shared/utils/formatoFecha';
 import { HiOutlineBanknotes, HiOutlineMagnifyingGlass } from 'react-icons/hi2';
-import SelectorFecha from '../UI/SelectorFecha';
-import Paginador from '../UI/Paginador';
-import '../Estilos/Botones.css';
-import '../Estilos/Formularios.css';
+import SelectorFecha from '@/shared/ui/SelectorFecha';
+import Paginador from '@/shared/ui/Paginador';
+import '@/shared/styles/Botones.css';
+import '@/shared/styles/Formularios.css';
 
 const TAMANIO_PAGINA = 50;
 

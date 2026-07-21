@@ -1,6 +1,6 @@
 import React from 'react';
 import { HiOutlineExclamationTriangle } from 'react-icons/hi2';
-import '../Estilos/Alerta.css';
+import './Alerta.css';
 
 function AlertaConfirmacion({ mensaje, onConfirmar, onCancelar }) {
     return (

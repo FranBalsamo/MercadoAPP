@@ -17,9 +17,9 @@ import VistaBuscarBoletas from "./components/Vistas/VistaBuscarBoletas";
 import VistaBuscarOperaciones from "./components/Vistas/VistaBuscarOperaciones";
 import VistaConfiguracion from "./components/Vistas/VistaConfiguracion";
 import PantallaCarga from "./components/PantallaCarga";
-import { useLimitarZoom } from "./utils/limitarZoom";
+import { useLimitarZoom } from "@/shared/utils/limitarZoom";
 
-import "./components/Estilos/tokens.css";
+import "@/shared/styles/tokens.css";
 import "./App.css";
 
 function App() {

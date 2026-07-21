@@ -1,4 +1,4 @@
-import '../Estilos/Formularios.css';
+import '../styles/Formularios.css';
 
 const OPCIONES_PAGO = [
     { value: 'NO_PAGADO', label: 'No Pagado', color: 'var(--danger)' },

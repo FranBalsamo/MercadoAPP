@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { calcularRangoFechas } from '../../utils/rangoFechas';
+import { calcularRangoFechas } from '@/shared/utils/rangoFechas';
 import ToggleEscalaTiempo from './ToggleEscalaTiempo';
 import { HiOutlineTicket } from 'react-icons/hi2';
 

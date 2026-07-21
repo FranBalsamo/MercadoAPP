@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { formatearFechaVisual } from '../../utils/formatoFecha';
+import { formatearFechaVisual } from '@/shared/utils/formatoFecha';
 import { HiOutlineCheckCircle, HiOutlineTicket, HiOutlineBanknotes, HiOutlineCalendarDays } from 'react-icons/hi2';
-import SelectPersonalizado from '../UI/SelectPersonalizado';
-import '../Estilos/Modal.css';
-import '../Estilos/Botones.css';
-import '../Estilos/Formularios.css';
+import SelectPersonalizado from '@/shared/ui/SelectPersonalizado';
+import '@/shared/styles/Modal.css';
+import '@/shared/styles/Botones.css';
+import '@/shared/styles/Formularios.css';
 
 function ModalResumenCobro({ cliente, boletasSeleccionadas, nombreProducto, fechaPlanilla, formatearMoneda, cerrarModal, onCobroConfirmado }) {
     const [formaPago, setFormaPago] = useState('EFECTIVO');

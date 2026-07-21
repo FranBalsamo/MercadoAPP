@@ -1,9 +1,9 @@
 import { useState, useMemo, useCallback, memo } from "react";
 import { HiOutlineTicket } from 'react-icons/hi2';
-import "../Estilos/Botones.css";
-import AlertaEmergente from "../Alertas/AlertaEmergente";
+import "@/shared/styles/Botones.css";
+import AlertaEmergente from "@/shared/ui/AlertaEmergente";
 import ModalVerBoleta from "../Modals/ModalVerBoleta";
-import MenuAccionesInline from "../UI/MenuAccionesInline";
+import MenuAccionesInline from "@/shared/ui/MenuAccionesInline";
 
 const formatearMoneda = (val) => (val ?? 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
 

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { HiOutlineChevronDown } from 'react-icons/hi2';
-import '../Estilos/Formularios.css';
+import '../styles/Formularios.css';
 
 // Select con el mismo "contrato" que un <select> nativo (value / onChange(e) con e.target.value),
 // para poder reemplazar los <select> existentes sin tocar la lógica que ya los usa.

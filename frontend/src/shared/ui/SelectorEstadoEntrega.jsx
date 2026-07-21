@@ -1,4 +1,4 @@
-import '../Estilos/Formularios.css';
+import '../styles/Formularios.css';
 
 const OPCIONES_ENTREGA = [
     { value: 'NO_ENTREGADO', label: 'No Entregado', color: 'var(--danger)' },

@@ -5,12 +5,12 @@ import ModalBoleta from '../Modals/ModalBoleta';
 import ModalBuscarCliente from '../Modals/ModalBuscarCliente';
 import ModalModificarStock from '../Modals/ModalModificarStock';
 import ModalModificarBoleta from '../Modals/ModalModificarBoleta';
-import AlertaConfirmacion from '../Alertas/AlertaConfirmacion';
-import AlertaEmergente from '../Alertas/AlertaEmergente';
+import AlertaConfirmacion from '@/shared/ui/AlertaConfirmacion';
+import AlertaEmergente from '@/shared/ui/AlertaEmergente';
 import ModalAgregarProducto from '../Modals/ModalAgregarProducto';
-import { formatearFechaVisual } from '../../utils/formatoFecha';
+import { formatearFechaVisual } from '@/shared/utils/formatoFecha';
 import { HiOutlineTicket } from 'react-icons/hi2';
-import '../Estilos/Botones.css';
+import '@/shared/styles/Botones.css';
 
 
 function VistaPuntoVenta({ cerrarPlanilla, planilla }) {

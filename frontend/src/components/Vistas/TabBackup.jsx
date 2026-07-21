@@ -2,8 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { save, open } from '@tauri-apps/plugin-dialog';
 import { writeFile } from '@tauri-apps/plugin-fs';
 import { HiOutlineArrowDownTray, HiOutlineArrowUpTray, HiOutlineShieldExclamation, HiOutlineClock, HiOutlineFolderOpen } from 'react-icons/hi2';
-import AlertaConfirmacion from '../Alertas/AlertaConfirmacion';
-import InputNumero from '../UI/InputNumero';
+import AlertaConfirmacion from '@/shared/ui/AlertaConfirmacion';
+import InputNumero from '@/shared/ui/InputNumero';
 
 const esTauriApp = () => typeof window !== 'undefined' && !!window.__TAURI_INTERNALS__;
 

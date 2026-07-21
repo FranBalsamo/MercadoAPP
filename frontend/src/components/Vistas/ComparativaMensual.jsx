@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { HiOutlineCalendarDays } from 'react-icons/hi2';
-import { formatearFechaLocal } from '../../utils/rangoFechas';
+import { formatearFechaLocal } from '@/shared/utils/rangoFechas';
 
 const formatearMoneda = (valor) => (valor ?? 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
 

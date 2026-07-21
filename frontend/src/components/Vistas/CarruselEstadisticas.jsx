@@ -4,7 +4,7 @@ import GraficoFormaPago from './GraficoFormaPago';
 import TicketPromedio from './TicketPromedio';
 import ComparativaMensual from './ComparativaMensual';
 import ProductosStockCritico from './ProductosStockCritico';
-import '../Estilos/Botones.css';
+import '@/shared/styles/Botones.css';
 
 const ESTADISTICAS = [
     { id: 'productos-vendidos', render: () => <GraficoProductosVendidos limite={6} alturaBarras={110} ajustarAlAncho={true} /> },

@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
-import { formatearFechaVisual } from '../../utils/formatoFecha';
+import { formatearFechaVisual } from '@/shared/utils/formatoFecha';
 import { HiOutlineDocumentText } from 'react-icons/hi2';
-import SelectPersonalizado from '../UI/SelectPersonalizado';
-import SelectorFecha from '../UI/SelectorFecha';
-import Paginador from '../UI/Paginador';
-import '../Estilos/Botones.css';
-import '../Estilos/Formularios.css';
+import SelectPersonalizado from '@/shared/ui/SelectPersonalizado';
+import SelectorFecha from '@/shared/ui/SelectorFecha';
+import Paginador from '@/shared/ui/Paginador';
+import '@/shared/styles/Botones.css';
+import '@/shared/styles/Formularios.css';
 
 const TAMANIO_PAGINA = 50;
 

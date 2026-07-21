@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { calcularRangoFechas } from '../../utils/rangoFechas';
+import { calcularRangoFechas } from '@/shared/utils/rangoFechas';
 import ToggleEscalaTiempo from './ToggleEscalaTiempo';
 import { HiOutlineChartBar } from 'react-icons/hi2';
-import '../Estilos/Botones.css';
+import '@/shared/styles/Botones.css';
 
 const COLORES_BARRAS = ['#3498db', '#2ecc71', '#f1c40f', '#e67e22', '#9b59b6', '#1abc9c', '#e74c3c', '#34495e'];
 

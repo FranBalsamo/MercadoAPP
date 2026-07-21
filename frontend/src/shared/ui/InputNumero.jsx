@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { HiOutlineChevronUp, HiOutlineChevronDown } from 'react-icons/hi2';
-import '../Estilos/Formularios.css';
+import '../styles/Formularios.css';
 
 // Input numerico con flechas de +/- propias en vez de las nativas del navegador (que no
 // se pueden re-estilar para que sigan el diseño de la app). El 'style' que se le pasa

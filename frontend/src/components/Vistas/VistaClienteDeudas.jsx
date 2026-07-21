@@ -6,10 +6,10 @@ import { writeFile } from '@tauri-apps/plugin-fs';
 import ModalResumenCobro from '../Modals/ModalResumenCobro';
 import ModalPagoACuenta from '../Modals/ModalPagoACuenta';
 import ModalVerBoleta from '../Modals/ModalVerBoleta';
-import AlertaEmergente from '../Alertas/AlertaEmergente';
-import { formatearFechaVisual } from '../../utils/formatoFecha';
+import AlertaEmergente from '@/shared/ui/AlertaEmergente';
+import { formatearFechaVisual } from '@/shared/utils/formatoFecha';
 import { HiOutlineBanknotes, HiOutlineDocumentArrowDown, HiOutlineTicket, HiOutlineCalendarDays } from 'react-icons/hi2';
-import '../Estilos/Botones.css';
+import '@/shared/styles/Botones.css';
 
 const capitalizar = (texto) => {
     if (!texto) return '';

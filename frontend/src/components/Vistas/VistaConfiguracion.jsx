@@ -4,7 +4,7 @@ import TabBaseDeDatos from './TabBaseDeDatos';
 import TabBackup from './TabBackup';
 import TabActualizaciones from './TabActualizaciones';
 import { HiOutlineCog6Tooth, HiOutlineBuildingOffice2, HiOutlineCircleStack, HiOutlineShieldExclamation, HiOutlineArrowPath } from 'react-icons/hi2';
-import '../Estilos/Botones.css';
+import '@/shared/styles/Botones.css';
 
 const PESTANIAS = [
     { id: 'empresa', etiqueta: 'Empresa', icono: HiOutlineBuildingOffice2 },

@@ -5,7 +5,7 @@ import GraficoFormaPago from './GraficoFormaPago';
 import ComparativaMensual from './ComparativaMensual';
 import TicketPromedio from './TicketPromedio';
 import { HiOutlineChartBar, HiOutlineBanknotes, HiOutlineCube } from 'react-icons/hi2';
-import '../Estilos/Botones.css';
+import '@/shared/styles/Botones.css';
 
 const PESTANIAS = [
     { id: 'ventas', etiqueta: 'Ventas', icono: HiOutlineBanknotes },

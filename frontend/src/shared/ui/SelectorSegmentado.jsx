@@ -1,4 +1,4 @@
-import '../Estilos/Formularios.css';
+import '../styles/Formularios.css';
 
 // Selector deslizante generico con el mismo lenguaje visual que SelectorEstadoEntrega/
 // SelectorEstadoPago, pero sin colores semanticos fijos (usa el color de acento por

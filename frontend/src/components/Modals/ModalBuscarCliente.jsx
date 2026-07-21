@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { HiOutlineMagnifyingGlass, HiOutlineArrowRight } from 'react-icons/hi2';
-import '../Estilos/Modal.css';
-import '../Estilos/Botones.css';
-import '../Estilos/Formularios.css';
+import '@/shared/styles/Modal.css';
+import '@/shared/styles/Botones.css';
+import '@/shared/styles/Formularios.css';
 
 function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
     const [metodoBusqueda, setMetodoBusqueda] = useState('nombre');

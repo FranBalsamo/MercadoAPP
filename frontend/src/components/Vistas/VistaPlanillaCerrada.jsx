@@ -5,13 +5,13 @@ import { save } from '@tauri-apps/plugin-dialog';
 import { writeFile } from '@tauri-apps/plugin-fs';
 import ModalModificarBoleta from '../Modals/ModalModificarBoleta';
 import ModalVerBoleta from '../Modals/ModalVerBoleta';
-import AlertaEmergente from '../Alertas/AlertaEmergente';
-import { formatearFechaVisual } from '../../utils/formatoFecha';
+import AlertaEmergente from '@/shared/ui/AlertaEmergente';
+import { formatearFechaVisual } from '@/shared/utils/formatoFecha';
 import { HiOutlineLockClosed, HiOutlineDocumentArrowDown, HiOutlineCube, HiOutlineTicket } from 'react-icons/hi2';
-import SelectPersonalizado from '../UI/SelectPersonalizado';
-import MenuAccionesInline from '../UI/MenuAccionesInline';
-import '../Estilos/Formularios.css';
-import '../Estilos/Botones.css';
+import SelectPersonalizado from '@/shared/ui/SelectPersonalizado';
+import MenuAccionesInline from '@/shared/ui/MenuAccionesInline';
+import '@/shared/styles/Formularios.css';
+import '@/shared/styles/Botones.css';
 
 const capitalizar = (texto) => {
     if (!texto) return '';

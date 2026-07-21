@@ -4,7 +4,10 @@ import com.franbalsamo.mercadoapp.modules.boleta.model.Boleta;
 import com.franbalsamo.mercadoapp.modules.cliente.model.Cliente;
 import com.franbalsamo.mercadoapp.modules.planilla.model.Planilla;
 import com.franbalsamo.mercadoapp.modules.boleta.EstadoPago;
+import com.franbalsamo.mercadoapp.modules.boleta.EstadoEntrega;
 import com.franbalsamo.mercadoapp.modules.planilla.EstadoPlanilla;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,6 +22,30 @@ public interface BoletaRepository extends JpaRepository<Boleta, Long> {
     List<Boleta> findAllByPlanilla(Planilla planilla);
     List<Boleta> findAllByCliente(Cliente cliente);
     List<Boleta> findAllByPlanilla_FechaBetween(LocalDate desde, LocalDate hasta);
+
+    // 'estadoPago'/'estadoEntrega' null significa "sin filtrar por ese campo" (asi se combinan
+    // con la paginacion sin romper la correctitud: antes VistaBuscarBoletas.jsx filtraba estos
+    // dos campos en el cliente DESPUES de traer los datos, lo cual con paginado real filtraria
+    // solo dentro de la pagina actual en vez del resultado completo).
+    @Query("SELECT b FROM Boleta b WHERE b.cliente = :cliente " +
+            "AND (:estadoPago IS NULL OR b.estadoPago = :estadoPago) " +
+            "AND (:estadoEntrega IS NULL OR b.estadoEntrega = :estadoEntrega)")
+    Page<Boleta> buscarPorClientePaginado(
+            @Param("cliente") Cliente cliente,
+            @Param("estadoPago") EstadoPago estadoPago,
+            @Param("estadoEntrega") EstadoEntrega estadoEntrega,
+            Pageable pageable);
+
+    @Query("SELECT b FROM Boleta b WHERE b.planilla.fecha BETWEEN :desde AND :hasta " +
+            "AND (:estadoPago IS NULL OR b.estadoPago = :estadoPago) " +
+            "AND (:estadoEntrega IS NULL OR b.estadoEntrega = :estadoEntrega)")
+    Page<Boleta> buscarPorRangoFechasPaginado(
+            @Param("desde") LocalDate desde,
+            @Param("hasta") LocalDate hasta,
+            @Param("estadoPago") EstadoPago estadoPago,
+            @Param("estadoEntrega") EstadoEntrega estadoEntrega,
+            Pageable pageable);
+
     List<Boleta> findAllByEstadoPagoAndPlanilla_EstadoPlanilla(
             EstadoPago estadoPago
             ,EstadoPlanilla estadoPlanilla);

@@ -7,8 +7,11 @@ import { HiOutlineMagnifyingGlass, HiOutlineTicket } from 'react-icons/hi2';
 import SelectPersonalizado from '../UI/SelectPersonalizado';
 import SelectorFecha from '../UI/SelectorFecha';
 import MenuAccionesInline from '../UI/MenuAccionesInline';
+import Paginador from '../UI/Paginador';
 import '../Estilos/Botones.css';
 import '../Estilos/Formularios.css';
+
+const TAMANIO_PAGINA = 50;
 
 const NOMBRES_FORMA_PAGO = {
     EFECTIVO: 'Efectivo',
@@ -105,6 +108,12 @@ function VistaBuscarBoletas() {
     const [filtroEntrega, setFiltroEntrega] = useState('');
 
     const [boletas, setBoletas] = useState([]);
+    const [pagina, setPagina] = useState(0);
+    const [totalPaginas, setTotalPaginas] = useState(0);
+    const [totalElementos, setTotalElementos] = useState(0);
+    // Que busqueda repetir al cambiar de pagina o de filtro pago/entrega (sin esto no hay forma
+    // de saber si hay que re-pedir por cliente o por rango de fechas).
+    const [busquedaActiva, setBusquedaActiva] = useState(null);
     const [catalogoProductos, setCatalogoProductos] = useState([]);
     const [planillas, setPlanillas] = useState([]);
     const [clientes, setClientes] = useState([]);
@@ -154,24 +163,51 @@ function VistaBuscarBoletas() {
     // pueda saltear el re-render de las filas no afectadas por un cambio de hover.
     const limpiarHover = useCallback(() => setFilaSobreCursor(null), []);
 
-    const buscarPorCliente = async (cliente) => {
+    // Recibe el descriptor de busqueda y los filtros pago/entrega como parametros explicitos
+    // (no los lee del estado por closure) para no pisarlos con valores viejos: un setState
+    // (ej. setFiltroPago) todavia no se reflejaria en el 'filtroPago' de esta funcion si se
+    // llamara justo despues en el mismo evento.
+    const ejecutarBusqueda = async (descriptor, paginaSolicitada, filtros) => {
         setCargando(true);
         setError('');
-        setBusquedaRealizada(true);
         try {
-            const respuesta = await fetch(`http://localhost:8080/api/boleta/cliente/${cliente.id}`);
+            const params = new URLSearchParams({ page: String(paginaSolicitada), size: String(TAMANIO_PAGINA) });
+            if (filtros.estadoPago) params.set('estadoPago', filtros.estadoPago);
+            if (filtros.estadoEntrega) params.set('estadoEntrega', filtros.estadoEntrega);
+
+            let url;
+            if (descriptor.tipo === 'cliente') {
+                url = `http://localhost:8080/api/boleta/cliente/${descriptor.cliente.id}/paginado?${params}`;
+            } else {
+                params.set('desde', descriptor.desde);
+                params.set('hasta', descriptor.hasta);
+                url = `http://localhost:8080/api/boleta/buscar/fecha/paginado?${params}`;
+            }
+
+            const respuesta = await fetch(url);
             if (!respuesta.ok) throw new Error(`Error del servidor: ${respuesta.status}`);
-            setBoletas(await respuesta.json());
+            const data = await respuesta.json();
+
+            setBoletas(Array.isArray(data.content) ? data.content : []);
+            setTotalPaginas(data.totalPages ?? 0);
+            setTotalElementos(data.totalElements ?? 0);
+            setPagina(paginaSolicitada);
+            setBusquedaActiva(descriptor);
         } catch (e) {
-            console.error('Error al buscar boletas por cliente:', e);
-            setError('No se pudieron cargar las boletas de este cliente.');
+            console.error('Error al buscar boletas:', e);
+            setError('No se pudieron cargar las boletas.');
             setBoletas([]);
         } finally {
             setCargando(false);
         }
     };
 
-    const buscarPorFecha = async () => {
+    const buscarPorCliente = (cliente) => {
+        setBusquedaRealizada(true);
+        ejecutarBusqueda({ tipo: 'cliente', cliente }, 0, { estadoPago: filtroPago, estadoEntrega: filtroEntrega });
+    };
+
+    const buscarPorFecha = () => {
         if (!desde || !hasta) {
             setError('Elegí una fecha de inicio y una de fin.');
             return;
@@ -180,22 +216,23 @@ function VistaBuscarBoletas() {
             setError('La fecha "desde" no puede ser posterior a la fecha "hasta".');
             return;
         }
-
-        setCargando(true);
-        setError('');
         setBusquedaRealizada(true);
-        try {
-            const parametros = new URLSearchParams({ desde, hasta });
-            const respuesta = await fetch(`http://localhost:8080/api/boleta/buscar/fecha?${parametros}`);
-            if (!respuesta.ok) throw new Error(`Error del servidor: ${respuesta.status}`);
-            setBoletas(await respuesta.json());
-        } catch (e) {
-            console.error('Error al buscar boletas por fecha:', e);
-            setError('No se pudieron cargar las boletas en ese rango de fechas.');
-            setBoletas([]);
-        } finally {
-            setCargando(false);
-        }
+        ejecutarBusqueda({ tipo: 'fecha', desde, hasta }, 0, { estadoPago: filtroPago, estadoEntrega: filtroEntrega });
+    };
+
+    const cambiarPagina = (nuevaPagina) => {
+        if (!busquedaActiva) return;
+        ejecutarBusqueda(busquedaActiva, nuevaPagina, { estadoPago: filtroPago, estadoEntrega: filtroEntrega });
+    };
+
+    const cambiarFiltroPago = (nuevoValor) => {
+        setFiltroPago(nuevoValor);
+        if (busquedaActiva) ejecutarBusqueda(busquedaActiva, 0, { estadoPago: nuevoValor, estadoEntrega: filtroEntrega });
+    };
+
+    const cambiarFiltroEntrega = (nuevoValor) => {
+        setFiltroEntrega(nuevoValor);
+        if (busquedaActiva) ejecutarBusqueda(busquedaActiva, 0, { estadoPago: filtroPago, estadoEntrega: nuevoValor });
     };
 
     const handleClienteEncontrado = (cliente) => {
@@ -207,6 +244,10 @@ function VistaBuscarBoletas() {
     const cambiarMetodoFiltro = (metodo) => {
         setMetodoFiltro(metodo);
         setBoletas([]);
+        setPagina(0);
+        setTotalPaginas(0);
+        setTotalElementos(0);
+        setBusquedaActiva(null);
         setBusquedaRealizada(false);
         setError('');
         setClienteSeleccionado(null);
@@ -216,16 +257,13 @@ function VistaBuscarBoletas() {
         setFiltroEntrega('');
     };
 
-    // Se recalcula solo cuando cambian los datos/filtros reales (antes se filtraba, ordenaba
-    // y resolvian nombres de cliente/producto en CADA render, incluidos los que disparaba
-    // el hover de una fila al scrollear con el mouse encima). Ademas resuelve fecha/nombre
-    // de cliente/nombres de producto UNA vez por boleta aca, en vez de en cada fila.
-    const boletasFiltradas = useMemo(() => {
+    // Se recalcula solo cuando cambian los datos reales (antes se filtraba, ordenaba y
+    // resolvian nombres de cliente/producto en CADA render, incluidos los que disparaba el
+    // hover de una fila al scrollear con el mouse encima). El filtro por pago/entrega ahora
+    // se hace en el servidor (junto con el paginado); aca solo se resuelve fecha/nombre de
+    // cliente/nombres de producto UNA vez por boleta, y se ordena la pagina actual.
+    const boletasProcesadas = useMemo(() => {
         return boletas
-            .filter(boleta =>
-                (!filtroPago || boleta.estadoPago === filtroPago) &&
-                (!filtroEntrega || boleta.estadoEntrega === filtroEntrega)
-            )
             .map(boleta => ({
                 ...boleta,
                 _fecha: fechaPlanilla(boleta.id_planilla),
@@ -233,7 +271,7 @@ function VistaBuscarBoletas() {
                 _ventasConNombre: (boleta.ventas || []).map(v => ({ ...v, _nombreProducto: nombreProducto(v.id_producto) })),
             }))
             .sort((a, b) => (a._fecha === b._fecha ? 0 : (a._fecha < b._fecha ? 1 : -1))); // más reciente primero
-    }, [boletas, filtroPago, filtroEntrega, mapaPlanillas, mapaClientes, mapaProductos]);
+    }, [boletas, mapaPlanillas, mapaClientes, mapaProductos]);
 
     return (
         <main style={{ padding: '20px', backgroundColor: 'var(--bg)', height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -272,7 +310,7 @@ function VistaBuscarBoletas() {
 
                     <SelectPersonalizado
                         value={filtroPago}
-                        onChange={(e) => setFiltroPago(e.target.value)}
+                        onChange={(e) => cambiarFiltroPago(e.target.value)}
                         opciones={[
                             { value: '', label: 'Todos los pagos' },
                             { value: 'PAGADO', label: 'Pagadas' },
@@ -283,7 +321,7 @@ function VistaBuscarBoletas() {
 
                     <SelectPersonalizado
                         value={filtroEntrega}
-                        onChange={(e) => setFiltroEntrega(e.target.value)}
+                        onChange={(e) => cambiarFiltroEntrega(e.target.value)}
                         opciones={[
                             { value: '', label: 'Todas las entregas' },
                             { value: 'ENTREGADO', label: 'Entregadas' },
@@ -337,11 +375,12 @@ function VistaBuscarBoletas() {
                     <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px' }}>
                         Elegí un cliente o un rango de fechas para empezar a buscar.
                     </p>
-                ) : boletasFiltradas.length === 0 ? (
+                ) : boletasProcesadas.length === 0 ? (
                     <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px' }}>
                         No se encontraron boletas con esos filtros.
                     </p>
                 ) : (
+                    <>
                     <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.95rem' }}>
                             <thead style={{ backgroundColor: 'var(--surface-inverse)', color: 'var(--text-on-inverse)', position: 'sticky', top: 0, zIndex: 1 }}>
@@ -357,7 +396,7 @@ function VistaBuscarBoletas() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {boletasFiltradas.map((boleta, idx) => (
+                                {boletasProcesadas.map((boleta, idx) => (
                                     <FilaBoleta
                                         key={boleta.id}
                                         boleta={boleta}
@@ -372,6 +411,14 @@ function VistaBuscarBoletas() {
                             </tbody>
                         </table>
                     </div>
+                    <Paginador
+                        pagina={pagina}
+                        totalPaginas={totalPaginas}
+                        totalElementos={totalElementos}
+                        onCambiarPagina={cambiarPagina}
+                        cargando={cargando}
+                    />
+                    </>
                 )}
             </div>
 

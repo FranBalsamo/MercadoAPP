@@ -13,8 +13,8 @@ const PESTANIAS = [
     { id: 'actualizaciones', etiqueta: 'Actualizaciones', icono: HiOutlineArrowPath },
 ];
 
-function VistaConfiguracion() {
-    const [pestaniaActiva, setPestaniaActiva] = useState('empresa');
+function VistaConfiguracion({ pestaniaInicial = 'empresa' }) {
+    const [pestaniaActiva, setPestaniaActiva] = useState(pestaniaInicial);
 
     return (
         <main style={{ padding: '20px', backgroundColor: 'var(--bg)', minHeight: '100%', display: 'flex', flexDirection: 'column', gap: '20px' }}>

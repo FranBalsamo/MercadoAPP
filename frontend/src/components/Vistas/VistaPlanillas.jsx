@@ -1,14 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { formatearFechaVisual } from '../../utils/formatoFecha';
 import { HiOutlineDocumentText } from 'react-icons/hi2';
 import SelectPersonalizado from '../UI/SelectPersonalizado';
 import SelectorFecha from '../UI/SelectorFecha';
+import Paginador from '../UI/Paginador';
 import '../Estilos/Botones.css';
 import '../Estilos/Formularios.css';
+
+const TAMANIO_PAGINA = 50;
+
+const formatearMoneda = (valor) => (valor ?? 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
 
 function VistaPlanillas({ abrirPlanilla, abrirPlanillaCerrada }) {
     // --- ESTADOS ---
     const [planillas, setPlanillas] = useState([]);
+    const [pagina, setPagina] = useState(0);
+    const [totalPaginas, setTotalPaginas] = useState(0);
+    const [totalElementos, setTotalElementos] = useState(0);
+    const [cargando, setCargando] = useState(false);
     const [error, setError] = useState('');
 
     // Estados para los filtros
@@ -17,25 +26,26 @@ function VistaPlanillas({ abrirPlanilla, abrirPlanillaCerrada }) {
     const [desde, setDesde] = useState('');
     const [hasta, setHasta] = useState('');
 
-    // --- EFECTOS Y FETCH ---
-    useEffect(() => {
-        obtenerPlanillas();
-    }, []);
-
-    const obtenerPlanillas = async () => {
+    const obtenerPlanillas = useCallback(async (paginaSolicitada) => {
+        setCargando(true);
+        setError('');
         try {
-            const respuesta = await fetch('http://localhost:8080/api/planilla/All');
+            const params = new URLSearchParams({ page: String(paginaSolicitada), size: String(TAMANIO_PAGINA) });
+            if (metodoFiltro === 'estado') {
+                if (busqueda) params.set('estado', busqueda);
+            } else {
+                if (desde) params.set('desde', desde);
+                if (hasta) params.set('hasta', hasta);
+            }
 
+            const respuesta = await fetch(`http://localhost:8080/api/planilla/buscar/paginado?${params.toString()}`);
             if (!respuesta.ok) {
                 throw new Error(`Error del servidor: ${respuesta.status}`);
             }
-
             const data = await respuesta.json();
 
-            console.log("Datos crudos de java: ", data);
-
-            const listaPlanillasFormateado = Array.isArray(data)
-                ? data.map(planilla => ({
+            const listaPlanillasFormateado = Array.isArray(data.content)
+                ? data.content.map(planilla => ({
                     id: planilla.id,
                     fecha: planilla.fecha,
                     estadoPlanilla: planilla.estadoPlanilla,
@@ -47,35 +57,23 @@ function VistaPlanillas({ abrirPlanilla, abrirPlanillaCerrada }) {
                 : [];
 
             setPlanillas(listaPlanillasFormateado);
-            console.log("Se cargaron las planillas con exito...", listaPlanillasFormateado);
-
+            setTotalPaginas(data.totalPages ?? 0);
+            setTotalElementos(data.totalElements ?? 0);
+            setPagina(paginaSolicitada);
         } catch (e) {
             console.error("Hubo un problema con el fetch:", e);
             setError('Error al conectar con el servidor.');
+        } finally {
+            setCargando(false);
         }
-    };
+    }, [metodoFiltro, busqueda, desde, hasta]);
 
-    // Filtramos las planillas en tiempo real en base al input y el método elegido
-    const planillasFiltradas = planillas.filter((planilla) => {
-        if (metodoFiltro === 'estado') {
-            return !busqueda || planilla.estadoPlanilla === busqueda;
-        }
-        // metodoFiltro === 'fecha': rango desde/hasta (si solo hay un extremo, o
-        // desde === hasta, filtra por ese unico dia puntual).
-        return (!desde || planilla.fecha >= desde) && (!hasta || planilla.fecha <= hasta);
-    }).sort((a, b) => {
-        if (a.fecha !== b.fecha) {
-            return a.fecha < b.fecha ? 1 : -1; // Más reciente primero
-        }
-        if (a.estadoPlanilla !== b.estadoPlanilla) {
-            return a.estadoPlanilla === 'ABIERTA' ? -1 : 1; // Abiertas antes que cerradas
-        }
-        return 0;
-    });
+    // Al montar y cada vez que cambia el criterio de busqueda se vuelve a la primera pagina.
+    useEffect(() => {
+        obtenerPlanillas(0);
+    }, [obtenerPlanillas]);
 
-    const formatearMoneda = (valor) => {
-        return (valor ?? 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
-    };
+    const cambiarPagina = (nuevaPagina) => obtenerPlanillas(nuevaPagina);
 
     return (
         <main style={{
@@ -179,14 +177,14 @@ function VistaPlanillas({ abrirPlanilla, abrirPlanillaCerrada }) {
                         </tr>
                     </thead>
                     <tbody>
-                        {planillasFiltradas.length === 0 ? (
+                        {planillas.length === 0 ? (
                             <tr>
                                 <td colSpan={4} style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                                    {planillas.length === 0 ? "Cargando planillas..." : "No se encontraron planillas con esa búsqueda."}
+                                    {cargando ? "Cargando planillas..." : "No se encontraron planillas con esa búsqueda."}
                                 </td>
                             </tr>
                         ) : (
-                            planillasFiltradas.map((planilla) => (
+                            planillas.map((planilla) => (
                                 <tr key={planilla.id} style={{ borderBottom: '1px solid var(--border)' }}>
                                     <td style={{ padding: '10px 15px', fontWeight: '500', color: 'var(--text-primary)' }}>
                                         {formatearFechaVisual(planilla.fecha)}
@@ -231,6 +229,14 @@ function VistaPlanillas({ abrirPlanilla, abrirPlanillaCerrada }) {
                     </tbody>
                 </table>
             </div>
+
+            <Paginador
+                pagina={pagina}
+                totalPaginas={totalPaginas}
+                totalElementos={totalElementos}
+                onCambiarPagina={cambiarPagina}
+                cargando={cargando}
+            />
 
         </main>
     );

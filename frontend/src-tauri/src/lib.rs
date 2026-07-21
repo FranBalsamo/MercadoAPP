@@ -78,6 +78,27 @@ fn buscar_backend_local(app: &tauri::AppHandle) -> Option<(PathBuf, PathBuf)> {
     }
 }
 
+// Guarda un proceso recien arrancado en el estado gestionado por Tauri, apenas se tiene el
+// Child, en vez de esperar a que termine todo el arranque (que puede tardar hasta ~90s la
+// primera vez). Sin esto, si la ventana se cierra a mitad de camino, detener_backend_local no
+// encuentra nada que matar (el estado todavia no existe) y mysqld/el backend quedan huerfanos,
+// bloqueando el puerto/datadir para el proximo arranque.
+fn guardar_mysqld(app: &tauri::AppHandle, hijo: Child) {
+    if let Some(procesos) = app.try_state::<ProcesosLocales>() {
+        if let Ok(mut guarda) = procesos.mysqld.lock() {
+            *guarda = Some(hijo);
+        }
+    }
+}
+
+fn guardar_backend(app: &tauri::AppHandle, hijo: Child) {
+    if let Some(procesos) = app.try_state::<ProcesosLocales>() {
+        if let Ok(mut guarda) = procesos.backend.lock() {
+            *guarda = Some(hijo);
+        }
+    }
+}
+
 fn iniciar_backend_local(app: &tauri::AppHandle) {
     let Some((mysql_bin, backend_exe)) = buscar_backend_local(app) else {
         println!("No se encontraron los recursos de MySQL/backend embebidos; se asume backend externo (dev).");
@@ -88,6 +109,14 @@ fn iniciar_backend_local(app: &tauri::AppHandle) {
         eprintln!("No se pudo resolver la carpeta de datos de la app.");
         return;
     };
+
+    // Se registra el estado ANTES de spawnear nada (con los dos huecos vacios): asi, sin
+    // importar en que paso se cierre la ventana o falle algo, detener_backend_local siempre
+    // tiene donde buscar lo que ya se haya llegado a levantar.
+    app.manage(ProcesosLocales {
+        mysqld: Mutex::new(None),
+        backend: Mutex::new(None),
+    });
 
     let mysql_datadir = datos_app.join("mysql-data");
     let mysqld_exe = mysql_bin.join("mysqld.exe");
@@ -112,6 +141,12 @@ fn iniciar_backend_local(app: &tauri::AppHandle) {
             Ok(estado) if estado.success() => {}
             _ => {
                 eprintln!("No se pudo inicializar la base de datos local.");
+                // Se borra el datadir a medio inicializar: si se dejara, el proximo arranque
+                // solo chequea si la carpeta existe (no si la inicializacion realmente
+                // termino bien), asi que intentaria levantar mysqld contra un datadir sin
+                // tablas de sistema una y otra vez, dejando la app trabada para siempre en la
+                // pantalla de carga sin ninguna forma de recuperarse sola.
+                let _ = std::fs::remove_dir_all(&mysql_datadir);
                 return;
             }
         }
@@ -133,9 +168,15 @@ fn iniciar_backend_local(app: &tauri::AppHandle) {
             return;
         }
     };
+    guardar_mysqld(app, mysqld_hijo);
 
     if !esperar_puerto("127.0.0.1", MYSQL_PORT, Duration::from_secs(30)) {
-        eprintln!("mysqld no respondio a tiempo.");
+        // Si mysqld nunca abrio el puerto, seguir de largo solo termina en un backend que
+        // jamas puede conectarse a la base (la app queda trabada igual, pero habiendo hecho
+        // trabajo de mas). mysqld ya quedo guardado en el estado, asi que se lo puede matar
+        // normalmente al cerrar la ventana.
+        eprintln!("mysqld no respondio a tiempo. Se aborta el arranque del backend local.");
+        return;
     }
 
     // Primera vez: crear la base y el usuario que espera el backend.
@@ -163,6 +204,8 @@ fn iniciar_backend_local(app: &tauri::AppHandle) {
         if resultado.map(|s| s.success()).unwrap_or(false) {
             let _ = std::fs::write(&marca_configurada, "ok");
         } else {
+            // No se deja marca: el proximo arranque vuelve a intentar crear la base/usuario
+            // (es idempotente, CREATE ... IF NOT EXISTS), asi que esto se autocorrige solo.
             eprintln!("No se pudo crear la base/usuario de la app.");
         }
     }
@@ -174,19 +217,18 @@ fn iniciar_backend_local(app: &tauri::AppHandle) {
     let backend_hijo = match backend_hijo {
         Ok(hijo) => hijo,
         Err(e) => {
+            // mysqld ya esta guardado en el estado (ver guardar_mysqld arriba), asi que
+            // aunque el backend no haya podido arrancar, no queda huerfano: se apaga
+            // normalmente cuando se cierre la ventana.
             eprintln!("No se pudo arrancar el backend: {e}");
             return;
         }
     };
+    guardar_backend(app, backend_hijo);
 
     if !esperar_puerto("127.0.0.1", BACKEND_PORT, Duration::from_secs(60)) {
         eprintln!("El backend no respondio a tiempo.");
     }
-
-    app.manage(ProcesosLocales {
-        mysqld: Mutex::new(Some(mysqld_hijo)),
-        backend: Mutex::new(Some(backend_hijo)),
-    });
 }
 
 fn detener_backend_local(app: &tauri::AppHandle) {

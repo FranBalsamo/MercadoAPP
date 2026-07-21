@@ -1,10 +1,15 @@
 package com.franbalsamo.mercadoapp.modules.cliente.controller;
 
 import com.franbalsamo.mercadoapp.modules.boleta.service.BoletaService;
+import com.franbalsamo.mercadoapp.modules.cliente.TipoCliente;
 import com.franbalsamo.mercadoapp.modules.cliente.service.ClienteService;
 import com.franbalsamo.mercadoapp.modules.cliente.model.ClienteDTO;
 import com.franbalsamo.mercadoapp.modules.cliente.model.ClienteDeudorDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -42,6 +47,19 @@ public class ClienteController {
     public ResponseEntity<List<ClienteDTO>> findAll() {
         List<ClienteDTO> listaClientes = clienteService.findAll();
         return new ResponseEntity<>(listaClientes, HttpStatus.OK);
+    }
+
+    // Paginado real (Pageable), separado de /All que sigue devolviendo la lista completa para
+    // los lugares que arman catalogos id->nombre en memoria (ej. VistaBuscarBoletas).
+    @GetMapping
+    public ResponseEntity<Page<ClienteDTO>> buscarPaginado(
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) String documento,
+            @RequestParam(required = false) TipoCliente tipo,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("nombre").ascending());
+        return new ResponseEntity<>(clienteService.buscarPaginado(nombre, documento, tipo, pageable), HttpStatus.OK);
     }
 
     @GetMapping("All/{FiltroNombre}")

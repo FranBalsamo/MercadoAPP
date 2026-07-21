@@ -60,13 +60,15 @@ public class BackupSchedulerService {
             Files.writeString(archivoDestino, sql, StandardCharsets.UTF_8);
 
             configuracion.setUltimoResultado("OK: " + archivoDestino);
+            // Solo se actualiza en exito: si se actualizara siempre, un fallo esperaria el
+            // intervalo completo (ej. 24hs) para el proximo intento. Dejandola sin tocar,
+            // la proxima revision (10 min) vuelve a ver la ejecucion como "vencida" y reintenta.
+            configuracion.setUltimaEjecucion(LocalDateTime.now());
             log.info("Backup automático generado en {}", archivoDestino);
         } catch (IOException | RuntimeException e) {
             configuracion.setUltimoResultado("ERROR: " + e.getMessage());
             log.error("Error al generar el backup automático", e);
-        } finally {
-            configuracion.setUltimaEjecucion(LocalDateTime.now());
-            configuracionBackupRepository.save(configuracion);
         }
+        configuracionBackupRepository.save(configuracion);
     }
 }

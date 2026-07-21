@@ -1,51 +1,128 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import ModalModificarCliente from '../Modals/ModalModificarCliente';
 import ModalModificarSaldoCliente from '../Modals/ModalModificarSaldoCliente';
 import { HiOutlineUsers } from 'react-icons/hi2';
 import SelectPersonalizado from '../UI/SelectPersonalizado';
 import MenuAccionesInline from '../UI/MenuAccionesInline';
+import Paginador from '../UI/Paginador';
 import '../Estilos/Botones.css';
 import '../Estilos/Formularios.css';
+
+const TAMANIO_PAGINA = 50;
 
 const formatearMoneda = (val) => {
     return (val ?? 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
 };
 
+// Fila memoizada: React.memo evita re-renderizar las 20 filas de la pagina cuando solo
+// cambia cual fila esta bajo el cursor (mismo patron que FilaBoleta en VistaBuscarBoletas).
+const FilaCliente = memo(function FilaCliente({ cliente, resaltada, onHoverStart, onHoverEnd, onModificar, onModificarSaldo, onVerDeudas }) {
+    return (
+        <tr
+            style={{ borderBottom: '1px solid var(--border)' }}
+            onMouseEnter={() => onHoverStart(cliente.id)}
+            onMouseLeave={onHoverEnd}
+        >
+            <td style={{ padding: '10px 15px', textTransform: 'capitalize', fontWeight: '500', color: 'var(--text-primary)' }}>
+                {cliente.nombre}
+            </td>
+            <td style={{ padding: '10px 15px', color: 'var(--text-secondary)' }}>
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                    {cliente.tipoDocumento === 'CUIT_L' ? 'CUIT/L' : 'DNI'}
+                </span>{' '}
+                {cliente.documento}
+            </td>
+            <td style={{ padding: '10px 15px', color: 'var(--text-secondary)' }}>
+                <span style={{
+                    padding: '3px 8px', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontWeight: 'bold',
+                    backgroundColor: cliente.tipoCliente === 'SUPERMERCADO' ? 'var(--info-soft)' : 'var(--surface-2)',
+                    color: cliente.tipoCliente === 'SUPERMERCADO' ? 'var(--info-soft-text)' : 'var(--text-secondary)'
+                }}>
+                    {cliente.tipoCliente === 'SUPERMERCADO' ? 'Supermercado' : 'Persona'}
+                </span>
+            </td>
+            <td style={{ padding: '10px 15px', textTransform: 'capitalize', fontWeight: '500', color: 'var(--text-secondary)' }}>
+                {cliente.telefono || '-'}
+            </td>
+            <td style={{ padding: '10px 15px', textTransform: 'capitalize', fontWeight: '500', color: 'var(--text-secondary)' }}>
+                {cliente.direcciones.length > 0 ? cliente.direcciones.join(', ') : '-'}
+            </td>
+            <td style={{ padding: '10px 15px', fontWeight: '500', color: cliente.saldo_a_favor > 0 ? 'var(--success)' : 'var(--text-primary)' }}>
+                {formatearMoneda(cliente.saldo_a_favor)}
+            </td>
+            <td style={{ padding: '10px 15px', textAlign: 'center' }}>
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <MenuAccionesInline
+                        mostrarPorHover={resaltada}
+                        acciones={[
+                            { label: 'Modificar', onClick: () => onModificar(cliente), variante: 'primario' },
+                            { label: 'Modificar Saldo', onClick: () => onModificarSaldo(cliente) },
+                            { label: 'Ver Deudas', onClick: () => onVerDeudas(cliente), variante: 'peligro' },
+                        ]}
+                    />
+                </div>
+            </td>
+        </tr>
+    );
+});
+
 function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCliente}) {
     // --- ESTADOS ---
     const [clientes, setClientes] = useState([]);
+    const [pagina, setPagina] = useState(0);
+    const [totalPaginas, setTotalPaginas] = useState(0);
+    const [totalElementos, setTotalElementos] = useState(0);
+    const [cargando, setCargando] = useState(false);
     const [error, setError] = useState('');
 
-    // Estados para los filtros
+    // Estados para los filtros. 'busqueda' es lo que el usuario tipea; 'busquedaDebounced' es
+    // lo que realmente se manda al backend, 300ms despues de que deja de tipear (evita pedirle
+    // una pagina nueva al servidor en cada tecla).
     const [metodoFiltro, setMetodoFiltro] = useState('nombre');
     const [busqueda, setBusqueda] = useState('');
+    const [busquedaDebounced, setBusquedaDebounced] = useState('');
 
-    const [mostrarModalNuevoCliente, setMostrarModalNuevoCliente] = useState(false);
     const [mostrarModalModificar, setMostrarModalModificar] = useState(false);
     const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
     const [mostrarModalSaldo, setMostrarModalSaldo] = useState(false);
     const [clienteParaSaldo, setClienteParaSaldo] = useState(null);
     const [filaSobreCursor, setFilaSobreCursor] = useState(null);
 
-    // --- EFECTOS Y FETCH ---
+    // Contador de secuencia: si dos busquedas quedan en vuelo, solo se aplica la respuesta
+    // de la ultima que se disparo (evita pisar resultados nuevos con una respuesta vieja).
+    const idBusquedaRef = useRef(0);
+
     useEffect(() => {
-        obtenerClientes();
-    }, [senalRecarga]);
+        const temporizador = setTimeout(() => setBusquedaDebounced(busqueda), 300);
+        return () => clearTimeout(temporizador);
+    }, [busqueda]);
 
-    const obtenerClientes = async () => {
+    // Si cambia el criterio de busqueda, se vuelve a la primera pagina del nuevo resultado.
+    useEffect(() => {
+        setPagina(0);
+    }, [metodoFiltro, busquedaDebounced]);
+
+    const obtenerClientes = useCallback(async () => {
+        const idActual = ++idBusquedaRef.current;
+        setCargando(true);
+        setError('');
         try {
-            const respuesta = await fetch('http://localhost:8080/api/clientes/All');
+            const params = new URLSearchParams({ page: String(pagina), size: String(TAMANIO_PAGINA) });
+            if (busquedaDebounced) {
+                if (metodoFiltro === 'nombre') params.set('nombre', busquedaDebounced);
+                else if (metodoFiltro === 'documento') params.set('documento', busquedaDebounced);
+                else if (metodoFiltro === 'tipo') params.set('tipo', busquedaDebounced);
+            }
 
+            const respuesta = await fetch(`http://localhost:8080/api/clientes?${params.toString()}`);
             if (!respuesta.ok) {
                 throw new Error(`Error del servidor: ${respuesta.status}`);
             }
-
             const data = await respuesta.json();
-            
-            console.log("Datos crudos de java: ", data);
+            if (idActual !== idBusquedaRef.current) return;
 
-            const listaClientesFormateado = Array.isArray(data)
-                ? data.map(cliente => ({
+            const listaClientesFormateado = Array.isArray(data.content)
+                ? data.content.map(cliente => ({
                     id: cliente.id,
                     nombre: cliente.nombre,
                     documento: cliente.documento,
@@ -56,25 +133,33 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCl
                     saldo_a_favor: cliente.saldo_a_favor,
                 }))
                 : [];
-            
-            setClientes(listaClientesFormateado);
-            console.log("Se cargaron los clientes con exito...", listaClientesFormateado);
 
+            setClientes(listaClientesFormateado);
+            setTotalPaginas(data.totalPages ?? 0);
+            setTotalElementos(data.totalElements ?? 0);
         } catch (e) {
             console.error("Hubo un problema con el fetch:", e);
-            setError('Error al conectar con el servidor.');
+            if (idActual === idBusquedaRef.current) setError('Error al conectar con el servidor.');
+        } finally {
+            if (idActual === idBusquedaRef.current) setCargando(false);
         }
-    };
+    }, [pagina, metodoFiltro, busquedaDebounced]);
 
-    const abrirModificarCliente = (cliente) => {
+    useEffect(() => {
+        obtenerClientes();
+    }, [obtenerClientes, senalRecarga]);
+
+    const abrirModificarCliente = useCallback((cliente) => {
         setClienteSeleccionado(cliente);
         setMostrarModalModificar(true);
-    };
+    }, []);
 
-    const abrirModificarSaldo = (cliente) => {
+    const abrirModificarSaldo = useCallback((cliente) => {
         setClienteParaSaldo(cliente);
         setMostrarModalSaldo(true);
-    };
+    }, []);
+
+    const limpiarHover = useCallback(() => setFilaSobreCursor(null), []);
 
     // --- LÓGICA DE INTERFAZ ---
     const placeHolderFilter = () => {
@@ -82,27 +167,6 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCl
             ? "Buscar por Nombre..."
             : "Buscar por Documento...";
     };
-
-    // Filtramos los clientes en tiempo real en base al input y el método elegido
-    const clientesFiltrados = clientes.filter((cliente) => {
-        if (!busqueda) return true; // Si no hay búsqueda, mostramos todos
-
-        if (metodoFiltro === 'tipo') {
-            return cliente.tipoCliente === busqueda;
-        }
-
-        const textoBusqueda = busqueda.toLowerCase();
-        if (metodoFiltro === 'nombre') {
-            return cliente.nombre?.toLowerCase().includes(textoBusqueda);
-        } else {
-            return cliente.documento?.includes(textoBusqueda);
-        }
-    }).sort((a, b) => {
-        const nombreA = a.nombre || "";
-        const nombreB = b.nombre || "";
-        
-        return nombreA.localeCompare(nombreB);
-    });
 
     return (
         <main style={{
@@ -233,65 +297,38 @@ function VistaClientes({senalRecarga, abrirModalNuevoCliente, abrirVistaDeudasCl
                         </tr>
                     </thead>
                     <tbody>
-                        {clientesFiltrados.length === 0 ? (
+                        {clientes.length === 0 ? (
                             <tr>
                                 <td colSpan={7} style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                                    {clientes.length === 0 ? "Cargando clientes..." : "No se encontraron clientes con esa búsqueda."}
+                                    {cargando ? "Cargando clientes..." : "No se encontraron clientes con esa búsqueda."}
                                 </td>
                             </tr>
                         ) : (
-                            clientesFiltrados.map((cliente) => (
-                                <tr
+                            clientes.map((cliente) => (
+                                <FilaCliente
                                     key={cliente.id}
-                                    style={{ borderBottom: '1px solid var(--border)' }}
-                                    onMouseEnter={() => setFilaSobreCursor(cliente.id)}
-                                    onMouseLeave={() => setFilaSobreCursor(null)}
-                                >
-                                    <td style={{ padding: '10px 15px', textTransform: 'capitalize', fontWeight: '500', color: 'var(--text-primary)' }}>
-                                        {cliente.nombre}
-                                    </td>
-                                    <td style={{ padding: '10px 15px', color: 'var(--text-secondary)' }}>
-                                        <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 'bold' }}>
-                                            {cliente.tipoDocumento === 'CUIT_L' ? 'CUIT/L' : 'DNI'}
-                                        </span>{' '}
-                                        {cliente.documento}
-                                    </td>
-                                    <td style={{ padding: '10px 15px', color: 'var(--text-secondary)' }}>
-                                        <span style={{
-                                            padding: '3px 8px', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontWeight: 'bold',
-                                            backgroundColor: cliente.tipoCliente === 'SUPERMERCADO' ? 'var(--info-soft)' : 'var(--surface-2)',
-                                            color: cliente.tipoCliente === 'SUPERMERCADO' ? 'var(--info-soft-text)' : 'var(--text-secondary)'
-                                        }}>
-                                            {cliente.tipoCliente === 'SUPERMERCADO' ? 'Supermercado' : 'Persona'}
-                                        </span>
-                                    </td>
-                                    <td style={{ padding: '10px 15px', textTransform: 'capitalize', fontWeight: '500', color: 'var(--text-secondary)' }}>
-                                        {cliente.telefono || '-'}
-                                    </td>
-                                    <td style={{ padding: '10px 15px', textTransform: 'capitalize', fontWeight: '500', color: 'var(--text-secondary)' }}>
-                                        {cliente.direcciones.length > 0 ? cliente.direcciones.join(', ') : '-'}
-                                    </td>
-                                    <td style={{ padding: '10px 15px', fontWeight: '500', color: cliente.saldo_a_favor > 0 ? 'var(--success)' : 'var(--text-primary)' }}>
-                                        {formatearMoneda(cliente.saldo_a_favor)}
-                                    </td>
-                                    <td style={{ padding: '10px 15px', textAlign: 'center' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'center' }}>
-                                            <MenuAccionesInline
-                                                mostrarPorHover={filaSobreCursor === cliente.id}
-                                                acciones={[
-                                                    { label: 'Modificar', onClick: () => abrirModificarCliente(cliente), variante: 'primario' },
-                                                    { label: 'Modificar Saldo', onClick: () => abrirModificarSaldo(cliente) },
-                                                    { label: 'Ver Deudas', onClick: () => abrirVistaDeudasCliente(cliente), variante: 'peligro' },
-                                                ]}
-                                            />
-                                        </div>
-                                    </td>
-                                </tr>
+                                    cliente={cliente}
+                                    resaltada={filaSobreCursor === cliente.id}
+                                    onHoverStart={setFilaSobreCursor}
+                                    onHoverEnd={limpiarHover}
+                                    onModificar={abrirModificarCliente}
+                                    onModificarSaldo={abrirModificarSaldo}
+                                    onVerDeudas={abrirVistaDeudasCliente}
+                                />
                             ))
                         )}
                     </tbody>
                 </table>
             </div>
+
+            <Paginador
+                pagina={pagina}
+                totalPaginas={totalPaginas}
+                totalElementos={totalElementos}
+                onCambiarPagina={setPagina}
+                cargando={cargando}
+            />
+
             <div>
                 <button
                     className="btn-global btn-primario-green"

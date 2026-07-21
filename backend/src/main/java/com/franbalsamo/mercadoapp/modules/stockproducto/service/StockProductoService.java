@@ -35,6 +35,10 @@ public class StockProductoService {
 
     @Transactional
     public StockProductoDTO addStock(StockProductoDTO stockProductoDTO){
+        if(stockProductoDTO.getStock() < 0){
+            throw new ReglaNegocioException("Error: El inventario no puede ser negativo");
+        }
+
         boolean yaExiste = stockProductoRepository
                 .findByProductoIdAndPlanillaId(stockProductoDTO.getId_producto(), stockProductoDTO.getId_planilla())
                 .isPresent();
@@ -47,6 +51,9 @@ public class StockProductoService {
         StockProducto stockProductoNuevo = stockProductoMapper.toEntity(stockProductoDTO);
         stockProductoNuevo.setProducto(producto);
         stockProductoNuevo.setPlanilla(planilla);
+        // Se ignora cualquier stock_vendido que haya mandado el cliente: un producto recien
+        // agregado a la planilla nunca puede arrancar con ventas ya registradas.
+        stockProductoNuevo.setStock_vendido(0);
         return stockProductoMapper.toDTO(stockProductoRepository.save(stockProductoNuevo));
     }
     @Transactional

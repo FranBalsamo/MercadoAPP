@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { save } from '@tauri-apps/plugin-dialog';
@@ -15,6 +15,8 @@ const capitalizar = (texto) => {
     if (!texto) return '';
     return texto.replace(/\b\w/g, (letra) => letra.toUpperCase());
 };
+
+const formatearMoneda = (val) => (val ?? 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
 
 function PuntoInformativo({ texto }) {
     const [mostrar, setMostrar] = useState(false);
@@ -48,6 +50,59 @@ function PuntoInformativo({ texto }) {
         </span>
     );
 }
+
+// Tarjeta memoizada: evita re-renderizar TODAS las boletas de deuda cuando solo cambia la
+// seleccion de UNA de ellas (mismo patron que FilaBoleta en VistaBuscarBoletas).
+const TarjetaDeuda = memo(function TarjetaDeuda({ boleta, seleccionada, modoSeleccion, onToggleSeleccion, onVer }) {
+    return (
+        <div style={{
+            display: 'flex', alignItems: 'flex-start', gap: '12px',
+            border: seleccionada ? '2px solid var(--success)' : '1px solid var(--border)',
+            borderRadius: 'var(--radius-lg)', padding: '15px',
+            backgroundColor: seleccionada ? 'var(--success-soft)' : 'var(--surface)'
+        }}>
+            {modoSeleccion && (
+                <input
+                    type="checkbox"
+                    checked={seleccionada}
+                    onChange={() => onToggleSeleccion(boleta.id)}
+                    style={{ marginTop: '4px', width: '18px', height: '18px', cursor: 'pointer' }}
+                />
+            )}
+            <div style={{ flexGrow: 1 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                    <span style={{ fontWeight: 'bold', color: 'var(--text-primary)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        <HiOutlineCalendarDays /> Fecha: {formatearFechaVisual(boleta._fechaPlanilla)}
+                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <button
+                            className="btn-global btn-secundario"
+                            onClick={() => onVer(boleta)}
+                            style={{ fontSize: '0.85rem', padding: '4px 10px' }}
+                            title="Ver Boleta"
+                        >
+                            Ver
+                        </button>
+                        <span style={{ fontWeight: 'bold', fontSize: '1.05rem', color: 'var(--danger)' }}>
+                            {formatearMoneda(boleta.total)}
+                        </span>
+                    </div>
+                </div>
+                <ul style={{ margin: 0, paddingLeft: '20px', listStyleType: 'square', color: 'var(--text-secondary)' }}>
+                    {boleta._ventasConNombre.map((itemProd, i) => (
+                        <li key={i} style={{ marginBottom: '3px', textTransform: 'capitalize' }}>
+                            <strong>{itemProd.cantidad}x</strong> {itemProd._nombreProducto}
+                            <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}> (c/u: {formatearMoneda(itemProd.precio_unitario)})</span>
+                            <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                                {' '}- Vacío: {itemProd.precio_vacio > 0 ? formatearMoneda(itemProd.precio_vacio) : 'Sin Vacio'}
+                            </span>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        </div>
+    );
+});
 
 function VistaClienteDeudas({ cliente, volver }) {
     const [clienteActual, setClienteActual] = useState(cliente);
@@ -120,27 +175,35 @@ function VistaClienteDeudas({ cliente, volver }) {
         cargarDeudas();
     }, [cliente]);
 
+    // Mapas en vez de un .find() (O(n)) por boleta/producto en cada render: busqueda O(1) por
+    // id. Van antes del 'if (!cliente) return' de mas abajo: los Hooks no pueden quedar detras
+    // de un return condicional (se rompe el orden de Hooks entre renders).
+    const mapaProductos = useMemo(() => new Map(catalogoProductos.map((p) => [String(p.id), p])), [catalogoProductos]);
+    const mapaPlanillas = useMemo(() => new Map(planillas.map((p) => [String(p.id), p])), [planillas]);
+
+    const nombreProducto = useCallback((id) => mapaProductos.get(String(id))?.nombre || `Prod #${id}`, [mapaProductos]);
+    const fechaPlanilla = useCallback((id_planilla) => mapaPlanillas.get(String(id_planilla))?.fecha || '-', [mapaPlanillas]);
+
+    // Se recalcula solo cuando cambian los datos reales (antes se ordenaba y resolvia
+    // fecha/nombre de producto en CADA render, incluidos los que disparaba tildar/destildar
+    // una sola boleta en modo seleccion).
+    const boletasOrdenadas = useMemo(() => {
+        return boletas
+            .map((boleta) => ({
+                ...boleta,
+                _fechaPlanilla: fechaPlanilla(boleta.id_planilla),
+                _ventasConNombre: (boleta.ventas || []).map(v => ({ ...v, _nombreProducto: nombreProducto(v.id_producto) })),
+            }))
+            .sort((a, b) => (a._fechaPlanilla < b._fechaPlanilla ? 1 : a._fechaPlanilla > b._fechaPlanilla ? -1 : 0));
+    }, [boletas, fechaPlanilla, nombreProducto]);
+
+    const alternarSeleccionBoleta = useCallback((id_boleta) => {
+        setIdsSeleccionados(prev =>
+            prev.includes(id_boleta) ? prev.filter(id => id !== id_boleta) : [...prev, id_boleta]
+        );
+    }, []);
+
     if (!cliente) return <p>No se seleccionó ningún cliente...</p>;
-
-    const nombreProducto = (id) => {
-        const p = catalogoProductos.find(prod => String(prod.id) === String(id));
-        return p ? p.nombre : `Prod #${id}`;
-    };
-
-    const fechaPlanilla = (id_planilla) => {
-        const p = planillas.find(pla => String(pla.id) === String(id_planilla));
-        return p ? p.fecha : '-';
-    };
-
-    const formatearMoneda = (val) => {
-        return (val ?? 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
-    };
-
-    const boletasOrdenadas = [...boletas].sort((a, b) => {
-        const fechaA = fechaPlanilla(a.id_planilla);
-        const fechaB = fechaPlanilla(b.id_planilla);
-        return fechaA < fechaB ? 1 : fechaA > fechaB ? -1 : 0;
-    });
 
     const totalDeuda = boletas.reduce((acumulado, boleta) => acumulado + (boleta.total || 0), 0);
     const deudaActual = Math.max(0, totalDeuda - (clienteActual.saldo_a_favor || 0));
@@ -157,12 +220,6 @@ function VistaClienteDeudas({ cliente, volver }) {
     const cancelarSeleccionBoletas = () => {
         setModoSeleccion(false);
         setIdsSeleccionados([]);
-    };
-
-    const alternarSeleccionBoleta = (id_boleta) => {
-        setIdsSeleccionados(prev =>
-            prev.includes(id_boleta) ? prev.filter(id => id !== id_boleta) : [...prev, id_boleta]
-        );
     };
 
     const todasSeleccionadas = boletasOrdenadas.length > 0 && idsSeleccionados.length === boletasOrdenadas.length;
@@ -472,52 +529,14 @@ function VistaClienteDeudas({ cliente, volver }) {
                 ) : (
                     <div style={{ flex: 1, minHeight: 0, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '15px' }}>
                         {boletasOrdenadas.map((boleta) => (
-                            <div key={boleta.id} style={{
-                                display: 'flex', alignItems: 'flex-start', gap: '12px',
-                                border: idsSeleccionados.includes(boleta.id) ? '2px solid var(--success)' : '1px solid var(--border)',
-                                borderRadius: 'var(--radius-lg)', padding: '15px',
-                                backgroundColor: idsSeleccionados.includes(boleta.id) ? 'var(--success-soft)' : 'var(--surface)'
-                            }}>
-                                {modoSeleccion && (
-                                    <input
-                                        type="checkbox"
-                                        checked={idsSeleccionados.includes(boleta.id)}
-                                        onChange={() => alternarSeleccionBoleta(boleta.id)}
-                                        style={{ marginTop: '4px', width: '18px', height: '18px', cursor: 'pointer' }}
-                                    />
-                                )}
-                                <div style={{ flexGrow: 1 }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                                        <span style={{ fontWeight: 'bold', color: 'var(--text-primary)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                                            <HiOutlineCalendarDays /> Fecha: {formatearFechaVisual(fechaPlanilla(boleta.id_planilla))}
-                                        </span>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                            <button
-                                                className="btn-global btn-secundario"
-                                                onClick={() => setBoletaAVer(boleta)}
-                                                style={{ fontSize: '0.85rem', padding: '4px 10px' }}
-                                                title="Ver Boleta"
-                                            >
-                                                Ver
-                                            </button>
-                                            <span style={{ fontWeight: 'bold', fontSize: '1.05rem', color: 'var(--danger)' }}>
-                                                {formatearMoneda(boleta.total)}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <ul style={{ margin: 0, paddingLeft: '20px', listStyleType: 'square', color: 'var(--text-secondary)' }}>
-                                        {(boleta.ventas || []).map((itemProd, i) => (
-                                            <li key={i} style={{ marginBottom: '3px', textTransform: 'capitalize' }}>
-                                                <strong>{itemProd.cantidad}x</strong> {nombreProducto(itemProd.id_producto)}
-                                                <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}> (c/u: {formatearMoneda(itemProd.precio_unitario)})</span>
-                                                <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                                                    {' '}- Vacío: {itemProd.precio_vacio > 0 ? formatearMoneda(itemProd.precio_vacio) : 'Sin Vacio'}
-                                                </span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            </div>
+                            <TarjetaDeuda
+                                key={boleta.id}
+                                boleta={boleta}
+                                seleccionada={idsSeleccionados.includes(boleta.id)}
+                                modoSeleccion={modoSeleccion}
+                                onToggleSeleccion={alternarSeleccionBoleta}
+                                onVer={setBoletaAVer}
+                            />
                         ))}
                     </div>
                 )}

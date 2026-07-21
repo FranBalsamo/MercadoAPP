@@ -9,6 +9,7 @@ import {
 } from 'react-icons/hi2';
 import CarruselEstadisticas from './CarruselEstadisticas';
 import { formatearFechaVisual } from '../../utils/formatoFecha';
+import { formatearFechaLocal } from '../../utils/rangoFechas';
 import '../Estilos/Botones.css';
 
 function VistaInicio({ abrirModalPlanilla, abrirPlanilla, abrirPlanillaCerrada, planilla }) {
@@ -28,7 +29,9 @@ function VistaInicio({ abrirModalPlanilla, abrirPlanilla, abrirPlanillaCerrada, 
                     const planillasCerradas = (Array.isArray(datos) ? datos : [])
                         .filter(p => p.estadoPlanilla === 'CERRADA');
 
-                    const mesActual = new Date().toISOString().slice(0, 7); // "YYYY-MM"
+                    // formatearFechaLocal (no toISOString, que convierte a UTC primero) para que
+                    // no se corra al mes siguiente de noche en husos horarios negativos como Argentina.
+                    const mesActual = formatearFechaLocal(new Date()).slice(0, 7); // "YYYY-MM"
                     const totalDelMes = planillasCerradas
                         .filter(p => p.fecha?.slice(0, 7) === mesActual)
                         .reduce((acumulado, p) => acumulado + (p.ingresoTotal || 0), 0);

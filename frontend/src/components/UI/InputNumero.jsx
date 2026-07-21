@@ -28,6 +28,18 @@ function InputNumero({ value, onChange, min, max, step = 1, placeholder, disable
         disparaCambioReact();
     };
 
+    // Un <input type="number"> nativo solo acepta el punto como separador decimal: la coma
+    // (la forma natural de escribir decimales en Argentina, ej. "0,5") se ignora directamente
+    // al tipear, asi que nunca llegaba a cargarse una cantidad fraccionaria escribiendola con
+    // coma. Se intercepta la tecla coma y se la trata como si fuera un punto.
+    const manejarTecla = (e) => {
+        if (e.key !== ',' || disabled) return;
+        e.preventDefault();
+        const valorActual = String(value ?? '');
+        if (valorActual.includes('.')) return; // ya hay un separador decimal cargado
+        onChange({ target: { value: valorActual + '.' } });
+    };
+
     return (
         <div className={`input-numero ${disabled ? 'deshabilitado' : ''}`} style={style}>
             <input
@@ -40,6 +52,7 @@ function InputNumero({ value, onChange, min, max, step = 1, placeholder, disable
                 placeholder={placeholder}
                 value={value}
                 onChange={onChange}
+                onKeyDown={manejarTecla}
                 onBlur={onBlur}
                 disabled={disabled}
             />

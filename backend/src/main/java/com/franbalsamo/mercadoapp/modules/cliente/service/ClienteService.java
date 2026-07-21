@@ -9,6 +9,8 @@ import com.franbalsamo.mercadoapp.shared.exception.ReglaNegocioException;
 import com.franbalsamo.mercadoapp.modules.cliente.model.ClienteDTO;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -36,6 +38,18 @@ public class ClienteService {
         }
     }
 
+    // Sin esto, un nombre/documento null llega hasta Cliente.normalizarDatos() (que hace
+    // this.nombre.trim()) y tira una NullPointerException no controlada (500 generico) en vez
+    // de un error de negocio claro.
+    private void validarDatosObligatorios(ClienteDTO dto){
+        if(dto.getNombre() == null || dto.getNombre().isBlank()){
+            throw new ReglaNegocioException("El nombre del cliente es obligatorio.");
+        }
+        if(dto.getDocumento() == null || dto.getDocumento().isBlank()){
+            throw new ReglaNegocioException("El documento del cliente es obligatorio.");
+        }
+    }
+
     private void validarDirecciones(ClienteDTO dto){
         if(dto.getTipoCliente() == TipoCliente.PERSONA
                 && dto.getDirecciones() != null
@@ -57,6 +71,7 @@ public class ClienteService {
 
     @Transactional
     public ClienteDTO saveCliente(ClienteDTO dto){
+        validarDatosObligatorios(dto);
         forzarTipoDocumentoSegunTipoCliente(dto);
         validarDirecciones(dto);
         Cliente nuevoCliente = clienteMapper.toEntity(dto);
@@ -66,6 +81,7 @@ public class ClienteService {
 
     @Transactional
     public ClienteDTO modificarCliente(ClienteDTO dto){
+        validarDatosObligatorios(dto);
         forzarTipoDocumentoSegunTipoCliente(dto);
         validarDirecciones(dto);
 
@@ -96,6 +112,13 @@ public class ClienteService {
                 .toList();
     }
 
+    public Page<ClienteDTO> buscarPaginado(String nombre, String documento, TipoCliente tipo, Pageable pageable){
+        String nombreNormalizado = (nombre == null || nombre.isBlank()) ? null : nombre.trim().toLowerCase();
+        String documentoNormalizado = (documento == null || documento.isBlank()) ? null : documento.trim();
+        return clienteRepository.buscarPaginado(nombreNormalizado, documentoNormalizado, tipo, pageable)
+                .map(clienteMapper::toDTO);
+    }
+
     public List<ClienteDTO> findAllByFiltroNombre(String nombre){
         List<Cliente> listaClientes = clienteRepository.findAllByFiltroNombre(nombre);
         return listaClientes.stream()
@@ -115,7 +138,7 @@ public class ClienteService {
     }
 
     public ClienteDTO findByNombre(String nombre){
-        Cliente cliente = clienteRepository.findByNombre(nombre)
+        Cliente cliente = clienteRepository.findFirstByNombreOrderByIdAsc(nombre)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Cliente no encontrado con nombre: " + nombre));
         return clienteMapper.toDTO(cliente);
     }

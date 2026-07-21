@@ -35,13 +35,14 @@ function ModalProducto({ cerrarModal, onProductoAgregado }) {
                 body: JSON.stringify(nuevoProducto)
             });
 
-            if (respuesta.status === 409 || respuesta.status === 400) {
+            if (respuesta.status === 409) {
                 setError('Ya existe un producto con este nombre.')
                 return;
             }
 
             if (!respuesta.ok) {
-                setError('Error en el servidor al intentar guardar.')
+                const mensajeError = await respuesta.text();
+                setError(mensajeError || 'Error en el servidor al intentar guardar.')
                 return;
             }
             

@@ -60,13 +60,14 @@ function ModalCliente({ cerrarModal, onClienteAgregado }) {
                 body: JSON.stringify(nuevoCliente)
             })
 
-            if (respuesta.status === 409 || respuesta.status === 400) {
+            if (respuesta.status === 409) {
                 setError('Ya existe un cliente con ese documento.')
                 return;
             }
 
             if (!respuesta.ok) {
-                setError('Error en el servidor al intentar guardar.');
+                const mensajeError = await respuesta.text();
+                setError(mensajeError || 'Error en el servidor al intentar guardar.');
                 return;
             }
 

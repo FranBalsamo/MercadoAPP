@@ -55,6 +55,9 @@ frontend/                         React (Vite) + Tauri
   src-tauri/                      Lado nativo (Rust) de la app de escritorio
     src/lib.rs                    Orquestación: arranca/apaga MySQL + backend al abrir/cerrar la app
     tauri.conf.json                Configuración de Tauri (icono, recursos empaquetados, etc.)
+  src/components/UI/Paginador.jsx Componente de paginación reutilizable (ver "Paginación y listados grandes")
+  src/hooks/                      Hooks compartidos entre componentes (ej. useCarritoBoleta: logica de
+                                   carrito de compra, usada por ModalBoleta y ModalModificarBoleta)
 scripts/                          Scripts de PowerShell (ver más abajo)
 vendor/                           MySQL portable descargado (generado, no versionado en git)
 backend/dist/                     Backend empaquetado con jpackage (generado, no versionado en git)
@@ -191,6 +194,20 @@ Al cerrar la ventana, se apagan en orden inverso: primero el backend, después `
 
 Hay protección de instancia única (`tauri-plugin-single-instance`): si la app ya está abierta y se intenta abrir de nuevo, simplemente enfoca la ventana existente en vez de levantar una segunda base de datos en paralelo (eso corrompía el arranque antes de agregar esta protección).
 
+#### Conectarse a la base local con MySQL Workbench (u otro cliente)
+
+Con la app instalada **abierta** (el `mysqld` portable solo corre mientras la app está viva), se puede conectar con estos datos:
+
+| Campo | Valor |
+|---|---|
+| Host | `127.0.0.1` |
+| Puerto | `33061` (no el 3306 estándar) |
+| Usuario | `mercado_user` |
+| Contraseña | `mercado_pass` |
+| Base | `mercado_db` |
+
+Hay también un usuario `root` sin contraseña, pero solo se usa internamente (arranque, creación inicial de la base) — no está pensado para conectarse desde afuera.
+
 ---
 
 ## Backups
@@ -202,6 +219,11 @@ Desde **Configuración → Backup**, "Exportar Backup" descarga un dump completo
 ### Backup automático
 
 Se puede activar un backup periódico (cada N horas) que se genera solo, sin intervención del usuario. Desde la app, con el botón "Elegir..." se puede elegir cualquier carpeta de cualquier disco conectado a la PC como destino.
+
+Comportamiento (desde v0.2.0):
+- **No se puede activar sin elegir carpeta** (solo en la app instalada): si nunca se tocó el selector de carpeta, `ConfiguracionBackupService` rechaza guardar la configuración con `activo = true`. Antes de este chequeo, se podía activar sin querer con una ruta relativa sin sentido (`"backups"`), que en la app instalada terminaba en un lugar impredecible.
+- **Reintenta pronto si falla**: si un backup automático falla (ej. la carpeta ya no existe, se desconectó el disco), la próxima revisión (cada 10 minutos) lo vuelve a intentar, en vez de esperar el intervalo completo configurado (que puede ser de 24hs).
+- **Aviso visible en toda la app**: si el último backup automático falló, aparece un banner en la parte superior de la app (no solo dentro de Configuración → Backup), con un acceso directo a esa pantalla.
 
 #### Cómo funciona por dentro (solo en desarrollo, con Docker)
 
@@ -223,6 +245,20 @@ Además del selector de carpetas, existe una variable de entorno `BACKUP_HOST_PA
 
 ---
 
+## Paginación y listados grandes
+
+Pensado para un mercado con catálogo/historial grande (no un almacén chico), los listados que crecen sin límite piden los datos paginados al backend en vez de traer todo de una vez:
+
+- **Vistas paginadas** (50 resultados por página): Clientes, Productos, Boletas (búsqueda por cliente o rango de fechas), Operaciones/Cobros (idem) y Planillas.
+- **Backend**: cada uno de esos listados tiene un endpoint separado que devuelve `Page<T>` usando `Pageable` de Spring Data (ej. `GET /api/clientes?page=0&size=50&nombre=...`), independiente del endpoint `/All` que sigue existiendo sin paginar para los lugares que arman catálogos en memoria (ej. resolver "id de cliente → nombre" en una tabla de boletas).
+- **Frontend**: el componente reutilizable `frontend/src/components/UI/Paginador.jsx` muestra "Anterior / Siguiente" + página actual + total de resultados, y cada Vista mantiene su propio estado de página/filtros y vuelve a pedir al backend al cambiar de página o de filtro.
+
+**Listados que NO se paginan a propósito** (`ListaBoletas`, `VistaPlanillaCerrada`, `VistaClienteDeudas`): están acotados por diseño — las boletas de una sola planilla abierta, de una sola planilla cerrada, o las deudas de un solo cliente — así que paginarlos sería complejidad sin beneficio real. En su lugar usan el mismo patrón de optimización de tablas (filas memoizadas con `React.memo`, `Map` en vez de `.find()` para resolver nombres, `useMemo` para filtrar/ordenar) para que no se re-rendericen todas las filas por cosas como pasar el mouse sobre una sola fila.
+
+Si el tamaño de página (50) deja de ser el adecuado, se cambia en un solo lugar por listado: la constante `TAMANIO_PAGINA` al principio de cada archivo de Vista, y el `defaultValue` del parámetro `size` en el controller de backend correspondiente (son independientes: el frontend siempre manda `size` explícito, el default del backend es solo un resguardo).
+
+---
+
 ## Scripts (`scripts/`)
 
 | Script | Para qué sirve | Cuándo correrlo |
@@ -231,3 +267,17 @@ Además del selector de carpetas, existe una variable de entorno `BACKUP_HOST_PA
 | `empaquetar-backend.ps1` | Compila el backend y lo empaqueta con `jpackage` (JRE incluido) | Cada vez que cambia código del backend, antes de `tauri build` |
 | `refrescar-discos.ps1` | Monta todos los discos de la PC en el contenedor Docker del backend | Solo en desarrollo con Docker, para probar el backup a otro disco |
 | `reparar-build-desktop.ps1` | Arregla los problemas más comunes de `tauri dev`/`tauri build` (archivos de solo lectura que quedan de un build interrumpido, cache de NSIS corrupta, MySQL portable sin extraer) | Si `tauri dev`/`tauri build` falla con "Acceso denegado" o se queda trabado en "Running makensis" |
+
+---
+
+## Historial de versiones
+
+Notas completas de cada versión en [GitHub Releases](https://github.com/FranBalsamo/MercadoAPP/releases). Resumen:
+
+| Versión | Resumen |
+|---|---|
+| **v0.2.0** | Fix de un bug real de cobro (cantidades fraccionarias calculaban mal el importe del envase/vacío). Paginación real del lado del servidor (50 por página) en Clientes, Productos, Boletas, Operaciones y Planillas. Backup automático más robusto (reintenta pronto si falla, exige carpeta de destino, avisa en toda la app). Se dedujo la lógica de carrito compartida entre `ModalBoleta`/`ModalModificarBoleta` (`useCarritoBoleta`). Validaciones y locking optimista contra condiciones de carrera en stock/saldo, whitelist de sentencias permitidas al restaurar backups, y varios fixes de estabilidad de la revisión de código completa. |
+| **v0.1.3** | Fix del selector de carpeta del backup automático (traducía siempre a formato Docker, rompiendo el backup en la app instalada). |
+| **v0.1.2** | Tipo de documento (DNI/CUIT-L) para clientes, `InputNumero`/`SelectorSegmentado` con diseño propio, autocompletado en selects de búsqueda, ventana maximizada al abrir. Fixes de scroll en tablas largas y de una traba al scrollear con muchas boletas cargadas. |
+| **v0.1.1** | Se apaga el backend/MySQL local antes de que el instalador de una actualización corra, evitando un error de archivo bloqueado. |
+| **v0.1.0** | Primera versión empaquetada como app de escritorio instalable. |

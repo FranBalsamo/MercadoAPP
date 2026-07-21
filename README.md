@@ -55,13 +55,35 @@ frontend/                         React (Vite) + Tauri
   src-tauri/                      Lado nativo (Rust) de la app de escritorio
     src/lib.rs                    Orquestación: arranca/apaga MySQL + backend al abrir/cerrar la app
     tauri.conf.json                Configuración de Tauri (icono, recursos empaquetados, etc.)
-  src/components/UI/Paginador.jsx Componente de paginación reutilizable (ver "Paginación y listados grandes")
-  src/hooks/                      Hooks compartidos entre componentes (ej. useCarritoBoleta: logica de
-                                   carrito de compra, usada por ModalBoleta y ModalModificarBoleta)
+  src/app/                        Shell de la app: App.jsx, Sidebar, TitleBar, PantallaCarga
+  src/features/                   Un directorio por dominio de negocio (ver "Arquitectura del frontend")
+  src/shared/                     UI/estilos/utils que cruzan features (ver mismo apartado)
 scripts/                          Scripts de PowerShell (ver más abajo)
 vendor/                           MySQL portable descargado (generado, no versionado en git)
 backend/dist/                     Backend empaquetado con jpackage (generado, no versionado en git)
 ```
+
+### Arquitectura del frontend
+
+`frontend/src/` está organizado por funcionalidad (feature-based), no por tipo de archivo:
+
+```
+src/
+  app/          Shell de la app: App.jsx (estado global, layout), Sidebar, TitleBar, PantallaCarga
+  features/     Un directorio por dominio: boletas/, clientes/, cobros/, configuracion/,
+                estadisticas/, inicio/, planillas/, productos/
+                Cada uno agrupa sus propias Vistas, Modales, Tabs, hooks y estilos.
+  shared/       Lo que se usa desde más de un feature y no tiene lógica de negocio propia:
+                ui/       componentes genéricos (Paginador, etc.)
+                utils/    funciones puras (formateo de fechas, moneda, etc.)
+                styles/   CSS compartido (botones, layout base)
+```
+
+Convenciones:
+- **Código nuevo de un solo feature** va adentro de `features/<ese-feature>/`, junto a lo que ya existe ahí (no en `shared/`, aunque "parezca" genérico — si solo lo usa un feature, vive en ese feature).
+- **Código que cruza features y no tiene lógica de negocio** (un botón, un formateador, un hook de UI genérico) va en `shared/`.
+- Los imports entre features son normales y no están restringidos (a diferencia de Feature-Sliced Design "estricto"): un feature puede importar directo de otro si lo necesita.
+- **Alias `@/`**: configurado en `vite.config.js` (`resolve.alias`) y `jsconfig.json`, apunta a `src/`. Se usa para imports que cruzan carpetas (`@/shared/ui/Paginador`, `@/features/boletas/useCarritoBoleta`), así no se rompen si el archivo que importa se mueve de lugar. Los imports entre archivos del mismo feature/carpeta siguen siendo relativos (`./OtroArchivo`).
 
 ---
 
@@ -235,7 +257,7 @@ En desarrollo, el backend corre dentro de un contenedor Docker, que por defecto 
    - La primera vez, antes de `docker compose up -d`.
    - Cada vez que conectes un disco nuevo que quieras poder usar como destino de backup (Docker no detecta discos nuevos en un contenedor que ya está corriendo — hay que volver a correr el script y reiniciar la app).
 
-2. **Traducción de rutas en el frontend**: el selector nativo de carpetas devuelve una ruta de Windows (ej. `D:\Backups\Mercado`). El frontend la traduce a la ruta equivalente dentro del contenedor (`/mnt/d/Backups/Mercado`) antes de guardarla, y la vuelve a traducir a formato Windows para mostrarla en pantalla. Esta lógica vive en `frontend/src/components/Vistas/TabBackup.jsx` (`rutaWindowsAContenedor` / `rutaContenedorAWindows`).
+2. **Traducción de rutas en el frontend**: el selector nativo de carpetas devuelve una ruta de Windows (ej. `D:\Backups\Mercado`). El frontend la traduce a la ruta equivalente dentro del contenedor (`/mnt/d/Backups/Mercado`) antes de guardarla, y la vuelve a traducir a formato Windows para mostrarla en pantalla. Esta lógica vive en `frontend/src/features/configuracion/TabBackup.jsx` (`rutaWindowsAContenedor` / `rutaContenedorAWindows`).
 
    En la **app de escritorio instalada** (sin Docker), el backend corre nativo y ya tiene acceso directo a todos los discos de la PC — este mecanismo de "montar discos" no aplica ahí, el selector de carpetas funciona directo contra cualquier ruta de Windows.
 
@@ -251,7 +273,7 @@ Pensado para un mercado con catálogo/historial grande (no un almacén chico), l
 
 - **Vistas paginadas** (50 resultados por página): Clientes, Productos, Boletas (búsqueda por cliente o rango de fechas), Operaciones/Cobros (idem) y Planillas.
 - **Backend**: cada uno de esos listados tiene un endpoint separado que devuelve `Page<T>` usando `Pageable` de Spring Data (ej. `GET /api/clientes?page=0&size=50&nombre=...`), independiente del endpoint `/All` que sigue existiendo sin paginar para los lugares que arman catálogos en memoria (ej. resolver "id de cliente → nombre" en una tabla de boletas).
-- **Frontend**: el componente reutilizable `frontend/src/components/UI/Paginador.jsx` muestra "Anterior / Siguiente" + página actual + total de resultados, y cada Vista mantiene su propio estado de página/filtros y vuelve a pedir al backend al cambiar de página o de filtro.
+- **Frontend**: el componente reutilizable `frontend/src/shared/ui/Paginador.jsx` muestra "Anterior / Siguiente" + página actual + total de resultados, y cada Vista mantiene su propio estado de página/filtros y vuelve a pedir al backend al cambiar de página o de filtro.
 
 **Listados que NO se paginan a propósito** (`ListaBoletas`, `VistaPlanillaCerrada`, `VistaClienteDeudas`): están acotados por diseño — las boletas de una sola planilla abierta, de una sola planilla cerrada, o las deudas de un solo cliente — así que paginarlos sería complejidad sin beneficio real. En su lugar usan el mismo patrón de optimización de tablas (filas memoizadas con `React.memo`, `Map` en vez de `.find()` para resolver nombres, `useMemo` para filtrar/ordenar) para que no se re-rendericen todas las filas por cosas como pasar el mouse sobre una sola fila.
 

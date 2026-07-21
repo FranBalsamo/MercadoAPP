@@ -7,7 +7,7 @@ import {
     HiOutlineDocumentText,
     HiOutlineUserGroup,
 } from 'react-icons/hi2';
-import CarruselEstadisticas from './CarruselEstadisticas';
+import CarruselEstadisticas from '@/components/Vistas/CarruselEstadisticas';
 import { formatearFechaVisual } from '@/shared/utils/formatoFecha';
 import { formatearFechaLocal } from '@/shared/utils/rangoFechas';
 import '@/shared/styles/Botones.css';

@@ -5,7 +5,7 @@ import PantallaCarga from "./PantallaCarga";
 import ModalProducto from "@/components/Modals/ModalProducto";
 import ModalCliente from "@/components/Modals/ModalCliente";
 import ModalPlanilla from "@/components/Modals/ModalPlanilla";
-import VistaInicio from "@/components/Vistas/VistaInicio";
+import VistaInicio from "@/features/inicio/VistaInicio";
 import VistaPuntoVenta from "@/components/Vistas/VistaPuntoVenta";
 import VistaClientes from "@/components/Vistas/VistaClientes";
 import VistaProductos from "@/components/Vistas/VistaProductos";

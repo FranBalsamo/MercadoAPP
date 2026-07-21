@@ -1,36 +1,76 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import ModalModificarProducto from '../Modals/ModalModificarProducto';
 import { HiOutlineCube } from 'react-icons/hi2';
+import Paginador from '../UI/Paginador';
 import '../Estilos/Botones.css';
+
+const TAMANIO_PAGINA = 50;
+
+const FilaProducto = memo(function FilaProducto({ producto, onModificar }) {
+    return (
+        <tr style={{ borderBottom: '1px solid var(--border)' }}>
+            <td style={{ padding: '10px 15px', textTransform: 'capitalize', fontWeight: '500', color: 'var(--text-primary)' }}>
+                {producto.nombre}
+            </td>
+            <td style={{ padding: '10px 15px', textTransform: 'capitalize', fontWeight: '500', color: 'var(--text-secondary)' }}>
+                {producto.descripcion || '-'}
+            </td>
+            <td style={{ padding: '10px 15px', textTransform: 'capitalize', fontWeight: '500' }}>
+                <button
+                    className="btn-global btn-primario"
+                    style={{ padding: '4px 4px', fontSize: '0.9rem' }}
+                    onClick={() => onModificar(producto)}
+                >
+                    Modificar
+                </button>
+            </td>
+        </tr>
+    );
+});
 
 function VistaProductos({ senalRecarga, abrirModalNuevoProducto }) {
     // --- ESTADOS ---
     const [productos, setProductos] = useState([]);
+    const [pagina, setPagina] = useState(0);
+    const [totalPaginas, setTotalPaginas] = useState(0);
+    const [totalElementos, setTotalElementos] = useState(0);
+    const [cargando, setCargando] = useState(false);
     const [error, setError] = useState('');
+
     const [busqueda, setBusqueda] = useState('');
+    const [busquedaDebounced, setBusquedaDebounced] = useState('');
 
     const [mostrarModalModificar, setMostrarModalModificar] = useState(false);
     const [productoSeleccionado, setProductoSeleccionado] = useState(null);
 
-    // --- EFECTOS Y FETCH ---
+    const idBusquedaRef = useRef(0);
+
     useEffect(() => {
-        obtenerProductos();
-    }, [senalRecarga]);
+        const temporizador = setTimeout(() => setBusquedaDebounced(busqueda), 300);
+        return () => clearTimeout(temporizador);
+    }, [busqueda]);
 
-    const obtenerProductos = async () => {
+    useEffect(() => {
+        setPagina(0);
+    }, [busquedaDebounced]);
+
+    const obtenerProductos = useCallback(async () => {
+        const idActual = ++idBusquedaRef.current;
+        setCargando(true);
+        setError('');
         try {
-            const respuesta = await fetch('http://localhost:8080/api/productos/All');
+            const params = new URLSearchParams({ page: String(pagina), size: String(TAMANIO_PAGINA) });
+            if (busquedaDebounced) params.set('nombre', busquedaDebounced);
 
+            const respuesta = await fetch(`http://localhost:8080/api/productos?${params.toString()}`);
             if (!respuesta.ok) {
                 throw new Error(`Error del servidor: ${respuesta.status}`);
             }
-
             const data = await respuesta.json();
+            if (idActual !== idBusquedaRef.current) return;
 
-            console.log("Datos crudos de java: ", data);
-
-            const listaProductosFormateado = Array.isArray(data)
-                ? data.map(producto => ({
+            const listaProductosFormateado = Array.isArray(data.content)
+                ? data.content.map(producto => ({
                     id: producto.id,
                     nombre: producto.nombre,
                     descripcion: producto.descripcion,
@@ -38,29 +78,24 @@ function VistaProductos({ senalRecarga, abrirModalNuevoProducto }) {
                 : [];
 
             setProductos(listaProductosFormateado);
-            console.log("Se cargaron los productos con exito...", listaProductosFormateado);
-
+            setTotalPaginas(data.totalPages ?? 0);
+            setTotalElementos(data.totalElements ?? 0);
         } catch (e) {
             console.error("Hubo un problema con el fetch:", e);
-            setError('Error al conectar con el servidor.');
+            if (idActual === idBusquedaRef.current) setError('Error al conectar con el servidor.');
+        } finally {
+            if (idActual === idBusquedaRef.current) setCargando(false);
         }
-    };
+    }, [pagina, busquedaDebounced]);
 
-    const abrirModificarProducto = (producto) => {
+    useEffect(() => {
+        obtenerProductos();
+    }, [obtenerProductos, senalRecarga]);
+
+    const abrirModificarProducto = useCallback((producto) => {
         setProductoSeleccionado(producto);
         setMostrarModalModificar(true);
-    };
-
-    // Filtramos los productos en tiempo real en base al input
-    const productosFiltrados = productos.filter((producto) => {
-        if (!busqueda) return true;
-        return producto.nombre?.toLowerCase().includes(busqueda.toLowerCase());
-    }).sort((a, b) => {
-        const nombreA = a.nombre || "";
-        const nombreB = b.nombre || "";
-
-        return nombreA.localeCompare(nombreB);
-    });
+    }, []);
 
     return (
         <main style={{
@@ -134,36 +169,29 @@ function VistaProductos({ senalRecarga, abrirModalNuevoProducto }) {
                         </tr>
                     </thead>
                     <tbody>
-                        {productosFiltrados.length === 0 ? (
+                        {productos.length === 0 ? (
                             <tr>
                                 <td colSpan={3} style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                                    {productos.length === 0 ? "Cargando productos..." : "No se encontraron productos con esa búsqueda."}
+                                    {cargando ? "Cargando productos..." : "No se encontraron productos con esa búsqueda."}
                                 </td>
                             </tr>
                         ) : (
-                            productosFiltrados.map((producto) => (
-                                <tr key={producto.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                                    <td style={{ padding: '10px 15px', textTransform: 'capitalize', fontWeight: '500', color: 'var(--text-primary)' }}>
-                                        {producto.nombre}
-                                    </td>
-                                    <td style={{ padding: '10px 15px', textTransform: 'capitalize', fontWeight: '500', color: 'var(--text-secondary)' }}>
-                                        {producto.descripcion || '-'}
-                                    </td>
-                                    <td style={{ padding: '10px 15px', textTransform: 'capitalize', fontWeight: '500' }}>
-                                        <button
-                                            className="btn-global btn-primario"
-                                            style={{ padding: '4px 4px', fontSize: '0.9rem' }}
-                                            onClick={() => abrirModificarProducto(producto)}
-                                        >
-                                            Modificar
-                                        </button>
-                                    </td>
-                                </tr>
+                            productos.map((producto) => (
+                                <FilaProducto key={producto.id} producto={producto} onModificar={abrirModificarProducto} />
                             ))
                         )}
                     </tbody>
                 </table>
             </div>
+
+            <Paginador
+                pagina={pagina}
+                totalPaginas={totalPaginas}
+                totalElementos={totalElementos}
+                onCambiarPagina={setPagina}
+                cargando={cargando}
+            />
+
             <div>
                 <button
                     className="btn-global btn-primario-green"

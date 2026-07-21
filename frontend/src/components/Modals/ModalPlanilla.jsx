@@ -64,7 +64,7 @@ function ModalPlanilla({cerrarModal, onPlanillaCreada}) {
                 setError(`Faltó seleccionar un producto en la fila ${numeroFila}.`);
                 return;
             }
-            const cantidad = parseInt(fila.stock); //parseInt() sirve para covertir a numero
+            const cantidad = parseFloat(fila.stock); //parseFloat porque el stock admite fracciones (steps de 0.5)
             if (!fila.stock || isNaN(cantidad) || cantidad < 1) {
                 setError(`La cantidad debe ser al menos 1 en la fila ${numeroFila}.`);
                 return;
@@ -78,7 +78,7 @@ function ModalPlanilla({cerrarModal, onPlanillaCreada}) {
             const planillaDTO = {
                 stockProductos: stockDiario.map(fila => ({
                     id_producto: parseInt(fila.id_producto),
-                    stock: parseInt(fila.stock)
+                    stock: parseFloat(fila.stock)
                 }))
             };
             

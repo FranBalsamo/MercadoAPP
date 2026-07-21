@@ -15,11 +15,15 @@ import com.franbalsamo.mercadoapp.modules.planilla.model.PlanillaDTO;
 import com.franbalsamo.mercadoapp.modules.stockproducto.model.StockProductoDTO;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class PlanillaService {
@@ -44,10 +48,22 @@ public class PlanillaService {
             throw new ReglaNegocioException("Ya existe una planilla abierta. Cerrala antes de abrir una nueva.");
         }
 
+        if(planillaDTO.getStockProductos() == null || planillaDTO.getStockProductos().isEmpty()){
+            throw new ReglaNegocioException("La planilla debe tener al menos un producto con inventario inicial.");
+        }
+
         Planilla planillaNueva = new Planilla();
 
+        // Sin este control, el mismo producto enviado dos veces crea dos filas de stock para
+        // el mismo (producto, planilla): stockProductoService.findByProductoAndPlanilla deja de
+        // devolver un resultado unico y rompe TODAS las ventas de ese producto por el resto del dia.
+        Set<Long> idsProductosVistos = new HashSet<>();
         for(StockProductoDTO stockProductoDTO : planillaDTO.getStockProductos()) {
             Producto producto = productoService.findById(stockProductoDTO.getId_producto());
+
+            if(!idsProductosVistos.add(producto.getId())){
+                throw new ReglaNegocioException("El producto \"" + producto.getNombre() + "\" esta repetido en el inventario inicial.");
+            }
 
             StockProducto stockProducto = new StockProducto();
             stockProducto.setProducto(producto);
@@ -87,6 +103,14 @@ public class PlanillaService {
         return planillaRepository.findAll().stream()
                 .map(planillaMapper::toDTO)
                 .toList();
+    }
+
+    // VistaPlanillas hoy pide /All completo y filtra en el cliente (por estado o por rango de
+    // fechas); este endpoint hace el mismo filtro + paginado en el servidor para no traer el
+    // historico entero. 'estado' null trae todas (incluida la ABIERTA), igual que /All hoy.
+    public Page<PlanillaDTO> buscarPaginado(EstadoPlanilla estado, LocalDate desde, LocalDate hasta, Pageable pageable){
+        return planillaRepository.buscarPaginado(estado, desde, hasta, pageable)
+                .map(planillaMapper::toDTO);
     }
 
     public List<PlanillaDTO> findAllByRangoFechas(LocalDate desde, LocalDate hasta){

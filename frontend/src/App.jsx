@@ -42,6 +42,7 @@ function App() {
   const [mostrarModalPlanilla, setMostrarModalPlanilla] = useState(false);
   const [vistaActiva, setVistaActiva] = useState('inicio');
   const [vistaAnterior, setVistaAnterior] = useState('inicio');
+  const [pestaniaConfigInicial, setPestaniaConfigInicial] = useState('empresa');
   const [planillaActiva, setPlanillaActiva] = useState(null);
   const [planillaParaResumen, setPlanillaParaResumen] = useState(null);
   const [clienteParaDeudas, setClienteParaDeudas] = useState(null);
@@ -52,6 +53,11 @@ function App() {
   // hasta que no responda, no tiene sentido mostrar la app (fetches fallando en cascada).
   const [backendListo, setBackendListo] = useState(false);
   const [tardandoMucho, setTardandoMucho] = useState(false);
+
+  // Antes, si el backup automatico empezaba a fallar (ej. carpeta sin permisos), el unico
+  // aviso quedaba adentro de Configuracion > Backup: nadie se enteraba salvo que entrara a
+  // mirar esa pestania puntual. Ahora se revisa periodicamente y se avisa en toda la app.
+  const [alertaBackupFallo, setAlertaBackupFallo] = useState(false);
 
   useEffect(() => {
     let cancelado = false;
@@ -94,6 +100,30 @@ function App() {
     };
     buscarPlanillaAbierta();
   }, [backendListo]);
+
+  useEffect(() => {
+    if (!backendListo) return;
+    let cancelado = false;
+
+    const revisarBackupAutomatico = async () => {
+      try {
+        const respuesta = await fetch('http://localhost:8080/api/backup/config');
+        if (respuesta.ok) {
+          const config = await respuesta.json();
+          const fallo = config.activo && (config.ultimoResultado || '').startsWith('ERROR');
+          if (!cancelado) setAlertaBackupFallo(fallo);
+        }
+      } catch (error) {
+        // Sin conexion momentanea: no tiene sentido alarmar por esto puntualmente.
+      }
+    };
+
+    revisarBackupAutomatico();
+    const intervalo = setInterval(revisarBackupAutomatico, 5 * 60 * 1000);
+    return () => { cancelado = true; clearInterval(intervalo); };
+  }, [backendListo]);
+
+  const irAConfiguracionBackup = () => abrirVistaConfiguracion('backup');
 
   const avisarRecargaClientes = () => {
     setActualizarClientes(prev => prev + 1);
@@ -162,7 +192,8 @@ function App() {
     setVistaActiva('operaciones');
   }
 
-  const abrirVistaConfiguracion = () => {
+  const abrirVistaConfiguracion = (pestania = 'empresa') => {
+    setPestaniaConfigInicial(pestania);
     setVistaAnterior(vistaActiva);
     setVistaActiva('configuracion');
   }
@@ -236,7 +267,7 @@ function App() {
       return <VistaBuscarOperaciones />
     }
     else if (vistaActiva === 'configuracion') {
-      return <VistaConfiguracion />
+      return <VistaConfiguracion pestaniaInicial={pestaniaConfigInicial} />
     }
     return <VistaInicio
       abrirModalPlanilla={abrirModalPlanilla}
@@ -260,6 +291,21 @@ function App() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
       <TitleBar />
+      {alertaBackupFallo && (
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap',
+          backgroundColor: 'var(--danger-soft)', color: 'var(--danger-soft-text)',
+          borderBottom: '1px solid var(--danger)',
+          padding: '8px 15px', flexShrink: 0
+        }}>
+          <span style={{ fontWeight: 'bold' }}>
+            ⚠️ El backup automático no se pudo generar. Revisá la carpeta de destino.
+          </span>
+          <button className="btn-global btn-secundario" onClick={irAConfiguracionBackup}>
+            Ver Backup
+          </button>
+        </div>
+      )}
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
         <Sidebar
           vistaActiva={vistaActiva}

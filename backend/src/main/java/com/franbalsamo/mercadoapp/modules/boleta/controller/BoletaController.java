@@ -6,7 +6,13 @@ import com.franbalsamo.mercadoapp.modules.boleta.model.ResultadoCobroDTO;
 import com.franbalsamo.mercadoapp.modules.boleta.model.FormaPagoStatDTO;
 import com.franbalsamo.mercadoapp.modules.boleta.model.TicketPromedioDTO;
 import com.franbalsamo.mercadoapp.modules.boleta.FormaPago;
+import com.franbalsamo.mercadoapp.modules.boleta.EstadoPago;
+import com.franbalsamo.mercadoapp.modules.boleta.EstadoEntrega;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -44,6 +50,17 @@ public class BoletaController {
         return new ResponseEntity<>(boletaService.findByCliente(id), HttpStatus.OK);
     }
 
+    @GetMapping("/cliente/{id}/paginado")
+    public ResponseEntity<Page<BoletaDTO>> findAllByClientePaginado(
+            @PathVariable long id,
+            @RequestParam(required = false) EstadoPago estadoPago,
+            @RequestParam(required = false) EstadoEntrega estadoEntrega,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size){
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        return new ResponseEntity<>(boletaService.findByClientePaginado(id, estadoPago, estadoEntrega, pageable), HttpStatus.OK);
+    }
+
     @GetMapping("/cliente/{id_cliente}/deudas")
     public ResponseEntity<List<BoletaDTO>> findAllDeudasByCliente(@PathVariable long id_cliente){
         return new ResponseEntity<>(boletaService.findAllDeudasByCliente(id_cliente), HttpStatus.OK);
@@ -54,6 +71,18 @@ public class BoletaController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta){
         return new ResponseEntity<>(boletaService.findAllByRangoFechas(desde, hasta), HttpStatus.OK);
+    }
+
+    @GetMapping("/buscar/fecha/paginado")
+    public ResponseEntity<Page<BoletaDTO>> findAllByRangoFechasPaginado(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
+            @RequestParam(required = false) EstadoPago estadoPago,
+            @RequestParam(required = false) EstadoEntrega estadoEntrega,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size){
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        return new ResponseEntity<>(boletaService.findAllByRangoFechasPaginado(desde, hasta, estadoPago, estadoEntrega, pageable), HttpStatus.OK);
     }
 
     @PutMapping("/cobrar_deuda/{listaIds_boletas}/cliente/{id_cliente}")

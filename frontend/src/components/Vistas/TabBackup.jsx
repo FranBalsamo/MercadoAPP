@@ -90,9 +90,15 @@ function TabBackup() {
     };
 
     const handleGuardarConfig = async () => {
-        setGuardandoConfig(true);
         setErrorConfig('');
         setMensajeConfig('');
+
+        if (configAuto.activo && !import.meta.env.DEV && configAuto.rutaDestino === 'backups') {
+            setErrorConfig('Elegí una carpeta de destino antes de activar el backup automático.');
+            return;
+        }
+
+        setGuardandoConfig(true);
         try {
             const respuesta = await fetch('http://localhost:8080/api/backup/config', {
                 method: 'PUT',

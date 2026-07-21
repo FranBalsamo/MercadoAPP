@@ -27,6 +27,8 @@ import com.franbalsamo.mercadoapp.modules.planilla.service.PlanillaService;
 import com.franbalsamo.mercadoapp.modules.stockproducto.service.StockProductoService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -62,6 +64,21 @@ public class BoletaService {
     @Autowired
     public CobroService cobroService;
 
+    // Sin este chequeo, una cantidad negativa hace que 'stockDisponible < cantidad' de falso
+    // (esquivando el control de stock) y ademas genera un subtotal/total negativo que corrompe
+    // los totales de la boleta y de la planilla.
+    private void validarVenta(VentaDTO vDto, String nombreProducto){
+        if(vDto.getCantidad() <= 0){
+            throw new ReglaNegocioException("La cantidad de \"" + nombreProducto + "\" debe ser mayor a 0.");
+        }
+        if(vDto.getPrecio_unitario() < 0){
+            throw new ReglaNegocioException("El precio unitario de \"" + nombreProducto + "\" no puede ser negativo.");
+        }
+        if(vDto.getPrecio_vacio() < 0){
+            throw new ReglaNegocioException("El precio del vacio de \"" + nombreProducto + "\" no puede ser negativo.");
+        }
+    }
+
     private void cargarVentas(BoletaDTO boletaDTO, Boleta nuevaBoleta){
         float totalCalculado = 0;
         Planilla planilla = nuevaBoleta.getPlanilla();
@@ -69,6 +86,7 @@ public class BoletaService {
 
         for (VentaDTO vDto : boletaDTO.getVentas()) {
             Producto producto = productoService.findById(vDto.getId_producto());
+            validarVenta(vDto, producto.getNombre());
             StockProducto stockProducto = stockProductoService.findByProductoAndPlanilla(producto, planilla);
             float stockDisponible = stockProducto.getStock() - stockProducto.getStock_vendido();
 
@@ -85,7 +103,7 @@ public class BoletaService {
             nuevaVenta.setPrecio_vacio(vDto.getPrecio_vacio());
             nuevaVenta.setCantidad_entregada(calcularCantidadEntregada(estadoSolicitado, vDto, producto));
 
-            float subtotal = (vDto.getCantidad() * vDto.getPrecio_unitario()) + (((int)vDto.getCantidad()) * vDto.getPrecio_vacio());
+            float subtotal = (vDto.getCantidad() * vDto.getPrecio_unitario()) + (vDto.getCantidad() * vDto.getPrecio_vacio());
             nuevaVenta.setSubtotal(subtotal);
 
             nuevaBoleta.addVenta(nuevaVenta);
@@ -135,6 +153,7 @@ public class BoletaService {
 
         for(VentaDTO vDto : boletaDTO.getVentas()){
             Producto producto = productoService.findById(vDto.getId_producto());
+            validarVenta(vDto, producto.getNombre());
             StockProducto stockProducto = stockProductoService.findByProductoAndPlanilla(producto, planilla);
 
             float stockDisponible = stockProducto.getStock() - stockProducto.getStock_vendido();
@@ -158,7 +177,7 @@ public class BoletaService {
                 ventaEncontrada.setPrecio_vacio(vDto.getPrecio_vacio());
                 ventaEncontrada.setCantidad_entregada(calcularCantidadEntregada(estadoSolicitado, vDto, producto));
 
-                float subtotal = (vDto.getCantidad() * vDto.getPrecio_unitario()) + (((int)vDto.getCantidad()) * vDto.getPrecio_vacio());
+                float subtotal = (vDto.getCantidad() * vDto.getPrecio_unitario()) + (vDto.getCantidad() * vDto.getPrecio_vacio());
                 ventaEncontrada.setSubtotal(subtotal);
 
                 ventasActuales.remove(ventaEncontrada);
@@ -172,7 +191,7 @@ public class BoletaService {
                 nuevaVenta.setPrecio_unitario(vDto.getPrecio_unitario());
                 nuevaVenta.setPrecio_vacio(vDto.getPrecio_vacio());
                 nuevaVenta.setCantidad_entregada(calcularCantidadEntregada(estadoSolicitado, vDto, producto));
-                float subtotal = (vDto.getCantidad() * vDto.getPrecio_unitario()) + (((int)vDto.getCantidad()) * vDto.getPrecio_vacio());
+                float subtotal = (vDto.getCantidad() * vDto.getPrecio_unitario()) + (vDto.getCantidad() * vDto.getPrecio_vacio());
                 nuevaVenta.setSubtotal(subtotal);
 
                 boleta.addVenta(nuevaVenta);
@@ -317,11 +336,20 @@ public class BoletaService {
                 .toList();
     }
 
+    public Page<BoletaDTO> findByClientePaginado(long id_cliente, EstadoPago estadoPago, EstadoEntrega estadoEntrega, Pageable pageable){
+        Cliente cliente = clienteService.findById(id_cliente);
+        return boletaRepository.buscarPorClientePaginado(cliente, estadoPago, estadoEntrega, pageable).map(boletaMapper::toDTO);
+    }
+
     public List<BoletaDTO> findAllByRangoFechas(LocalDate desde, LocalDate hasta){
         List<Boleta> listaBoleta = boletaRepository.findAllByPlanilla_FechaBetween(desde, hasta);
         return listaBoleta.stream()
                 .map(boletaMapper::toDTO)
                 .toList();
+    }
+
+    public Page<BoletaDTO> findAllByRangoFechasPaginado(LocalDate desde, LocalDate hasta, EstadoPago estadoPago, EstadoEntrega estadoEntrega, Pageable pageable){
+        return boletaRepository.buscarPorRangoFechasPaginado(desde, hasta, estadoPago, estadoEntrega, pageable).map(boletaMapper::toDTO);
     }
 
     public List<BoletaDTO> findAllDeudasByCliente(long id_cliente){

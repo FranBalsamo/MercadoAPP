@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { HiOutlineMagnifyingGlass, HiOutlineArrowRight } from 'react-icons/hi2';
 import '../Estilos/Modal.css';
 import '../Estilos/Botones.css';
@@ -13,7 +13,12 @@ function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
     const [error, setError] = useState('');
     const [buscando, setBuscando] = useState(false);
 
+    // Identifica cada busqueda para poder ignorar una respuesta vieja que llegue despues de
+    // una mas nueva (ej. tipeando rapido, si la respuesta de "J" tarda mas que la de "Juan").
+    const idBusquedaRef = useRef(0);
+
     const cargarClientes = async (filtro = '') => {
+        const idDeEstaBusqueda = ++idBusquedaRef.current;
         setBuscando(true);
         setError('');
 
@@ -24,6 +29,8 @@ function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
                 : 'http://localhost:8080/api/clientes/All';
 
             const respuesta = await fetch(url);
+            if (idDeEstaBusqueda !== idBusquedaRef.current) return; // ya hay una busqueda mas nueva en curso
+
             if (!respuesta.ok) {
                 setClientes([]);
                 setError('No se pudieron cargar los clientes.');
@@ -31,20 +38,25 @@ function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
             }
 
             const datos = await respuesta.json();
+            if (idDeEstaBusqueda !== idBusquedaRef.current) return;
             setClientes(Array.isArray(datos) ? datos : []);
         } catch (err) {
+            if (idDeEstaBusqueda !== idBusquedaRef.current) return;
             console.error(err);
             setError('Error al conectar con la API de clientes.');
             setClientes([]);
         } finally {
-            setBuscando(false);
+            if (idDeEstaBusqueda === idBusquedaRef.current) setBuscando(false);
         }
     };
 
     useEffect(() => {
-        if (metodoBusqueda === 'nombre') {
+        if (metodoBusqueda !== 'nombre') return;
+        // Espera una pausa al tipear antes de buscar, en vez de disparar un fetch por cada tecla.
+        const idTimeout = setTimeout(() => {
             cargarClientes(filtroNombre);
-        }
+        }, 300);
+        return () => clearTimeout(idTimeout);
     }, [metodoBusqueda, filtroNombre]);
 
     const handleBuscarDocumento = async () => {

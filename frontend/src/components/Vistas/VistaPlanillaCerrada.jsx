@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { save } from '@tauri-apps/plugin-dialog';
@@ -29,6 +29,84 @@ const formaPagoLegible = (boleta) => {
     if (boleta.estadoPago === 'NO_PAGADO') return '-';
     return NOMBRES_FORMA_PAGO[boleta.formaPago] || '-';
 };
+
+const formatearMoneda = (val) => (val ?? 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
+
+// Fila memoizada (mismo patron que FilaBoleta en VistaBuscarBoletas): evita re-renderizar
+// todas las filas de la planilla cuando solo cambia cual fila esta bajo el cursor.
+const FilaBoletaCerrada = memo(function FilaBoletaCerrada({ boleta, idx, resaltada, onHoverStart, onHoverEnd, onVer, onModificar }) {
+    return (
+        <tr
+            style={{ borderBottom: '1px solid var(--border)', backgroundColor: idx % 2 === 0 ? 'var(--surface)' : 'var(--surface-2)' }}
+            onMouseEnter={() => onHoverStart(boleta.id)}
+            onMouseLeave={onHoverEnd}
+        >
+            <td style={{ padding: '12px', fontWeight: 'bold', textTransform: 'capitalize', verticalAlign: 'top', color: 'var(--text-primary)' }}>
+                {boleta._nombreCliente}
+            </td>
+
+            {/* Estado Pago */}
+            <td style={{ padding: '12px', verticalAlign: 'top' }}>
+                <span style={{
+                    padding: '4px 8px', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontWeight: 'bold',
+                    backgroundColor: boleta.estadoPago === 'PAGADO' ? 'var(--success-soft)' : 'var(--danger-soft)',
+                    color: boleta.estadoPago === 'PAGADO' ? 'var(--success-soft-text)' : 'var(--danger-soft-text)'
+                }}>
+                    {boleta.estadoPago}
+                </span>
+            </td>
+
+            {/* Estado Entrega */}
+            <td style={{ padding: '12px', verticalAlign: 'top' }}>
+                <span style={{
+                    padding: '4px 8px', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontWeight: 'bold',
+                    backgroundColor: boleta.estadoEntrega === 'ENTREGADO' ? 'var(--success-soft)' : boleta.estadoEntrega === 'PARCIAL' ? 'var(--warning-soft)' : 'var(--danger-soft)',
+                    color: boleta.estadoEntrega === 'ENTREGADO' ? 'var(--success-soft-text)' : boleta.estadoEntrega === 'PARCIAL' ? 'var(--warning-soft-text)' : 'var(--danger-soft-text)'
+                }}>
+                    {boleta.estadoEntrega}
+                </span>
+            </td>
+
+            {/* Forma de Pago */}
+            <td style={{ padding: '12px', verticalAlign: 'top', fontSize: '0.9rem', color: 'var(--text-primary)' }}>
+                {formaPagoLegible(boleta)}
+            </td>
+
+            {/* Lista de Productos dentro de la boleta */}
+            <td style={{ padding: '12px', verticalAlign: 'top' }}>
+                <ul style={{ margin: 0, paddingLeft: '15px', listStyleType: 'square', color: 'var(--text-secondary)' }}>
+                    {boleta._ventasConNombre.map((itemProd, i) => (
+                        <li key={i} style={{ marginBottom: '3px', textTransform: 'capitalize' }}>
+                            <strong>{itemProd.cantidad}x</strong> {itemProd._nombreProducto}
+                            <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}> ({formatearMoneda(itemProd.precio_unitario)} c/u)</span>
+                            <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                                {' '}- Vacío: {itemProd.precio_vacio > 0 ? formatearMoneda(itemProd.precio_vacio) : 'Sin Vacio'}
+                            </span>
+                        </li>
+                    ))}
+                </ul>
+            </td>
+
+            {/* Total */}
+            <td style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold', fontSize: '1.05rem', color: 'var(--text-primary)', verticalAlign: 'top' }}>
+                {formatearMoneda(boleta.total)}
+            </td>
+
+            {/* Acciones */}
+            <td style={{ padding: '12px', textAlign: 'center', verticalAlign: 'top' }}>
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <MenuAccionesInline
+                        mostrarPorHover={resaltada}
+                        acciones={[
+                            { label: 'Ver', onClick: () => onVer(boleta) },
+                            { label: 'Modificar', onClick: () => onModificar(boleta), variante: 'primario' },
+                        ]}
+                    />
+                </div>
+            </td>
+        </tr>
+    );
+});
 
 function VistaPlanillaCerrada({ planilla, volver }) {
     const [catalogoProductos, setCatalogoProductos] = useState([]);
@@ -92,22 +170,64 @@ function VistaPlanillaCerrada({ planilla, volver }) {
         cargarEmpresa();
     }, []);
 
+    // Mapas en vez de un .find() (O(n)) por boleta/producto en cada render: busqueda O(1) por
+    // id. Van antes del 'if (!planilla) return' de mas abajo: los Hooks no pueden quedar
+    // detras de un return condicional (se rompe el orden de Hooks entre renders).
+    const mapaClientes = useMemo(() => new Map(clientes.map((c) => [String(c.id), c])), [clientes]);
+    const mapaProductos = useMemo(() => new Map(catalogoProductos.map((p) => [String(p.id), p])), [catalogoProductos]);
+
+    const nombreCliente = useCallback((id) => mapaClientes.get(String(id))?.nombre || `Cliente #${id}`, [mapaClientes]);
+    const nombreProducto = useCallback((id) => mapaProductos.get(String(id))?.nombre || `Prod #${id}`, [mapaProductos]);
+
+    // Se recalcula solo cuando cambian los datos/filtros reales (antes se filtraba, ordenaba
+    // y resolvian nombres de cliente/producto en CADA render, incluidos los que disparaba el
+    // hover de una fila al scrollear con el mouse encima).
+    const boletasProcesadas = useMemo(() => {
+        return boletas
+            .filter((boleta) => {
+                const coincideCliente = !busquedaCliente || nombreCliente(boleta.id_cliente).toLowerCase().includes(busquedaCliente.toLowerCase());
+                const coincidePago = !filtroPago || boleta.estadoPago === filtroPago;
+                const coincideEntrega = !filtroEntrega || boleta.estadoEntrega === filtroEntrega;
+                return coincideCliente && coincidePago && coincideEntrega;
+            })
+            .map((boleta) => ({
+                ...boleta,
+                _nombreCliente: nombreCliente(boleta.id_cliente),
+                _ventasConNombre: (boleta.ventas || []).map(v => ({ ...v, _nombreProducto: nombreProducto(v.id_producto) })),
+            }))
+            .sort((a, b) => {
+                if (!configOrden.columna) return 0;
+
+                if (configOrden.columna === 'cliente') {
+                    return configOrden.direccion === 'asc'
+                        ? a._nombreCliente.toLowerCase().localeCompare(b._nombreCliente.toLowerCase())
+                        : b._nombreCliente.toLowerCase().localeCompare(a._nombreCliente.toLowerCase());
+                }
+
+                if (configOrden.columna === 'pago') {
+                    const pesoA = a.estadoPago === 'PAGADO' ? 1 : 0;
+                    const pesoB = b.estadoPago === 'PAGADO' ? 1 : 0;
+                    return configOrden.direccion === 'asc' ? pesoB - pesoA : pesoA - pesoB;
+                }
+
+                if (configOrden.columna === 'entrega') {
+                    const pesoA = a.estadoEntrega === 'ENTREGADO' ? 1 : 0;
+                    const pesoB = b.estadoEntrega === 'ENTREGADO' ? 1 : 0;
+                    return configOrden.direccion === 'asc' ? pesoB - pesoA : pesoA - pesoB;
+                }
+
+                return 0;
+            });
+    }, [boletas, busquedaCliente, filtroPago, filtroEntrega, configOrden, nombreCliente, nombreProducto]);
+
+    const limpiarHover = useCallback(() => setFilaSobreCursor(null), []);
+
+    const abrirEdicionBoleta = useCallback((boleta) => {
+        setBoletaAEditar(boleta);
+        setMostrarModalEditar(true);
+    }, []);
+
     if (!planilla) return <p>No se seleccionó ninguna planilla...</p>;
-
-    // Funciones traductoras
-    const nombreCliente = (id) => {
-        const c = clientes.find(cli => String(cli.id) === String(id));
-        return c ? c.nombre : `Cliente #${id}`;
-    };
-
-    const nombreProducto = (id) => {
-        const p = catalogoProductos.find(prod => String(prod.id) === String(id));
-        return p ? p.nombre : `Prod #${id}`;
-    };
-
-    const formatearMoneda = (val) => {
-        return (val ?? 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
-    };
 
     const refrescarTotalesPlanilla = async () => {
         try {
@@ -123,11 +243,6 @@ function VistaPlanillaCerrada({ planilla, volver }) {
         } catch (error) {
             console.error("Error al refrescar los totales de la planilla:", error);
         }
-    };
-
-    const abrirEdicionBoleta = (boleta) => {
-        setBoletaAEditar(boleta);
-        setMostrarModalEditar(true);
     };
 
     const handleBoletaEditada = async (boletaActualizada) => {
@@ -330,39 +445,6 @@ function VistaPlanillaCerrada({ planilla, volver }) {
         }
     };
 
-    const boletasProcesadas = boletas
-        .filter((boleta) => {
-            const coincideCliente = !busquedaCliente || nombreCliente(boleta.id_cliente).toLowerCase().includes(busquedaCliente.toLowerCase());
-            const coincidePago = !filtroPago || boleta.estadoPago === filtroPago;
-            const coincideEntrega = !filtroEntrega || boleta.estadoEntrega === filtroEntrega;
-            return coincideCliente && coincidePago && coincideEntrega;
-        })
-        .sort((a, b) => {
-            if (!configOrden.columna) return 0;
-
-            if (configOrden.columna === 'cliente') {
-                const nombreA = nombreCliente(a.id_cliente).toLowerCase();
-                const nombreB = nombreCliente(b.id_cliente).toLowerCase();
-                return configOrden.direccion === 'asc'
-                    ? nombreA.localeCompare(nombreB)
-                    : nombreB.localeCompare(nombreA);
-            }
-
-            if (configOrden.columna === 'pago') {
-                const pesoA = a.estadoPago === 'PAGADO' ? 1 : 0;
-                const pesoB = b.estadoPago === 'PAGADO' ? 1 : 0;
-                return configOrden.direccion === 'asc' ? pesoB - pesoA : pesoA - pesoB;
-            }
-
-            if (configOrden.columna === 'entrega') {
-                const pesoA = a.estadoEntrega === 'ENTREGADO' ? 1 : 0;
-                const pesoB = b.estadoEntrega === 'ENTREGADO' ? 1 : 0;
-                return configOrden.direccion === 'asc' ? pesoB - pesoA : pesoA - pesoB;
-            }
-
-            return 0;
-        });
-
     return (
         <main style={{ padding: '20px', backgroundColor: 'var(--bg)', height: '100%', display: 'flex', flexDirection: 'column', gap: '20px', overflow: 'hidden' }}>
 
@@ -501,76 +583,16 @@ function VistaPlanillaCerrada({ planilla, volver }) {
                                     </tr>
                                 ) : (
                                     boletasProcesadas.map((boleta, idx) => (
-                                        <tr
+                                        <FilaBoletaCerrada
                                             key={boleta.id}
-                                            style={{ borderBottom: '1px solid var(--border)', backgroundColor: idx % 2 === 0 ? 'var(--surface)' : 'var(--surface-2)' }}
-                                            onMouseEnter={() => setFilaSobreCursor(boleta.id)}
-                                            onMouseLeave={() => setFilaSobreCursor(null)}
-                                        >
-                                            <td style={{ padding: '12px', fontWeight: 'bold', textTransform: 'capitalize', verticalAlign: 'top', color: 'var(--text-primary)' }}>
-                                                {nombreCliente(boleta.id_cliente)}
-                                            </td>
-
-                                            {/* Estado Pago */}
-                                            <td style={{ padding: '12px', verticalAlign: 'top' }}>
-                                                <span style={{
-                                                    padding: '4px 8px', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontWeight: 'bold',
-                                                    backgroundColor: boleta.estadoPago === 'PAGADO' ? 'var(--success-soft)' : 'var(--danger-soft)',
-                                                    color: boleta.estadoPago === 'PAGADO' ? 'var(--success-soft-text)' : 'var(--danger-soft-text)'
-                                                }}>
-                                                    {boleta.estadoPago}
-                                                </span>
-                                            </td>
-
-                                            {/* Estado Entrega */}
-                                            <td style={{ padding: '12px', verticalAlign: 'top' }}>
-                                                <span style={{
-                                                    padding: '4px 8px', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontWeight: 'bold',
-                                                    backgroundColor: boleta.estadoEntrega === 'ENTREGADO' ? 'var(--success-soft)' : boleta.estadoEntrega === 'PARCIAL' ? 'var(--warning-soft)' : 'var(--danger-soft)',
-                                                    color: boleta.estadoEntrega === 'ENTREGADO' ? 'var(--success-soft-text)' : boleta.estadoEntrega === 'PARCIAL' ? 'var(--warning-soft-text)' : 'var(--danger-soft-text)'
-                                                }}>
-                                                    {boleta.estadoEntrega}
-                                                </span>
-                                            </td>
-
-                                            {/* Forma de Pago */}
-                                            <td style={{ padding: '12px', verticalAlign: 'top', fontSize: '0.9rem', color: 'var(--text-primary)' }}>
-                                                {formaPagoLegible(boleta)}
-                                            </td>
-
-                                            {/* Lista de Productos dentro de la boleta */}
-                                            <td style={{ padding: '12px', verticalAlign: 'top' }}>
-                                                <ul style={{ margin: 0, paddingLeft: '15px', listStyleType: 'square', color: 'var(--text-secondary)' }}>
-                                                    {(boleta.ventas || []).map((itemProd, i) => (
-                                                        <li key={i} style={{ marginBottom: '3px', textTransform: 'capitalize' }}>
-                                                            <strong>{itemProd.cantidad}x</strong> {nombreProducto(itemProd.id_producto)}
-                                                            <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}> ({formatearMoneda(itemProd.precio_unitario)} c/u)</span>
-                                                            <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                                                                {' '}- Vacío: {itemProd.precio_vacio > 0 ? formatearMoneda(itemProd.precio_vacio) : 'Sin Vacio'}
-                                                            </span>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </td>
-
-                                            {/* Total */}
-                                            <td style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold', fontSize: '1.05rem', color: 'var(--text-primary)', verticalAlign: 'top' }}>
-                                                {formatearMoneda(boleta.total)}
-                                            </td>
-
-                                            {/* Acciones */}
-                                            <td style={{ padding: '12px', textAlign: 'center', verticalAlign: 'top' }}>
-                                                <div style={{ display: 'flex', justifyContent: 'center' }}>
-                                                    <MenuAccionesInline
-                                                        mostrarPorHover={filaSobreCursor === boleta.id}
-                                                        acciones={[
-                                                            { label: 'Ver', onClick: () => setBoletaAVer(boleta) },
-                                                            { label: 'Modificar', onClick: () => abrirEdicionBoleta(boleta), variante: 'primario' },
-                                                        ]}
-                                                    />
-                                                </div>
-                                            </td>
-                                        </tr>
+                                            boleta={boleta}
+                                            idx={idx}
+                                            resaltada={filaSobreCursor === boleta.id}
+                                            onHoverStart={setFilaSobreCursor}
+                                            onHoverEnd={limpiarHover}
+                                            onVer={setBoletaAVer}
+                                            onModificar={abrirEdicionBoleta}
+                                        />
                                     ))
                                 )}
                             </tbody>

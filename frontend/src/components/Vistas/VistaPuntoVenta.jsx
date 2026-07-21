@@ -31,24 +31,36 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
     const [avisoEliminar, setAvisoEliminar] = useState(null);
     const [mostrarModalAgregarProducto, setMostrarModalAgregarProducto] = useState(false);
     const [mostrarAlertaCerrarCaja, setMostrarAlertaCerrarCaja] = useState(false);
+    // Antes, si fallaba alguna de las 4 sincronizaciones, solo quedaba un console.error y el
+    // cajero se quedaba con catalogo/clientes/boletas/stock vacios sin ninguna explicacion en
+    // pantalla (bloqueando la venta sin diagnostico). Ahora se juntan los errores para mostrarlos.
+    const [erroresSincronizacion, setErroresSincronizacion] = useState([]);
+
+    const agregarErrorSincronizacion = (mensaje) => {
+        setErroresSincronizacion(prev => prev.includes(mensaje) ? prev : [...prev, mensaje]);
+    };
+
+    const cargaInicial = async () => {
+        setCargando(true);
+        setErroresSincronizacion([]);
+        await Promise.all([
+            sincronizarCatalogo(),
+            sincronizarClientes(),
+            sincronizarBoletasPlanilla(),
+            sincronizarStock()
+        ]);
+        setCargando(false);
+    };
 
     useEffect(() => {
-        const cargaInicial = async () => {
-            await Promise.all([
-                sincronizarCatalogo(),
-                sincronizarClientes(),
-                sincronizarBoletasPlanilla(),
-                sincronizarStock()
-            ]);
-            setCargando(false);
-        };
         /*
-        Las 4 llamadas (sincronizarCatalogo, sincronizarClientes, sincronizarBoletasPlanilla, sincronizarStock) 
-        son independientes entre sí — ninguna necesita el resultado de otra — así que Promise.all 
-        las dispara todas a la vez en vez de esperar una tras otra, y cargando pasa a false recién cuando terminan todas. 
+        Las 4 llamadas (sincronizarCatalogo, sincronizarClientes, sincronizarBoletasPlanilla, sincronizarStock)
+        son independientes entre sí — ninguna necesita el resultado de otra — así que Promise.all
+        las dispara todas a la vez en vez de esperar una tras otra, y cargando pasa a false recién cuando terminan todas.
         Resultado: la pantalla tarda lo que tarda la más lenta de las cuatro, no la suma de las cuatro.
         */
         cargaInicial();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const sincronizarCatalogo = async () => {
@@ -58,9 +70,12 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                 const datos = await respuesta.json();
                 console.log('🔄 Catálogo sincronizado: ', datos);
                 setCatalogoProductos(datos);
+            } else {
+                agregarErrorSincronizacion('No se pudo cargar el catálogo de productos.');
             }
         } catch (err) {
             console.error("Error al cargar/sincronizar el catálogo:", err);
+            agregarErrorSincronizacion('No se pudo cargar el catálogo de productos (sin conexión con el servidor).');
         }
     };
 
@@ -71,9 +86,12 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                 const datos = await respuesta.json();
                 setClientesDia(datos);
                 console.log('🔄 Clientes sincronizados: ', datos);
+            } else {
+                agregarErrorSincronizacion('No se pudo cargar la lista de clientes.');
             }
         } catch (err) {
             console.error("Error al cargar/sincronizar los clientes:", err);
+            agregarErrorSincronizacion('No se pudo cargar la lista de clientes (sin conexión con el servidor).');
         }
     };
 
@@ -85,9 +103,12 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                 const boletasCargadas = await respuestaBoletas.json();
                 setBoletasDia(boletasCargadas);
                 console.log("🔄 Boletas sincronizadas con éxito desde el servidor.", boletasCargadas);
+            } else {
+                agregarErrorSincronizacion('No se pudieron cargar las boletas de la planilla.');
             }
         }catch(err){
             console.error("Error al cargar las boletas de la planilla:", err);
+            agregarErrorSincronizacion('No se pudieron cargar las boletas de la planilla (sin conexión con el servidor).');
         }
     }
 
@@ -109,9 +130,12 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                 const stockFresco = await respuestaStock.json();
                 setStockProductos(stockFresco);
                 console.log("🔄 Stock sincronizado con éxito desde el servidor.");
+            } else {
+                agregarErrorSincronizacion('No se pudo cargar el inventario de la planilla.');
             }
         } catch (error) {
             console.error("❌ No se pudo refrescar el stock en la vista principal:", error);
+            agregarErrorSincronizacion('No se pudo cargar el inventario de la planilla (sin conexión con el servidor).');
         }
     };
 
@@ -229,6 +253,22 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                     Cerrar Caja
                 </button>
             </div>
+
+            {erroresSincronizacion.length > 0 && (
+                <div style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap',
+                    backgroundColor: 'var(--danger-soft)', color: 'var(--danger-soft-text)',
+                    border: '1px solid var(--danger)', borderRadius: 'var(--radius-md)',
+                    padding: '10px 15px', marginBottom: '15px', flexShrink: 0
+                }}>
+                    <span style={{ fontWeight: 'bold' }}>
+                        ⚠️ {erroresSincronizacion.join(' ')}
+                    </span>
+                    <button className="btn-global btn-secundario" onClick={cargaInicial}>
+                        Reintentar
+                    </button>
+                </div>
+            )}
 
             {/* CONTENEDOR DE COLUMNAS */}
             <div style={{ display: 'flex', gap: '10px', flexGrow: 1, minHeight: 0 }}>

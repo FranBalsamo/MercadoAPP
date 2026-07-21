@@ -6,15 +6,32 @@ import SelectPersonalizado from '../UI/SelectPersonalizado';
 import SelectorEstadoEntrega from '../UI/SelectorEstadoEntrega';
 import SelectorEstadoPago from '../UI/SelectorEstadoPago';
 import InputNumero from '../UI/InputNumero';
+import { useCarritoBoleta } from '../../hooks/useCarritoBoleta';
 import { HiOutlinePencilSquare, HiOutlineUserCircle, HiOutlineArrowPath } from 'react-icons/hi2';
 
 function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogoProductos, onBoletaEditada }) {
-    // --- ESTADOS ---
-    const [carrito, setCarrito] = useState([]);
-    const [idProducto, setIdProducto] = useState('');
-    const [cantidad, setCantidad] = useState(1);
-    const [precioUnitario, setPrecioUnitario] = useState('');
-    const [precioVacio, setPrecioVacio] = useState('');
+    const {
+        carrito, setCarrito,
+        idProducto, setIdProducto,
+        cantidad, setCantidad,
+        precioUnitario, setPrecioUnitario,
+        precioVacio, setPrecioVacio,
+        errorVenta, setErrorVenta,
+        stockProductos,
+        cargandoStock,
+        agregarAlCarrito,
+        eliminarDelCarrito,
+        actualizarCantidadEntregada,
+        confirmarCantidadEntregada,
+        totalBoleta,
+        stockDisponibleActual,
+        excedeStock,
+    } = useCarritoBoleta({
+        planillaId: planilla?.id,
+        boletaId: boleta?.id,
+        catalogoProductos,
+        ventasOriginales: boleta?.ventas,
+    });
 
     // Inicializamos con los datos de la boleta
     const [pagado, setPagado] = useState(boleta?.estadoPago || 'NO_PAGADO');
@@ -22,16 +39,16 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
     const [entregado, setEntregado] = useState(boleta?.estadoEntrega || 'NO_ENTREGADO');
 
     const [guardando, setGuardando] = useState(false);
-    const [errorVenta, setErrorVenta] = useState('');
-    const [stockProductos, setStockProductos] = useState([]);
-    const [cargandoStock, setCargandoStock] = useState(true);
 
-    // --- EFECTO: CARGAR DATOS PREVIOS Y STOCK ---
+    // --- EFECTO: CARGAR EL CARRITO INICIAL DE LA BOLETA ---
+    // Depende solo de boleta?.id (no del objeto/array completo) a proposito: si el componente
+    // padre re-renderiza mientras este modal esta abierto (ej. un refresco de stock en segundo
+    // plano) y le pasa nuevas referencias de 'boleta'/'catalogoProductos' con el mismo
+    // contenido, este efecto NO debe volver a correr y pisar las ediciones en curso del carrito.
     useEffect(() => {
-        // 1. Cargar los artículos que ya tenía la boleta en el carrito
-        if (boleta && boleta.ventas && catalogoProductos) {
+        if (boleta && boleta.ventas) {
             const carritoInicial = boleta.ventas.map(venta => {
-                const prod = catalogoProductos.find(p => String(p.id) === String(venta.id_producto));
+                const prod = catalogoProductos?.find(p => String(p.id) === String(venta.id_producto));
 
                 const precioU = Number(venta.precio_unitario || 0);
                 const precioV = Number(venta.precio_vacio || 0);
@@ -52,107 +69,8 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
             });
             setCarrito(carritoInicial);
         }
-
-        // 2. Traer el stock actual y aplicar el "Reintegro Virtual"
-        const obtenerStockActualizado = async () => {
-            if (!planilla || !planilla.id) return;
-            setCargandoStock(true);
-            try {
-                const respuesta = await fetch(`http://localhost:8080/api/planilla/stocks/${planilla.id}`);
-                if (respuesta.ok) {
-                    const listaStock = await respuesta.json();
-
-                    const stockProductosFormateados = Array.isArray(listaStock)
-                        ? listaStock.map(item => {
-
-                            // Calculamos cuánto de este producto ya estaba reservado en esta boleta original
-                            const cantidadEnEstaBoleta = boleta?.ventas
-                                ? boleta.ventas
-                                    .filter(v => String(v.id_producto) === String(item.id_producto))
-                                    .reduce((suma, v) => suma + Number(v.cantidad || 0), 0)
-                                : 0;
-
-                            return {
-                                id: item.id,
-                                id_producto: item.id_producto,
-                                id_planilla: item.id_planilla,
-                                stock: item.stock,
-                                // Al stock vendido de la BD, le restamos lo de esta boleta para "devolverlo" temporalmente a la disponibilidad.
-                                stock_vendido: item.stock_vendido - cantidadEnEstaBoleta
-                            };
-                        })
-                        : [];
-                    setStockProductos(stockProductosFormateados);
-                } else {
-                    setErrorVenta('No se pudo sincronizar el inventario con el servidor.');
-                }
-            } catch (error) {
-                console.error(error);
-                setErrorVenta('Error de conexión al verificar el inventario.');
-            } finally {
-                setCargandoStock(false);
-            }
-        };
-        obtenerStockActualizado();
-    }, [boleta, planilla, catalogoProductos]);
-
-    const agregarAlCarrito = () => {
-        setErrorVenta('');
-
-        if (!idProducto || cantidad < 1) {
-            setErrorVenta('Selecciona un producto y una cantidad mayor a 0.');
-            return;
-        }
-
-        const precioReal = parseFloat(precioUnitario) || 0;
-        const vacioReal = parseFloat(precioVacio) || 0;
-        const cantidadReal = parseFloat(cantidad);
-
-        if (precioReal <= 0) {
-            setErrorVenta('El precio del producto debe ser mayor a 0.');
-            return;
-        }
-
-        const productoReal = catalogoProductos.find(p => String(p.id) === String(idProducto));
-        const stockProductoEnPlanilla = stockProductos.find(p => String(p.id_producto) === String(idProducto));
-
-        if (!stockProductoEnPlanilla) {
-            setErrorVenta('Este producto no fue cargado en la planilla de hoy.');
-            return;
-        }
-
-        const stockEnBD = stockProductoEnPlanilla.stock - stockProductoEnPlanilla.stock_vendido;
-
-        const stockYaEnCarrito = carrito
-            .filter(item => String(item.id_producto) === String(idProducto))
-            .reduce((suma, item) => suma + item.cantidad, 0);
-
-        const stockFinalDisponible = stockEnBD - stockYaEnCarrito;
-
-        if (cantidadReal > stockFinalDisponible) {
-            setErrorVenta(`Inventario insuficiente. Solo quedan ${stockFinalDisponible} unidades extras.`);
-            return;
-        }
-
-        const subtotalFila = (cantidadReal * precioReal) + (cantidadReal * vacioReal);
-
-        const nuevaFila = {
-            id_fila: crypto.randomUUID(),
-            id_producto: productoReal.id,
-            nombre: productoReal.nombre,
-            precio_unitario: precioReal,
-            precio_vacio: vacioReal,
-            cantidad: cantidadReal,
-            subtotal: subtotalFila,
-            cantidad_entregada: 0
-        };
-
-        setCarrito([...carrito, nuevaFila]);
-        setIdProducto('');
-        setCantidad(1);
-        setPrecioUnitario('');
-        setPrecioVacio('');
-    };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [boleta?.id]);
 
     // --- FUNCIÓN PARA EDITAR FILAS DIRECTAMENTE EN LA TABLA ---
     const actualizarFilaCarrito = (id_fila_modificar, campo, nuevoValor) => {
@@ -167,31 +85,15 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                 const precioV = Number(filaActualizada.precio_vacio || 0);
                 filaActualizada.subtotal = (cant * precioU) + (cant * precioV);
 
+                // 3. Si se bajo la cantidad por debajo de lo ya marcado como entregado,
+                // se reajusta la entrega para no guardar "5 entregado de 3 vendido".
+                if (campo === 'cantidad' && Number(filaActualizada.cantidad_entregada || 0) > cant) {
+                    filaActualizada.cantidad_entregada = cant;
+                }
+
                 return filaActualizada;
             }
             return fila;
-        }));
-    };
-
-    const eliminarDelCarrito = (id_fila_borrar) => {
-        setCarrito(carrito.filter(item => item.id_fila !== id_fila_borrar));
-    };
-
-    const actualizarCantidadEntregada = (id_fila, valor) => {
-        setCarrito(prev => prev.map(item => {
-            if (item.id_fila !== id_fila) return item;
-            if (valor === '') {
-                return { ...item, cantidad_entregada: '' };
-            }
-            const cantidadEntregada = Math.max(0, Math.min(Number(valor) || 0, item.cantidad));
-            return { ...item, cantidad_entregada: cantidadEntregada };
-        }));
-    };
-
-    const confirmarCantidadEntregada = (id_fila) => {
-        setCarrito(prev => prev.map(item => {
-            if (item.id_fila !== id_fila || item.cantidad_entregada !== '') return item;
-            return { ...item, cantidad_entregada: 0 };
         }));
     };
 
@@ -222,8 +124,6 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
         });
 
     const hayFilaConStockExcedido = mensajesStockExcedido.length > 0;
-
-    const totalBoleta = carrito.reduce((suma, item) => suma + item.subtotal, 0);
 
     const guardarCambios = async (e) => {
         e.preventDefault();
@@ -286,24 +186,6 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
         }
     };
 
-    // --- LÓGICA DINÁMICA DE STOCK ---
-    let stockDisponibleActual = null;
-    let cantidadYaEnCarrito = 0;
-
-    if (idProducto && !cargandoStock) {
-        const prodPlanilla = stockProductos.find(p => String(p.id_producto) === String(idProducto));
-        if (prodPlanilla) {
-            const stockEnBD = prodPlanilla.stock - prodPlanilla.stock_vendido;
-            cantidadYaEnCarrito = carrito
-                .filter(item => String(item.id_producto) === String(idProducto))
-                .reduce((suma, item) => suma + item.cantidad, 0);
-            stockDisponibleActual = stockEnBD - cantidadYaEnCarrito;
-        }
-    }
-
-    const cantidadRealInput = parseFloat(cantidad) || 0;
-    const excedeStock = stockDisponibleActual !== null && cantidadRealInput > stockDisponibleActual;
-
     return (
         <div className="modal-overlay">
             <div className="modal-contenido" style={{ width: '95%', maxWidth: '800px' }}>
@@ -357,7 +239,7 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                                     </div>
                                     <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Cantidad:</label>
                                     <InputNumero
-                                        min="1" step="0.5" value={cantidad} onChange={(e) => setCantidad(e.target.value)}
+                                        min="0.5" step="0.5" value={cantidad} onChange={(e) => setCantidad(e.target.value)}
                                         style={{ width: '100%', padding: '8px', borderRadius: 'var(--radius-sm)', border: excedeStock ? '2px solid var(--danger)' : '1px solid var(--border)', backgroundColor: excedeStock ? 'var(--danger-soft)' : 'var(--surface)', color: 'var(--text-primary)' }}
                                     />
                                 </div>

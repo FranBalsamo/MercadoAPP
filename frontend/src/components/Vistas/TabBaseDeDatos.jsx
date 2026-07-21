@@ -49,17 +49,9 @@ function TabBaseDeDatos() {
                             <HiOutlineCheckCircle /> Conectada
                         </span>
                     </div>
-                    <div style={filaStyle}>
+                    <div style={{ ...filaStyle, borderBottom: 'none' }}>
                         <span style={etiquetaStyle}>Motor:</span>
                         <span style={valorStyle}>{info.tipo} (local)</span>
-                    </div>
-                    <div style={filaStyle}>
-                        <span style={etiquetaStyle}>Usuario:</span>
-                        <span style={valorStyle}>{info.usuario}</span>
-                    </div>
-                    <div style={{ ...filaStyle, borderBottom: 'none' }}>
-                        <span style={etiquetaStyle}>Conexión:</span>
-                        <span style={valorStyle}>{info.url}</span>
                     </div>
                 </div>
             )}

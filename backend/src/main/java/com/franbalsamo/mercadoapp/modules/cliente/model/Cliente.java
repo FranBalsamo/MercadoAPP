@@ -45,6 +45,13 @@ public class Cliente {
     @Column(nullable = false)
     private float saldo_a_favor = 0;
 
+    // Bloqueo optimista: sin esto, dos cobros concurrentes del mismo cliente (ej. dos cajeros)
+    // pueden leer el mismo saldo_a_favor y perder una actualizacion (la segunda pisa a la
+    // primera en vez de sumarse). Con @Version, la segunda transaccion en confirmar tira
+    // ObjectOptimisticLockingFailureException en vez de perder el cambio silenciosamente.
+    @Version
+    private long version;
+
     public Cliente(){
     }
 

@@ -1,12 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import ModalBuscarCliente from '../Modals/ModalBuscarCliente';
 import ModalVerCobro from '../Modals/ModalVerCobro';
 import ModalVerBoleta from '../Modals/ModalVerBoleta';
 import { formatearFechaVisual } from '../../utils/formatoFecha';
 import { HiOutlineBanknotes, HiOutlineMagnifyingGlass } from 'react-icons/hi2';
 import SelectorFecha from '../UI/SelectorFecha';
+import Paginador from '../UI/Paginador';
 import '../Estilos/Botones.css';
 import '../Estilos/Formularios.css';
+
+const TAMANIO_PAGINA = 50;
 
 const NOMBRES_FORMA_PAGO = {
     EFECTIVO: 'Efectivo',
@@ -14,6 +17,51 @@ const NOMBRES_FORMA_PAGO = {
     TRANSFERENCIA_BANCARIA: 'Transferencia Bancaria',
     OTROS: 'Otros',
 };
+
+const formatearMoneda = (val) => (val ?? 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
+
+// Fila memoizada (mismo patron que FilaBoleta en VistaBuscarBoletas): evita re-renderizar
+// las filas de la pagina cuando solo cambia un estado ajeno (ej. abrir un modal).
+const FilaCobro = memo(function FilaCobro({ cobro, idx, nombreCliente, onVerMas }) {
+    const esAporteACuenta = cobro.montoTotalBoletas <= 0;
+    return (
+        <tr style={{ borderBottom: '1px solid var(--border)', backgroundColor: idx % 2 === 0 ? 'var(--surface)' : 'var(--surface-2)' }}>
+            <td style={{ padding: '12px', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                {formatearFechaVisual(cobro.fecha)}
+            </td>
+            <td style={{ padding: '12px', fontWeight: 'bold', textTransform: 'capitalize', color: 'var(--text-primary)' }}>
+                {nombreCliente}
+            </td>
+            <td style={{ padding: '12px' }}>
+                <span style={{
+                    padding: '4px 8px', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontWeight: 'bold',
+                    backgroundColor: esAporteACuenta ? 'var(--warning-soft)' : 'var(--success-soft)',
+                    color: esAporteACuenta ? 'var(--warning-soft-text)' : 'var(--success-soft-text)'
+                }}>
+                    {esAporteACuenta ? 'Aporte a cuenta' : 'Pago de deuda'}
+                </span>
+            </td>
+            <td style={{ padding: '12px', color: 'var(--text-secondary)' }}>
+                {NOMBRES_FORMA_PAGO[cobro.formaPago] || '-'}
+            </td>
+            <td style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                {formatearMoneda(cobro.montoEntregado)}
+            </td>
+            <td style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold', color: 'var(--success)' }}>
+                {formatearMoneda(cobro.montoTotalBoletas)}
+            </td>
+            <td style={{ padding: '12px', textAlign: 'center' }}>
+                <button
+                    className="btn-global btn-secundario"
+                    onClick={() => onVerMas(cobro)}
+                    style={{ fontSize: '0.85rem', padding: '4px 10px' }}
+                >
+                    Ver más
+                </button>
+            </td>
+        </tr>
+    );
+});
 
 function VistaBuscarOperaciones() {
     const [metodoFiltro, setMetodoFiltro] = useState('cliente');
@@ -23,6 +71,11 @@ function VistaBuscarOperaciones() {
     const [hasta, setHasta] = useState('');
 
     const [cobros, setCobros] = useState([]);
+    const [pagina, setPagina] = useState(0);
+    const [totalPaginas, setTotalPaginas] = useState(0);
+    const [totalElementos, setTotalElementos] = useState(0);
+    const [busquedaActiva, setBusquedaActiva] = useState(null);
+
     const [planillas, setPlanillas] = useState([]);
     const [clientes, setClientes] = useState([]);
     const [catalogoProductos, setCatalogoProductos] = useState([]);
@@ -50,41 +103,53 @@ function VistaBuscarOperaciones() {
         cargarCatalogos();
     }, []);
 
-    const nombreCliente = (id_cliente) => {
-        const c = clientes.find(cliente => String(cliente.id) === String(id_cliente));
-        return c ? c.nombre : `Cliente #${id_cliente}`;
-    };
+    // Mapas en vez de un .find() (O(n)) por fila en cada render: busqueda O(1) por id.
+    const mapaClientes = useMemo(() => new Map(clientes.map((c) => [String(c.id), c])), [clientes]);
+    const mapaProductos = useMemo(() => new Map(catalogoProductos.map((p) => [String(p.id), p])), [catalogoProductos]);
+    const mapaPlanillas = useMemo(() => new Map(planillas.map((p) => [String(p.id), p])), [planillas]);
 
-    const nombreProducto = (id_producto) => {
-        const p = catalogoProductos.find(prod => String(prod.id) === String(id_producto));
-        return p ? p.nombre : `Prod #${id_producto}`;
-    };
+    const nombreCliente = (id_cliente) => mapaClientes.get(String(id_cliente))?.nombre || `Cliente #${id_cliente}`;
+    const nombreProducto = (id_producto) => mapaProductos.get(String(id_producto))?.nombre || `Prod #${id_producto}`;
+    const fechaPlanilla = (id_planilla) => mapaPlanillas.get(String(id_planilla))?.fecha || '-';
 
-    const fechaPlanilla = (id_planilla) => {
-        const p = planillas.find(pla => String(pla.id) === String(id_planilla));
-        return p ? p.fecha : '-';
-    };
-
-    const formatearMoneda = (val) => (val ?? 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
-
-    const buscarPorCliente = async (cliente) => {
+    const ejecutarBusqueda = async (descriptor, paginaSolicitada) => {
         setCargando(true);
         setError('');
-        setBusquedaRealizada(true);
         try {
-            const respuesta = await fetch(`http://localhost:8080/api/cobro/cliente/${cliente.id}`);
+            const params = new URLSearchParams({ page: String(paginaSolicitada), size: String(TAMANIO_PAGINA) });
+            let url;
+            if (descriptor.tipo === 'cliente') {
+                url = `http://localhost:8080/api/cobro/cliente/${descriptor.cliente.id}/paginado?${params}`;
+            } else {
+                params.set('desde', descriptor.desde);
+                params.set('hasta', descriptor.hasta);
+                url = `http://localhost:8080/api/cobro/buscar/fecha/paginado?${params}`;
+            }
+
+            const respuesta = await fetch(url);
             if (!respuesta.ok) throw new Error(`Error del servidor: ${respuesta.status}`);
-            setCobros(await respuesta.json());
+            const data = await respuesta.json();
+
+            setCobros(Array.isArray(data.content) ? data.content : []);
+            setTotalPaginas(data.totalPages ?? 0);
+            setTotalElementos(data.totalElements ?? 0);
+            setPagina(paginaSolicitada);
+            setBusquedaActiva(descriptor);
         } catch (e) {
-            console.error('Error al buscar operaciones por cliente:', e);
-            setError('No se pudieron cargar las operaciones de este cliente.');
+            console.error('Error al buscar operaciones:', e);
+            setError('No se pudieron cargar las operaciones.');
             setCobros([]);
         } finally {
             setCargando(false);
         }
     };
 
-    const buscarPorFecha = async () => {
+    const buscarPorCliente = (cliente) => {
+        setBusquedaRealizada(true);
+        ejecutarBusqueda({ tipo: 'cliente', cliente }, 0);
+    };
+
+    const buscarPorFecha = () => {
         if (!desde || !hasta) {
             setError('Elegí una fecha de inicio y una de fin.');
             return;
@@ -93,22 +158,12 @@ function VistaBuscarOperaciones() {
             setError('La fecha "desde" no puede ser posterior a la fecha "hasta".');
             return;
         }
-
-        setCargando(true);
-        setError('');
         setBusquedaRealizada(true);
-        try {
-            const parametros = new URLSearchParams({ desde, hasta });
-            const respuesta = await fetch(`http://localhost:8080/api/cobro/buscar/fecha?${parametros}`);
-            if (!respuesta.ok) throw new Error(`Error del servidor: ${respuesta.status}`);
-            setCobros(await respuesta.json());
-        } catch (e) {
-            console.error('Error al buscar operaciones por fecha:', e);
-            setError('No se pudieron cargar las operaciones en ese rango de fechas.');
-            setCobros([]);
-        } finally {
-            setCargando(false);
-        }
+        ejecutarBusqueda({ tipo: 'fecha', desde, hasta }, 0);
+    };
+
+    const cambiarPagina = (nuevaPagina) => {
+        if (busquedaActiva) ejecutarBusqueda(busquedaActiva, nuevaPagina);
     };
 
     const handleClienteEncontrado = (cliente) => {
@@ -120,6 +175,10 @@ function VistaBuscarOperaciones() {
     const cambiarMetodoFiltro = (metodo) => {
         setMetodoFiltro(metodo);
         setCobros([]);
+        setPagina(0);
+        setTotalPaginas(0);
+        setTotalElementos(0);
+        setBusquedaActiva(null);
         setBusquedaRealizada(false);
         setError('');
         setClienteSeleccionado(null);
@@ -127,9 +186,13 @@ function VistaBuscarOperaciones() {
         setHasta('');
     };
 
-    const cobrosOrdenados = [...cobros].sort((a, b) => {
-        return a.fecha === b.fecha ? 0 : (a.fecha < b.fecha ? 1 : -1); // más reciente primero
-    });
+    const abrirVerCobro = useCallback((cobro) => setCobroAVer(cobro), []);
+
+    // La API ya devuelve la pagina ordenada por fecha desc; solo se re-ordena si llegara
+    // a haber empates que el backend no desempata (edge case, bajo costo).
+    const cobrosOrdenados = useMemo(() => {
+        return [...cobros].sort((a, b) => (a.fecha === b.fecha ? 0 : (a.fecha < b.fecha ? 1 : -1)));
+    }, [cobros]);
 
     return (
         <main style={{ padding: '20px', backgroundColor: 'var(--bg)', height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -215,6 +278,7 @@ function VistaBuscarOperaciones() {
                         No se encontraron operaciones con esos filtros.
                     </p>
                 ) : (
+                    <>
                     <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
                         <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.95rem' }}>
                             <thead style={{ backgroundColor: 'var(--surface-inverse)', color: 'var(--text-on-inverse)', position: 'sticky', top: 0, zIndex: 1 }}>
@@ -229,49 +293,26 @@ function VistaBuscarOperaciones() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {cobrosOrdenados.map((cobro, idx) => {
-                                    const esAporteACuenta = cobro.montoTotalBoletas <= 0;
-                                    return (
-                                        <tr key={cobro.id} style={{ borderBottom: '1px solid var(--border)', backgroundColor: idx % 2 === 0 ? 'var(--surface)' : 'var(--surface-2)' }}>
-                                            <td style={{ padding: '12px', fontWeight: 'bold', color: 'var(--text-primary)' }}>
-                                                {formatearFechaVisual(cobro.fecha)}
-                                            </td>
-                                            <td style={{ padding: '12px', fontWeight: 'bold', textTransform: 'capitalize', color: 'var(--text-primary)' }}>
-                                                {nombreCliente(cobro.id_cliente)}
-                                            </td>
-                                            <td style={{ padding: '12px' }}>
-                                                <span style={{
-                                                    padding: '4px 8px', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontWeight: 'bold',
-                                                    backgroundColor: esAporteACuenta ? 'var(--warning-soft)' : 'var(--success-soft)',
-                                                    color: esAporteACuenta ? 'var(--warning-soft-text)' : 'var(--success-soft-text)'
-                                                }}>
-                                                    {esAporteACuenta ? 'Aporte a cuenta' : 'Pago de deuda'}
-                                                </span>
-                                            </td>
-                                            <td style={{ padding: '12px', color: 'var(--text-secondary)' }}>
-                                                {NOMBRES_FORMA_PAGO[cobro.formaPago] || '-'}
-                                            </td>
-                                            <td style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold', color: 'var(--text-primary)' }}>
-                                                {formatearMoneda(cobro.montoEntregado)}
-                                            </td>
-                                            <td style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold', color: 'var(--success)' }}>
-                                                {formatearMoneda(cobro.montoTotalBoletas)}
-                                            </td>
-                                            <td style={{ padding: '12px', textAlign: 'center' }}>
-                                                <button
-                                                    className="btn-global btn-secundario"
-                                                    onClick={() => setCobroAVer(cobro)}
-                                                    style={{ fontSize: '0.85rem', padding: '4px 10px' }}
-                                                >
-                                                    Ver más
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
+                                {cobrosOrdenados.map((cobro, idx) => (
+                                    <FilaCobro
+                                        key={cobro.id}
+                                        cobro={cobro}
+                                        idx={idx}
+                                        nombreCliente={nombreCliente(cobro.id_cliente)}
+                                        onVerMas={abrirVerCobro}
+                                    />
+                                ))}
                             </tbody>
                         </table>
                     </div>
+                    <Paginador
+                        pagina={pagina}
+                        totalPaginas={totalPaginas}
+                        totalElementos={totalElementos}
+                        onCambiarPagina={cambiarPagina}
+                        cargando={cargando}
+                    />
+                    </>
                 )}
             </div>
 

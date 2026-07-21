@@ -1,42 +1,86 @@
-import { useState } from "react";
+import { useState, useMemo, useCallback, memo } from "react";
 import { HiOutlineTicket } from 'react-icons/hi2';
 import "../Estilos/Botones.css";
 import AlertaEmergente from "../Alertas/AlertaEmergente";
 import ModalVerBoleta from "../Modals/ModalVerBoleta";
 import MenuAccionesInline from "../UI/MenuAccionesInline";
 
+const formatearMoneda = (val) => (val ?? 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
+
+const NOMBRES_FORMA_PAGO = {
+    EFECTIVO: 'Efectivo',
+    MERCADO_PAGO: 'Mercado Pago',
+    TRANSFERENCIA_BANCARIA: 'Transferencia Bancaria',
+    OTROS: 'Otros',
+};
+const formaPagoLegible = (formaPago) => NOMBRES_FORMA_PAGO[formaPago] || '-';
+
+// Fila memoizada: evita re-renderizar toda la tabla (boletas del dia en la caja abierta)
+// cuando solo cambia cual fila esta bajo el cursor (mismo patron que FilaBoleta en
+// VistaBuscarBoletas).
+const FilaBoletaLista = memo(function FilaBoletaLista({ boleta, idKey, resaltada, onHoverStart, onHoverEnd, onVer, onModificar, onEliminar }) {
+    return (
+        <tr
+            style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
+            onMouseEnter={() => onHoverStart(idKey)}
+            onMouseLeave={onHoverEnd}
+        >
+            <td style={{ padding: '12px', fontWeight: 'bold', textTransform: 'capitalize', color: 'var(--text-primary)' }}>
+                {boleta._nombreCliente}
+            </td>
+            <td style={{ padding: '12px' }}>
+                <span style={{
+                    padding: '4px 8px', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontWeight: 'bold',
+                    backgroundColor: boleta.estadoPago === 'PAGADO' ? 'var(--success-soft)' : 'var(--danger-soft)',
+                    color: boleta.estadoPago === 'PAGADO' ? 'var(--success-soft-text)' : 'var(--danger-soft-text)'
+                }}>
+                    {boleta.estadoPago}
+                </span>
+            </td>
+            <td style={{ padding: '12px' }}>
+                <span style={{
+                    padding: '4px 8px', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontWeight: 'bold',
+                    backgroundColor: boleta.estadoEntrega === 'ENTREGADO' ? 'var(--success-soft)' : boleta.estadoEntrega === 'PARCIAL' ? 'var(--warning-soft)' : 'var(--danger-soft)',
+                    color: boleta.estadoEntrega === 'ENTREGADO' ? 'var(--success-soft-text)' : boleta.estadoEntrega === 'PARCIAL' ? 'var(--warning-soft-text)' : 'var(--danger-soft-text)'
+                }}>
+                    {boleta.estadoEntrega === 'PARCIAL' ? 'PARCIAL' : boleta.estadoEntrega}
+                </span>
+            </td>
+            <td style={{ padding: '12px', color: 'var(--text-secondary)' }}>
+                {boleta.estadoPago === 'NO_PAGADO' ? '-' : formaPagoLegible(boleta.formaPago)}
+            </td>
+            <td style={{ padding: '12px', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                {formatearMoneda(boleta.total)}
+            </td>
+            <td style={{ padding: '12px', textAlign: 'center' }}>
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <MenuAccionesInline
+                        mostrarPorHover={resaltada}
+                        acciones={[
+                            { label: 'Ver', onClick: () => onVer(boleta) },
+                            { label: 'Modificar', onClick: () => onModificar(boleta), variante: 'primario' },
+                            { label: 'Eliminar', onClick: () => onEliminar(boleta), variante: 'peligro' },
+                        ]}
+                    />
+                </div>
+            </td>
+        </tr>
+    );
+});
+
 function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBoleta ,boletas = [], clientes = [], catalogoProductos = [] }) {
-    const [error, setError] = useState('');
     const [busqueda, setBusqueda] = useState('');
     const [mensajeAlerta, setMensajeAlerta] = useState(null);
     const [configOrden, setConfigOrden] = useState({ columna: null, direccion: 'asc' });
     const [boletaAVer, setBoletaAVer] = useState(null);
     const [filaSobreCursor, setFilaSobreCursor] = useState(null);
 
-    const nombreCliente = (id_cliente) => {
-        const clienteEncontrado = clientes.find(cliente => cliente.id === id_cliente);
-        if (!clienteEncontrado) return '-';
-        return clienteEncontrado.nombre;
-    }
+    // Mapas en vez de un .find() (O(n)) por boleta en cada render: busqueda O(1) por id.
+    const mapaClientes = useMemo(() => new Map(clientes.map(c => [c.id, c])), [clientes]);
+    const mapaProductos = useMemo(() => new Map(catalogoProductos.map(p => [String(p.id), p])), [catalogoProductos]);
 
-    const nombreProducto = (id_producto) => {
-        const producto = catalogoProductos.find(p => String(p.id) === String(id_producto));
-        return producto ? producto.nombre : `Prod #${id_producto}`;
-    }
-
-    const formatearMoneda = (val) => {
-        return (val ?? 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
-    }
-
-    const formaPagoLegible = (formaPago) => {
-        const nombres = {
-            EFECTIVO: 'Efectivo',
-            MERCADO_PAGO: 'Mercado Pago',
-            TRANSFERENCIA_BANCARIA: 'Transferencia Bancaria',
-            OTROS: 'Otros',
-        };
-        return nombres[formaPago] || '-';
-    }
+    const nombreCliente = useCallback((id_cliente) => mapaClientes.get(id_cliente)?.nombre || '-', [mapaClientes]);
+    const nombreProducto = useCallback((id_producto) => mapaProductos.get(String(id_producto))?.nombre || `Prod #${id_producto}`, [mapaProductos]);
 
     const solicitarOrden = (columna) => {
         let direccion = 'asc';
@@ -47,46 +91,48 @@ function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBol
         setConfigOrden({ columna, direccion });
     };
 
+    // Se recalcula solo cuando cambian los datos/filtros reales (antes se filtraba, ordenaba
+    // y resolvia el nombre del cliente en CADA render, incluidos los que disparaba el hover
+    // de una fila al pasar el mouse).
+    const boletasProcesadas = useMemo(() => {
+        return boletas
+            .filter((boleta) => {
+                if (!busqueda) return true;
+                return nombreCliente(boleta.id_cliente).toLowerCase().includes(busqueda.toLowerCase());
+            })
+            .map((boleta) => ({ ...boleta, _nombreCliente: nombreCliente(boleta.id_cliente) }))
+            .sort((a, b) => {
+                // Si nadie tocó ningún encabezado aún, no ordenamos
+                if (!configOrden.columna) return 0;
 
-    const boletasProcesadas = boletas
-        .filter((boleta) => {
-            if (!busqueda) return true;
-            const nombreDelCliente = nombreCliente(boleta.id_cliente).toLowerCase();
-            return nombreDelCliente.includes(busqueda.toLowerCase());
-        })
-        .sort((a, b) => {
-            // Si nadie tocó ningún encabezado aún, no ordenamos
-            if (!configOrden.columna) return 0;
+                if (configOrden.columna === 'nombre') {
+                    // localeCompare ordena alfabéticamente
+                    return configOrden.direccion === 'asc'
+                        ? a._nombreCliente.toLowerCase().localeCompare(b._nombreCliente.toLowerCase())
+                        : b._nombreCliente.toLowerCase().localeCompare(a._nombreCliente.toLowerCase());
+                }
 
-            if (configOrden.columna === 'nombre') {
-                const nombreA = nombreCliente(a.id_cliente).toLowerCase();
-                const nombreB = nombreCliente(b.id_cliente).toLowerCase();
-                // localeCompare ordena alfabéticamente
-                return configOrden.direccion === 'asc'
-                    ? nombreA.localeCompare(nombreB)
-                    : nombreB.localeCompare(nombreA);
-            }
+                if (configOrden.columna === 'pago') {
+                    // Le damos "1 punto" si está pagado y "0" si no lo está.
+                    // Así obligamos a los "1" a ir arriba.
+                    const pesoA = a.estadoPago === 'PAGADO' ? 1 : 0;
+                    const pesoB = b.estadoPago === 'PAGADO' ? 1 : 0;
+                    return configOrden.direccion === 'asc'
+                        ? pesoB - pesoA
+                        : pesoA - pesoB;
+                }
 
-            if (configOrden.columna === 'pago') {
-                // Le damos "1 punto" si está pagado y "0" si no lo está. 
-                // Así obligamos a los "1" a ir arriba.
-                const pesoA = a.estadoPago === 'PAGADO' ? 1 : 0;
-                const pesoB = b.estadoPago === 'PAGADO' ? 1 : 0;
-                return configOrden.direccion === 'asc'
-                    ? pesoB - pesoA
-                    : pesoA - pesoB;
-            }
+                if (configOrden.columna === 'entrega') {
+                    const pesoA = a.estadoEntrega === 'ENTREGADO' ? 1 : 0;
+                    const pesoB = b.estadoEntrega === 'ENTREGADO' ? 1 : 0;
+                    return configOrden.direccion === 'asc'
+                        ? pesoB - pesoA
+                        : pesoA - pesoB;
+                }
 
-            if (configOrden.columna === 'entrega') {
-                const pesoA = a.estadoEntrega === 'ENTREGADO' ? 1 : 0;
-                const pesoB = b.estadoEntrega === 'ENTREGADO' ? 1 : 0;
-                return configOrden.direccion === 'asc'
-                    ? pesoB - pesoA
-                    : pesoA - pesoB;
-            }
-
-            return 0;
-        });
+                return 0;
+            });
+    }, [boletas, busqueda, configOrden, nombreCliente]);
 
     // Función auxiliar para dibujar flechitas en los encabezados
     const obtenerIconoOrden = (nombreColumna) => {
@@ -94,7 +140,13 @@ function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBol
         return configOrden.direccion === 'asc' ? ' ⬇️' : ' ⬆️'; // Activo
     };
 
-    const intentarEliminar = (boleta) => {
+    const limpiarHover = useCallback(() => setFilaSobreCursor(null), []);
+
+    const abrirModificar = useCallback((boleta) => {
+        abrirModalModificarBoleta(boleta, nombreCliente(boleta.id_cliente));
+    }, [abrirModalModificarBoleta, nombreCliente]);
+
+    const intentarEliminar = useCallback((boleta) => {
         const estaPagada = boleta.estadoPago === 'PAGADO';
         const estaEntregada = boleta.estadoEntrega !== 'NO_ENTREGADO';
 
@@ -108,7 +160,7 @@ function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBol
         }
 
         eliminarBoleta(boleta);
-    };
+    }, [eliminarBoleta]);
 
     return (
         <div style={{ flex: 3, minHeight: 0, backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '20px', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', display: 'flex', flexDirection: 'column' }}>
@@ -164,54 +216,22 @@ function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBol
                             </tr>
                         </thead>
                         <tbody>
-                            {boletasProcesadas.map((boleta, index) => (
-                                <tr
-                                    key={boleta.id || index}
-                                    style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
-                                    onMouseEnter={() => setFilaSobreCursor(boleta.id || index)}
-                                    onMouseLeave={() => setFilaSobreCursor(null)}
-                                >
-                                    <td style={{ padding: '12px', fontWeight: 'bold', textTransform: 'capitalize', color: 'var(--text-primary)' }}>
-                                        {nombreCliente(boleta.id_cliente)}
-                                    </td>
-                                    <td style={{ padding: '12px' }}>
-                                        <span style={{
-                                            padding: '4px 8px', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontWeight: 'bold',
-                                            backgroundColor: boleta.estadoPago === 'PAGADO' ? 'var(--success-soft)' : 'var(--danger-soft)',
-                                            color: boleta.estadoPago === 'PAGADO' ? 'var(--success-soft-text)' : 'var(--danger-soft-text)'
-                                        }}>
-                                            {boleta.estadoPago}
-                                        </span>
-                                    </td>
-                                    <td style={{ padding: '12px' }}>
-                                        <span style={{
-                                            padding: '4px 8px', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', fontWeight: 'bold',
-                                            backgroundColor: boleta.estadoEntrega === 'ENTREGADO' ? 'var(--success-soft)' : boleta.estadoEntrega === 'PARCIAL' ? 'var(--warning-soft)' : 'var(--danger-soft)',
-                                            color: boleta.estadoEntrega === 'ENTREGADO' ? 'var(--success-soft-text)' : boleta.estadoEntrega === 'PARCIAL' ? 'var(--warning-soft-text)' : 'var(--danger-soft-text)'
-                                        }}>
-                                            {boleta.estadoEntrega === 'PARCIAL' ? 'PARCIAL' : boleta.estadoEntrega}
-                                        </span>
-                                    </td>
-                                    <td style={{ padding: '12px', color: 'var(--text-secondary)' }}>
-                                        {boleta.estadoPago === 'NO_PAGADO' ? '-' : formaPagoLegible(boleta.formaPago)}
-                                    </td>
-                                    <td style={{ padding: '12px', fontWeight: 'bold', color: 'var(--text-primary)' }}>
-                                        {boleta.total.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}
-                                    </td>
-                                    <td style={{ padding: '12px', textAlign: 'center' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'center' }}>
-                                            <MenuAccionesInline
-                                                mostrarPorHover={filaSobreCursor === (boleta.id || index)}
-                                                acciones={[
-                                                    { label: 'Ver', onClick: () => setBoletaAVer(boleta) },
-                                                    { label: 'Modificar', onClick: () => abrirModalModificarBoleta(boleta, nombreCliente(boleta.id_cliente)), variante: 'primario' },
-                                                    { label: 'Eliminar', onClick: () => intentarEliminar(boleta), variante: 'peligro' },
-                                                ]}
-                                            />
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
+                            {boletasProcesadas.map((boleta, index) => {
+                                const idKey = boleta.id || index;
+                                return (
+                                    <FilaBoletaLista
+                                        key={idKey}
+                                        boleta={boleta}
+                                        idKey={idKey}
+                                        resaltada={filaSobreCursor === idKey}
+                                        onHoverStart={setFilaSobreCursor}
+                                        onHoverEnd={limpiarHover}
+                                        onVer={setBoletaAVer}
+                                        onModificar={abrirModificar}
+                                        onEliminar={intentarEliminar}
+                                    />
+                                );
+                            })}
                         </tbody>
                     </table>
                 )}

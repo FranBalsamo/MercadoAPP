@@ -3,8 +3,13 @@ package com.franbalsamo.mercadoapp.modules.planilla.controller;
 import com.franbalsamo.mercadoapp.modules.planilla.service.CajaManager;
 import com.franbalsamo.mercadoapp.modules.planilla.service.PlanillaService;
 import com.franbalsamo.mercadoapp.modules.planilla.model.PlanillaDTO;
+import com.franbalsamo.mercadoapp.modules.planilla.EstadoPlanilla;
 import com.franbalsamo.mercadoapp.modules.stockproducto.model.StockProductoDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,6 +51,20 @@ public class PlanillaController {
     public ResponseEntity<List<PlanillaDTO>> findAll(){
         List<PlanillaDTO> listaPlanillas = planillaService.findAll();
         return new ResponseEntity<>(listaPlanillas, HttpStatus.OK);
+    }
+
+    // Filtra (opcionalmente por estado y/o rango de fechas) + pagina en el servidor, a
+    // diferencia de /All (que VistaPlanillas usa hoy trayendo TODO el historico para despues
+    // filtrar/ordenar en el cliente).
+    @GetMapping("/buscar/paginado")
+    public ResponseEntity<Page<PlanillaDTO>> buscarPaginado(
+            @RequestParam(required = false) EstadoPlanilla estado,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size){
+        Pageable pageable = PageRequest.of(page, size, Sort.by("fecha").descending());
+        return new ResponseEntity<>(planillaService.buscarPaginado(estado, desde, hasta, pageable), HttpStatus.OK);
     }
 
     @GetMapping("/abierta")

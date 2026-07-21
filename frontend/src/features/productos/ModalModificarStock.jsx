@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { HiOutlinePencilSquare, HiOutlineCube, HiOutlineExclamationTriangle } from 'react-icons/hi2';
 import '@/shared/styles/Modal.css';
-import '../Estilos/FormEditarStock.css';
+import './FormEditarStock.css';
 import AlertaConfirmacion from '@/shared/ui/AlertaConfirmacion';
 import InputNumero from '@/shared/ui/InputNumero';
 import { formatearFechaVisual } from '@/shared/utils/formatoFecha';

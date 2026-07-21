@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, memo } from 'react';
-import ModalModificarProducto from '../Modals/ModalModificarProducto';
+import ModalModificarProducto from './ModalModificarProducto';
 import { HiOutlineCube } from 'react-icons/hi2';
 import Paginador from '@/shared/ui/Paginador';
 import '@/shared/styles/Botones.css';

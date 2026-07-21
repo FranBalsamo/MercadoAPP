@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, memo } from 'react';
-import ModalBuscarCliente from '../Modals/ModalBuscarCliente';
+import ModalBuscarCliente from '@/features/clientes/ModalBuscarCliente';
 import ModalVerCobro from '../Modals/ModalVerCobro';
 import ModalVerBoleta from '../Modals/ModalVerBoleta';
 import { formatearFechaVisual } from '@/shared/utils/formatoFecha';

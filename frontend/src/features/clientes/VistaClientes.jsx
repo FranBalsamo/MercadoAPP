@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, memo } from 'react';
-import ModalModificarCliente from '../Modals/ModalModificarCliente';
-import ModalModificarSaldoCliente from '../Modals/ModalModificarSaldoCliente';
+import ModalModificarCliente from './ModalModificarCliente';
+import ModalModificarSaldoCliente from './ModalModificarSaldoCliente';
 import { HiOutlineUsers } from 'react-icons/hi2';
 import SelectPersonalizado from '@/shared/ui/SelectPersonalizado';
 import MenuAccionesInline from '@/shared/ui/MenuAccionesInline';

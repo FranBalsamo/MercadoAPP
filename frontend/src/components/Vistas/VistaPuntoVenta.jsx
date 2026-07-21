@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import ControlStock from './ControlStock';
 import ListaBoletas from './ListaBoletas';
 import ModalBoleta from '../Modals/ModalBoleta';
-import ModalBuscarCliente from '../Modals/ModalBuscarCliente';
+import ModalBuscarCliente from '@/features/clientes/ModalBuscarCliente';
 import ModalModificarStock from '../Modals/ModalModificarStock';
 import ModalModificarBoleta from '../Modals/ModalModificarBoleta';
 import AlertaConfirmacion from '@/shared/ui/AlertaConfirmacion';

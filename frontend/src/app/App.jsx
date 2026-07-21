@@ -15,7 +15,7 @@ import VistaClienteDeudas from "@/features/clientes/VistaClienteDeudas";
 import VistaEstadisticas from "@/features/estadisticas/VistaEstadisticas";
 import VistaBuscarBoletas from "@/features/boletas/VistaBuscarBoletas";
 import VistaBuscarOperaciones from "@/features/cobros/VistaBuscarOperaciones";
-import VistaConfiguracion from "@/components/Vistas/VistaConfiguracion";
+import VistaConfiguracion from "@/features/configuracion/VistaConfiguracion";
 import { useLimitarZoom } from "@/shared/utils/limitarZoom";
 
 import "@/shared/styles/tokens.css";

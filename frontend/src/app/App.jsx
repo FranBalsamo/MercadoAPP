@@ -12,7 +12,7 @@ import VistaProductos from "@/features/productos/VistaProductos";
 import VistaPlanillas from "@/features/planillas/VistaPlanillas";
 import VistaPlanillaCerrada from "@/features/planillas/VistaPlanillaCerrada";
 import VistaClienteDeudas from "@/features/clientes/VistaClienteDeudas";
-import VistaEstadisticas from "@/components/Vistas/VistaEstadisticas";
+import VistaEstadisticas from "@/features/estadisticas/VistaEstadisticas";
 import VistaBuscarBoletas from "@/features/boletas/VistaBuscarBoletas";
 import VistaBuscarOperaciones from "@/features/cobros/VistaBuscarOperaciones";
 import VistaConfiguracion from "@/components/Vistas/VistaConfiguracion";

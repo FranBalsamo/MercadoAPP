@@ -6,8 +6,8 @@ import {
     HiOutlineStop,
     HiOutlineXMark,
 } from 'react-icons/hi2';
-import iconoApp from '../assets/icono-app.png';
-import './Estilos/TitleBar.css';
+import iconoApp from '@/assets/icono-app.png';
+import './TitleBar.css';
 
 function TitleBar() {
     // getCurrentWindow() explota si no hay un puente real de Tauri (por ej. abriendo

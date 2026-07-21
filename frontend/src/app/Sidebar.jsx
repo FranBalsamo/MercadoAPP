@@ -12,8 +12,8 @@ import {
     HiOutlineCog6Tooth,
     HiOutlineBanknotes,
 } from 'react-icons/hi2';
-import iconoApp from '../assets/icono-app.png';
-import './Estilos/Sidebar.css';
+import iconoApp from '@/assets/icono-app.png';
+import './Sidebar.css';
 
 function Sidebar({
     vistaActiva,

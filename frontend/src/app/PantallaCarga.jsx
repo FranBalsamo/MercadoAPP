@@ -1,4 +1,4 @@
-import iconoApp from '../assets/icono-app.png';
+import iconoApp from '@/assets/icono-app.png';
 
 function PantallaCarga({ tardandoMucho }) {
     return (

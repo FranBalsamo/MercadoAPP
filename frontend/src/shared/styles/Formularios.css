@@ -128,7 +128,11 @@
     cursor: not-allowed;
 }
 
-.select-personalizado-input {
+/* Especificidad reforzada (".select-personalizado-disparador .select-personalizado-input" en vez
+   de solo ".select-personalizado-input") a proposito: sin esto, ".form-group input" (Modal.css) le
+   gana por especificidad y le vuelve a poner borde+padding a este <input>, sumandose al borde del
+   disparador y generando un "doble marco" cuando el select se usa dentro de un .form-group. */
+.select-personalizado-disparador .select-personalizado-input {
     flex-grow: 1;
     min-width: 0;
     border: none;
@@ -238,7 +242,9 @@
     opacity: 0.6;
 }
 
-.input-numero-campo {
+/* Especificidad reforzada por el mismo motivo que ".select-personalizado-input" arriba: sin
+   esto, ".form-group input" le vuelve a poner borde+padding a este <input> dentro de .input-numero. */
+.input-numero .input-numero-campo {
     flex: 1;
     min-width: 0;
     width: 100%;

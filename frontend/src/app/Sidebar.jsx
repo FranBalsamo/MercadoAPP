@@ -114,7 +114,7 @@ function Sidebar({
                         <div
                             key={item.id}
                             className={`sidebar-item ${activo ? 'activo' : ''}`}
-                            onClick={item.onClick}
+                            onClick={() => item.onClick()}
                         >
                             <Icono className="sidebar-item-icono" />
                             <span className="sidebar-item-label">{item.label}</span>

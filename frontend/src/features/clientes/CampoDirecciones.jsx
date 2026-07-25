@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { HiOutlineTrash } from 'react-icons/hi2';
 
 function CampoDirecciones({ direcciones, onChange, multiple }) {
     const [nuevaDireccion, setNuevaDireccion] = useState('');
@@ -60,9 +61,10 @@ function CampoDirecciones({ direcciones, onChange, multiple }) {
                                 type="button"
                                 className="btn-eliminar-fila"
                                 onClick={() => quitarDireccion(indice)}
+                                title="Eliminar dirección"
                                 style={{ padding: '2px 8px' }}
                             >
-                                X
+                                <HiOutlineTrash />
                             </button>
                         </li>
                     ))}

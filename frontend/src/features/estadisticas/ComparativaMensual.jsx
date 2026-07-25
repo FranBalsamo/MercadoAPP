@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { HiOutlineCalendarDays } from 'react-icons/hi2';
 import { formatearFechaLocal } from '@/shared/utils/rangoFechas';
+import MensajeError from '@/shared/ui/MensajeError';
 
 const formatearMoneda = (valor) => (valor ?? 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
 
@@ -80,7 +81,7 @@ function ComparativaMensual() {
         <div>
             <h4 style={{ margin: '0 0 15px 0', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlineCalendarDays /> Mes actual vs. mes anterior</h4>
 
-            {error && <p style={{ color: 'var(--danger)', fontSize: '0.9rem' }}>{error}</p>}
+            <MensajeError mensaje={error} />
 
             {cargando ? (
                 <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Cargando...</p>

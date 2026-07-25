@@ -372,6 +372,7 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
             {mostrarAlertaEliminar && (
                 <AlertaConfirmacion
                     mensaje={`¿Eliminar la boleta de ${nombreClienteDe(boletaAEliminar?.id_cliente)}?\nLos artículos volverán al inventario. No se puede deshacer.`}
+                    textoConfirmar="Eliminar boleta"
                     onConfirmar={confirmarEliminacionBoleta}
                     onCancelar={() => {
                         setMostrarAlertaEliminar(false);
@@ -395,6 +396,7 @@ function VistaPuntoVenta({ cerrarPlanilla, planilla }) {
                             ? "Esta planilla no tiene boletas.\nSe eliminará en vez de cerrarse. ¿Continuar?"
                             : "¿Cerrar la planilla?\nSe calcularán los totales y no vas a poder modificar boletas después."
                     }
+                    textoConfirmar={boletasDia.length === 0 ? 'Eliminar planilla' : 'Cerrar planilla'}
                     onConfirmar={confirmarCierrePlanilla}
                     onCancelar={() => setMostrarAlertaCerrarCaja(false)}
                 />

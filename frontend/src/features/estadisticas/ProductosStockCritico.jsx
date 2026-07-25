@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { HiOutlineExclamationTriangle } from 'react-icons/hi2';
+import MensajeError from '@/shared/ui/MensajeError';
 
 const capitalizar = (texto) => texto ? texto.replace(/\b\w/g, (letra) => letra.toUpperCase()) : '';
 
@@ -38,7 +39,7 @@ function ProductosStockCritico({ limite = 6 }) {
                 Cantidad de planillas cerradas en las que el producto terminó agotado (inventario disponible en 0).
             </p>
 
-            {error && <p style={{ color: 'var(--danger)', fontSize: '0.9rem' }}>{error}</p>}
+            <MensajeError mensaje={error} />
 
             {cargando ? (
                 <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Cargando...</p>

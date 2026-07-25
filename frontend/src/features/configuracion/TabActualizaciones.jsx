@@ -3,7 +3,8 @@ import { getVersion } from '@tauri-apps/api/app';
 import { invoke } from '@tauri-apps/api/core';
 import { check } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
-import { HiOutlineArrowPath, HiOutlineCheckCircle, HiOutlineArrowDownTray, HiOutlineExclamationTriangle } from 'react-icons/hi2';
+import { HiOutlineArrowPath, HiOutlineCheckCircle, HiOutlineArrowDownTray } from 'react-icons/hi2';
+import MensajeError from '@/shared/ui/MensajeError';
 
 const esTauriApp = () => typeof window !== 'undefined' && !!window.__TAURI_INTERNALS__;
 
@@ -97,11 +98,7 @@ function TabActualizaciones() {
                 {buscando ? 'Buscando...' : 'Buscar actualizaciones'}
             </button>
 
-            {error && (
-                <p style={{ color: 'var(--danger)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-                    <HiOutlineExclamationTriangle /> {error}
-                </p>
-            )}
+            <MensajeError mensaje={error} />
 
             {yaSeReviso && !update && !error && (
                 <p style={{ color: 'var(--success)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>

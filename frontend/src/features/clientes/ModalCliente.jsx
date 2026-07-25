@@ -5,6 +5,7 @@ import SelectorSegmentado from '@/shared/ui/SelectorSegmentado';
 import '@/shared/styles/Modal.css';
 import '@/shared/styles/Botones.css';
 import '@/shared/styles/Formularios.css';
+import MensajeError from '@/shared/ui/MensajeError';
 
 function ModalCliente({ cerrarModal, onClienteAgregado }) {
 
@@ -92,9 +93,7 @@ function ModalCliente({ cerrarModal, onClienteAgregado }) {
                 </div>
 
                 <div className="modal-body">
-                    {error && (
-                        <div style={{ color: 'var(--danger)', fontSize: '0.8rem' }}>{error}</div>
-                    )}
+                    <MensajeError mensaje={error} />
                     
                     <div className="form-group">
                         <label>Nombre:</label>

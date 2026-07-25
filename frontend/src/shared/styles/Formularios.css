@@ -354,3 +354,65 @@
 .segmented-entrega-opcion:not(.activa):not(:disabled):hover {
     color: var(--text-primary);
 }
+
+/* ---- Input de busqueda con icono de lupa + boton de limpiar (ver ListaBoletas.jsx) ---- */
+.input-busqueda-contenedor {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-busqueda-icono {
+    position: absolute;
+    left: 12px;
+    color: var(--text-muted);
+    font-size: 1rem;
+    pointer-events: none;
+    display: flex;
+}
+
+.input-busqueda {
+    width: 100%;
+    padding: 8px 12px 8px 34px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background-color: var(--surface);
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.input-busqueda:hover {
+    border-color: var(--border-strong);
+}
+
+.input-busqueda:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.input-busqueda-con-limpiar {
+    padding-right: 30px;
+}
+
+.input-busqueda-limpiar {
+    position: absolute;
+    right: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.input-busqueda-limpiar:hover {
+    background-color: var(--surface-2);
+    color: var(--text-primary);
+}

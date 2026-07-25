@@ -3,6 +3,7 @@ import { calcularRangoFechas } from '@/shared/utils/rangoFechas';
 import ToggleEscalaTiempo from './ToggleEscalaTiempo';
 import { HiOutlineChartBar } from 'react-icons/hi2';
 import '@/shared/styles/Botones.css';
+import MensajeError from '@/shared/ui/MensajeError';
 
 const COLORES_BARRAS = ['#3498db', '#2ecc71', '#f1c40f', '#e67e22', '#9b59b6', '#1abc9c', '#e74c3c', '#34495e'];
 
@@ -53,7 +54,7 @@ function GraficoProductosVendidos({ limite = null, mostrarBotonExpandir = false,
                 </div>
             </div>
 
-            {error && <p style={{ color: 'var(--danger)', fontSize: '0.9rem' }}>{error}</p>}
+            <MensajeError mensaje={error} />
 
             {cargando ? (
                 <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Cargando...</p>

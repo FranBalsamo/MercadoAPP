@@ -5,6 +5,7 @@ import SelectPersonalizado from '@/shared/ui/SelectPersonalizado';
 import '@/shared/styles/Modal.css';
 import '@/shared/styles/Botones.css';
 import '@/shared/styles/Formularios.css';
+import MensajeError from '@/shared/ui/MensajeError';
 
 function ModalPagoACuenta({ cliente, fechaPlanilla, formatearMoneda, cerrarModal, onPagoConfirmado }) {
     const [montoCentavos, setMontoCentavos] = useState(0);
@@ -142,7 +143,7 @@ function ModalPagoACuenta({ cliente, fechaPlanilla, formatearMoneda, cerrarModal
                             : 'El monto se aplicará a las boletas impagas más antiguas primero. Si sobra dinero (o no alcanza para cubrir ninguna), se guarda como saldo del cliente.'}
                     </p>
 
-                    {error && <div style={{ color: 'var(--danger)', fontSize: '0.85rem' }}>{error}</div>}
+                    <MensajeError mensaje={error} />
 
                     <div className="form-group">
                         <label>Monto:</label>

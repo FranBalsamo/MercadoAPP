@@ -3,6 +3,7 @@ import { HiOutlineMagnifyingGlass, HiOutlineArrowRight } from 'react-icons/hi2';
 import '@/shared/styles/Modal.css';
 import '@/shared/styles/Botones.css';
 import '@/shared/styles/Formularios.css';
+import MensajeError from '@/shared/ui/MensajeError';
 
 function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
     const [metodoBusqueda, setMetodoBusqueda] = useState('nombre');
@@ -111,11 +112,7 @@ function ModalBuscarCliente({ cerrarModal, onClienteEncontrado }) {
 
                 <div className="modal-body">
                     {/* CARTEL DE ERROR */}
-                    {error && (
-                        <div style={{ backgroundColor: 'var(--danger-soft)', color: 'var(--danger-soft-text)', padding: '10px', borderRadius: 'var(--radius-sm)', fontSize: '0.9rem', marginBottom: '15px' }}>
-                            {error}
-                        </div>
-                    )}
+                    <MensajeError mensaje={error} />
 
                     <div style={{ display: 'flex', gap: '20px', marginBottom: '15px' }}>
                         <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>

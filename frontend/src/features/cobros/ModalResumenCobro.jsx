@@ -5,6 +5,7 @@ import SelectPersonalizado from '@/shared/ui/SelectPersonalizado';
 import '@/shared/styles/Modal.css';
 import '@/shared/styles/Botones.css';
 import '@/shared/styles/Formularios.css';
+import MensajeError from '@/shared/ui/MensajeError';
 
 function ModalResumenCobro({ cliente, boletasSeleccionadas, nombreProducto, fechaPlanilla, formatearMoneda, cerrarModal, onCobroConfirmado }) {
     const [formaPago, setFormaPago] = useState('EFECTIVO');
@@ -102,7 +103,7 @@ function ModalResumenCobro({ cliente, boletasSeleccionadas, nombreProducto, fech
                         Cliente: <strong style={{ textTransform: 'capitalize', color: 'var(--text-primary)' }}>{cliente.nombre}</strong>
                     </p>
 
-                    {error && <div style={{ color: 'var(--danger)', fontWeight: 'bold', fontSize: '0.9rem' }}>{error}</div>}
+                    <MensajeError mensaje={error} />
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         {boletasSeleccionadas.map((boleta) => (

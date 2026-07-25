@@ -7,7 +7,8 @@ import SelectorEstadoEntrega from '@/shared/ui/SelectorEstadoEntrega';
 import SelectorEstadoPago from '@/shared/ui/SelectorEstadoPago';
 import InputNumero from '@/shared/ui/InputNumero';
 import { useCarritoBoleta } from './useCarritoBoleta';
-import { HiOutlinePencilSquare, HiOutlineUserCircle, HiOutlineArrowPath } from 'react-icons/hi2';
+import { HiOutlinePencilSquare, HiOutlineUserCircle, HiOutlineArrowPath, HiOutlineTrash } from 'react-icons/hi2';
+import MensajeError from '@/shared/ui/MensajeError';
 
 function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogoProductos, onBoletaEditada }) {
     const {
@@ -188,7 +189,7 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
 
     return (
         <div className="modal-overlay">
-            <div className="modal-contenido" style={{ width: '95%', maxWidth: '800px' }}>
+            <div className="modal-contenido" style={{ width: '95%', maxWidth: '1000px' }}>
 
                 <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlinePencilSquare /> Editar Boleta #{boleta?.id}</h3>
@@ -209,13 +210,14 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                     ) : (
                         <>
                             {/* SELECTOR Y CARGA MANUAL DE PRECIOS */}
-                            <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', marginBottom: '10px', backgroundColor: 'var(--surface-2)', padding: '10px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', flexWrap: 'wrap' }}>
+                            <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', marginBottom: '10px', backgroundColor: 'var(--surface-2)', padding: '10px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', flexWrap: 'wrap' }}>
                                 <div style={{ flex: '2 1 200px' }}>
+                                    <div style={{ height: '16px' }} />
                                     <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Producto:</label>
                                     <SelectPersonalizado
                                         value={idProducto}
                                         onChange={(e) => setIdProducto(e.target.value)}
-                                        placeholder="-- Seleccionar --"
+                                        placeholder="Seleccionar producto"
                                         opciones={stockProductos
                                             .filter(item => (item.stock - item.stock_vendido) > 0)
                                             .map(item => {
@@ -245,6 +247,7 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                                 </div>
 
                                 <div style={{ flex: '1 1 100px' }}>
+                                    <div style={{ height: '16px' }} />
                                     <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>$ Precio:</label>
                                     <InputMoneda
                                         value={precioUnitario}
@@ -254,6 +257,7 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                                 </div>
 
                                 <div style={{ flex: '1 1 100px' }}>
+                                    <div style={{ height: '16px' }} />
                                     <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>$ Vacío:</label>
                                     <InputMoneda
                                         value={precioVacio}
@@ -262,24 +266,26 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                                     />
                                 </div>
 
-                                <button
-                                    className='btn-global btn-primario'
-                                    onClick={agregarAlCarrito}
-                                    disabled={excedeStock || !idProducto || !stockDisponibleActual}
-                                    style={{ padding: '9px 20px', cursor: (excedeStock || !idProducto) ? 'not-allowed' : 'pointer'}}
-                                >
-                                    + Agregar
-                                </button>
+                                <div>
+                                    <div style={{ height: '16px' }} />
+                                    <label style={{ fontSize: '0.9rem', fontWeight: 'bold', visibility: 'hidden' }}>&nbsp;</label>
+                                    <button
+                                        className='btn-global btn-primario'
+                                        onClick={agregarAlCarrito}
+                                        disabled={excedeStock || !idProducto || !stockDisponibleActual}
+                                        style={{ padding: '7px 20px', border: '1px solid transparent', fontSize: '0.9rem', cursor: (excedeStock || !idProducto) ? 'not-allowed' : 'pointer', display: 'block' }}
+                                    >
+                                        + Agregar
+                                    </button>
+                                </div>
                             </div>
                         </>
                     )}
 
-                    {errorVenta && <div style={{ color: 'var(--danger)', marginBottom: '10px', fontSize: '0.9rem', fontWeight: 'bold' }}>{errorVenta}</div>}
+                    <MensajeError mensaje={errorVenta} />
 
                     {mensajesStockExcedido.map((mensaje, i) => (
-                        <div key={i} style={{ color: 'var(--danger)', marginBottom: '5px', fontSize: '0.9rem', fontWeight: 'bold' }}>
-                            {mensaje}
-                        </div>
+                        <MensajeError key={i} mensaje={mensaje} />
                     ))}
 
                     {/* TABLA DETALLE DE BOLETAS (AHORA INTERACTIVA) */}
@@ -353,24 +359,27 @@ function ModalModificarBoleta({ cerrarModal, boleta, cliente, planilla, catalogo
                                             {/* Cantidad Entregada (solo en modo Entrega Parcial) */}
                                             {entregado === 'PARCIAL' && (
                                                 <td style={{ padding: '10px' }}>
-                                                    <InputNumero
-                                                        min="0" max={fila.cantidad} step="0.5"
-                                                        value={fila.cantidad_entregada}
-                                                        onChange={(e) => actualizarCantidadEntregada(fila.id_fila, e.target.value)}
-                                                        onBlur={() => confirmarCantidadEntregada(fila.id_fila)}
-                                                        style={{ width: '85px', padding: '4px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', textAlign: 'center', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
-                                                    />
-                                                    <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}> / {fila.cantidad}</span>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                        <InputNumero
+                                                            min="0" max={fila.cantidad} step="0.5"
+                                                            value={fila.cantidad_entregada}
+                                                            onChange={(e) => actualizarCantidadEntregada(fila.id_fila, e.target.value)}
+                                                            onBlur={() => confirmarCantidadEntregada(fila.id_fila)}
+                                                            style={{ width: '85px', padding: '4px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', textAlign: 'center', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
+                                                        />
+                                                        <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>/ {fila.cantidad}</span>
+                                                    </div>
                                                 </td>
                                             )}
 
                                             {/* Botón Borrar */}
                                             <td style={{ padding: '10px', textAlign: 'center' }}>
-                                                <button 
+                                                <button
                                                     className='btn-eliminar-fila'
                                                     onClick={() => eliminarDelCarrito(fila.id_fila)}
+                                                    title="Eliminar producto"
                                                 >
-                                                    X
+                                                    <HiOutlineTrash />
                                                 </button>
                                             </td>
 

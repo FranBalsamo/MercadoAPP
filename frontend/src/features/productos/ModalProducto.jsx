@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { HiOutlineCube } from 'react-icons/hi2';
 import '@/shared/styles/Modal.css';
 import '@/shared/styles/Botones.css';
+import MensajeError from '@/shared/ui/MensajeError';
 
 function ModalProducto({ cerrarModal, onProductoAgregado }) {
     
@@ -65,9 +66,7 @@ function ModalProducto({ cerrarModal, onProductoAgregado }) {
                 </div>
 
                 <div className="modal-body">
-                    {error && (
-                        <div style={{ color: 'var(--danger)', fontSize: '0.8rem' }}>{error}</div>
-                    )}
+                    <MensajeError mensaje={error} />
                     <div className="form-group">
                         <label>Nombre del Producto:</label>
                         <input

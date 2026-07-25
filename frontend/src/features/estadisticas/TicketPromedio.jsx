@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { calcularRangoFechas } from '@/shared/utils/rangoFechas';
 import ToggleEscalaTiempo from './ToggleEscalaTiempo';
 import { HiOutlineTicket } from 'react-icons/hi2';
+import MensajeError from '@/shared/ui/MensajeError';
 
 const formatearMoneda = (valor) => (valor ?? 0).toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
 
@@ -41,7 +42,7 @@ function TicketPromedio() {
                 <ToggleEscalaTiempo escala={escala} onCambiar={setEscala} />
             </div>
 
-            {error && <p style={{ color: 'var(--danger)', fontSize: '0.9rem' }}>{error}</p>}
+            <MensajeError mensaje={error} />
 
             {cargando ? (
                 <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Cargando...</p>

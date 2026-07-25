@@ -4,6 +4,7 @@ import { writeFile } from '@tauri-apps/plugin-fs';
 import { HiOutlineArrowDownTray, HiOutlineArrowUpTray, HiOutlineShieldExclamation, HiOutlineClock, HiOutlineFolderOpen } from 'react-icons/hi2';
 import AlertaConfirmacion from '@/shared/ui/AlertaConfirmacion';
 import InputNumero from '@/shared/ui/InputNumero';
+import MensajeError from '@/shared/ui/MensajeError';
 
 const esTauriApp = () => typeof window !== 'undefined' && !!window.__TAURI_INTERNALS__;
 
@@ -229,7 +230,7 @@ function TabBackup() {
                 <HiOutlineShieldExclamation /> Copia de Seguridad
             </h3>
 
-            {error && <div style={{ color: 'var(--danger)', fontWeight: 'bold', fontSize: '0.9rem' }}>{error}</div>}
+            <MensajeError mensaje={error} />
             {mensaje && <div style={{ color: 'var(--success)', fontWeight: 'bold', fontSize: '0.9rem' }}>{mensaje}</div>}
 
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 1fr) minmax(360px, 1.3fr)', gap: '20px', alignItems: 'start' }}>
@@ -337,12 +338,12 @@ function TabBackup() {
                             Próximo backup automático: {proximoBackup()}
                         </p>
                         {ultimoBackupFallo() && (
-                            <p style={{ margin: '0 0 12px 0', color: 'var(--danger)', fontWeight: 'bold', fontSize: '0.85rem' }}>
-                                ⚠️ El último backup automático no se pudo generar. Verificá la carpeta de destino.
-                            </p>
+                            <div style={{ marginBottom: '12px' }}>
+                                <MensajeError mensaje="El último backup automático no se pudo generar. Verificá la carpeta de destino." />
+                            </div>
                         )}
 
-                        {errorConfig && <div style={{ color: 'var(--danger)', fontWeight: 'bold', fontSize: '0.9rem', marginBottom: '10px' }}>{errorConfig}</div>}
+                        <MensajeError mensaje={errorConfig} />
                         {mensajeConfig && <div style={{ color: 'var(--success)', fontWeight: 'bold', fontSize: '0.9rem', marginBottom: '10px' }}>{mensajeConfig}</div>}
 
                         <button className="btn-global btn-primario-green" onClick={handleGuardarConfig} disabled={guardandoConfig}>
@@ -356,6 +357,7 @@ function TabBackup() {
             {mostrarConfirmacion && (
                 <AlertaConfirmacion
                     mensaje={`¿Reemplazar todos los datos actuales por "${archivoAImportar?.name}"?\nEsta acción no se puede deshacer.`}
+                    textoConfirmar="Reemplazar datos"
                     onConfirmar={confirmarImportacion}
                     onCancelar={cancelarImportacion}
                 />

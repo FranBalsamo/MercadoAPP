@@ -1,124 +1,134 @@
-import { useState } from 'react';
-import { HiOutlinePlusCircle, HiOutlineExclamationTriangle, HiOutlineTrash } from 'react-icons/hi2';
+import {useState, useEffect} from 'react';
+import { HiOutlineDocumentText, HiOutlineExclamationTriangle, HiOutlineTrash } from 'react-icons/hi2';
 import SelectPersonalizado from '@/shared/ui/SelectPersonalizado';
 import InputNumero from '@/shared/ui/InputNumero';
 import '@/shared/styles/Modal.css';
 import '@/shared/styles/Botones.css';
 import '@/shared/styles/Formularios.css';
 
-function ModalAgregarProducto({ cerrarModal, planilla, catalogoProductos, stockProductos, onStockAgregado }) {
-    // Iniciamos con una fila vacía por defecto
-    const [filas, setFilas] = useState([
-        { id_fila: crypto.randomUUID(), id_producto: '', cantidad: '' }
+function ModalAbrirPlanilla({cerrarModal, onPlanillaCreada}) {
+
+    const [stockDiario, setStockDiario] = useState([
+        {id_fila: crypto.randomUUID() ,id_producto: '', stock: ''}
     ]);
+    const [productosDB, setProductosDB] = useState([]);
     const [error, setError] = useState('');
     const [guardando, setGuardando] = useState(false);
 
-    // 1. Extraemos los IDs de los productos que YA están en la planilla hoy
-    const idsYaEnPlanilla = stockProductos.map(item => String(item.id_producto));
+    useEffect(() => {
 
-    // 2. Extraemos los IDs que el usuario está seleccionando AHORA MISMO en este modal
-    const idsSeleccionadosModal = filas.map(fila => String(fila.id_producto)).filter(id => id !== '');
+        const traerProductos = async () => {
+            try {
+                const respuesta = await fetch('http://localhost:8080/api/productos/All');
 
-    // --- LÓGICA DE FILAS ---
+                if (respuesta.ok) {
+                    const datos = await respuesta.json(); //convierte la respuesta de Java a un arreglo de JavaScript
+                    setProductosDB(datos);
+                } else {
+                    setError('Error al cargar la lista de productos del servidor.');
+                }
+            } catch (err) {
+                console.log(err);
+                setError('No se pudo establecer conexion con el servidor');
+            }
+        }
+
+        traerProductos();
+    }, []); //Los corchetes [], sirven para avisar a React que esto solo lo haga una sola vez al abrir el modal.
+
     const agregarFila = () => {
-        setFilas([...filas, { id_fila: crypto.randomUUID(), id_producto: '', cantidad: '' }]);
-    };
+        setStockDiario([...stockDiario, {id_fila: crypto.randomUUID(), id_producto: '', stock:'' }]);
+        /*Los ... se llama Spread Operator y stockDiario es la tabla vieja. En idioma humano significa: "Copia todas las filas que ya existían en la tabla vieja y pégalas aquí".*/
+    }
 
     const actualizarFila = (index, campo, valor) => {
-        const nuevasFilas = [...filas];
-        nuevasFilas[index][campo] = valor;
-        setFilas(nuevasFilas);
+        const nuevaFilas = [...stockDiario];
+        nuevaFilas[index][campo] = valor;
+        setStockDiario(nuevaFilas);
     };
 
     const eliminarFila = (index) => {
-        const nuevasFilas = filas.filter((_, i) => i !== index);
-        setFilas(nuevasFilas);
+        const nuevaFilas = stockDiario.filter((_, i) => i !== index);
+        setStockDiario(nuevaFilas);
     };
 
-    // --- LÓGICA PARA GUARDAR ---
     const handleGuardar = async () => {
-        setError('');
 
-        if (filas.length === 0) {
-            setError('Agregá al menos un producto.');
+        if (stockDiario.length === 0) {
+            setError('Cargá al menos un producto para abrir la planilla.');
             return;
         }
-
-        // Validación fila por fila
-        for (let i = 0; i < filas.length; i++) {
-            const fila = filas[i];
+        for (let i = 0; i < stockDiario.length; i++) {
+            const fila = stockDiario[i];
             const numeroFila = i + 1;
 
             if (!fila.id_producto || fila.id_producto === '') {
                 setError(`Faltó seleccionar un producto en la fila ${numeroFila}.`);
                 return;
             }
-
-            const cantidadReal = parseFloat(fila.cantidad);
-            if (!fila.cantidad || isNaN(cantidadReal) || cantidadReal <= 0) {
-                setError(`La cantidad debe ser mayor a 0 en la fila ${numeroFila}.`);
+            const cantidad = parseFloat(fila.stock); //parseFloat porque el stock admite fracciones (steps de 0.5)
+            if (!fila.stock || isNaN(cantidad) || cantidad < 1) {
+                setError(`La cantidad debe ser al menos 1 en la fila ${numeroFila}.`);
                 return;
             }
         }
 
+        setError('');
         setGuardando(true);
-
         try {
-            // Hacemos un bucle para enviar cada producto nuevo a tu API
-            for (const fila of filas) {
-                const nuevoStockDTO = {
-                    id_producto: Number(fila.id_producto),
-                    id_planilla: planilla.id,
-                    stock: parseFloat(fila.cantidad)
-                };
+            console.log('Guardando planilla...', stockDiario);
 
-                // Llama al endpoint de creación (asegúrate de que sea tu URL correcta)
-                const respuesta = await fetch('http://localhost:8080/api/stock/add', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(nuevoStockDTO)
-                });
+            const planillaDTO = {
+                stockProductos: stockDiario.map(fila => ({
+                    id_producto: parseInt(fila.id_producto),
+                    stock: parseFloat(fila.stock)
+                }))
+            };
 
-                if (!respuesta.ok) {
-                    throw new Error(`Error al guardar el producto ${fila.id_producto}`);
-                }
+            console.log("Enviando: ", planillaDTO);
+            const respuesta = await fetch('http://localhost:8080/api/planilla/new', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(planillaDTO)
+            });
+
+            if (respuesta.ok) {
+                const planillaCreada = await respuesta.json();
+                console.log('Planilla abierta con exito: ', planillaCreada);
+
+                cerrarModal();
+                onPlanillaCreada(planillaCreada);
+
+            } else {
+                const mensajeError = await respuesta.text();
+                setError(mensajeError ? mensajeError : 'Error en el servidor al intentar abrir la planilla.');
             }
-
-            console.log("¡Nuevos productos agregados con éxito!");
-            await onStockAgregado(); // Le avisamos a VistaPuntoVenta que recargue el stock
-            cerrarModal();
-
         } catch (err) {
-            console.error(err);
-            setError('No se pudieron guardar los productos en el servidor. Probá de nuevo.');
+            console.log(err);
+            setError('Error al intentar conectar con el servidor.')
         } finally {
             setGuardando(false);
         }
+
     };
 
-    // Ordenamos el catálogo alfabéticamente para el select
-    const catalogoOrdenado = [...catalogoProductos].sort((a, b) => a.nombre.localeCompare(b.nombre));
+    const idsEnUso = stockDiario.map(fila => String(fila.id_producto)).filter(id => id !== '');
 
-    // Al menos una fila con producto y cantidad válida cargados (si no, "Guardar" queda deshabilitado).
-    const hayProductoValido = filas.some(fila => {
-        const cantidadReal = parseFloat(fila.cantidad);
-        return fila.id_producto !== '' && !isNaN(cantidadReal) && cantidadReal > 0;
-    });
+    const catalogoOrdenado = [...productosDB].sort((a, b) => a.nombre.localeCompare(b.nombre));
 
-    return (
+    return(
         <div className="modal-overlay">
             <div className="modal-contenido" style={{ width: '95%', maxWidth: '600px', maxHeight: '90vh', height: '95%' }}>
 
                 <div className="modal-header">
-                    <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlinePlusCircle /> Agregar Producto a la Planilla</h3>
+                    <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlineDocumentText /> Abrir Nueva Planilla</h3>
                     <button className="btn-cerrar-modal" onClick={cerrarModal}>X</button>
                 </div>
 
                 <div className="modal-body" style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '12px' }}>
 
                     <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', margin: 0 }}>
-                        Sumá productos del catálogo que todavía no están en la planilla de hoy.
+                        Cargá el inventario inicial de cada producto para el día de hoy.
                     </p>
 
                     {error && (
@@ -139,7 +149,7 @@ function ModalAgregarProducto({ cerrarModal, planilla, catalogoProductos, stockP
                     </div>
 
                     <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px', padding: '2px' }}>
-                        {filas.map((fila, index) => (
+                        {stockDiario.map((fila, index) => (
                             <div key={fila.id_fila} style={{ display: 'flex', gap: '10px', alignItems: 'center', backgroundColor: 'var(--surface-2)', padding: '10px', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}>
 
                                 <SelectPersonalizado
@@ -149,25 +159,21 @@ function ModalAgregarProducto({ cerrarModal, planilla, catalogoProductos, stockP
                                     placeholder="Seleccionar producto"
                                     opciones={catalogoOrdenado
                                         .filter(prod => {
-                                            const idString = String(prod.id);
-                                            const yaEnPlanilla = idsYaEnPlanilla.includes(idString);
-                                            const yaSeleccionadoAqui = idsSeleccionadosModal.includes(idString);
-                                            const esMiSeleccion = String(fila.id_producto) === idString;
-                                            // SOLO mostramos la opción si:
-                                            // 1. NO está cargado previamente en la planilla.
-                                            // 2. Y (NO lo seleccioné en otra fila de este modal, o es el que tengo seleccionado actualmente).
-                                            return !yaEnPlanilla && (!yaSeleccionadoAqui || esMiSeleccion);
+                                            const idProdString = String(prod.id);
+                                            const estaEnUso = idsEnUso.includes(idProdString);
+                                            const esMiSeleccion = String(fila.id_producto) === idProdString;
+                                            return !estaEnUso || esMiSeleccion;
                                         })
                                         .map(prod => ({ value: prod.id, label: prod.nombre }))}
                                     capitalizarOpciones
                                 />
 
                                 <InputNumero
-                                    min="0.5"
+                                    min="1"
                                     step="0.5"
                                     placeholder="0"
-                                    value={fila.cantidad}
-                                    onChange={(e) => actualizarFila(index, 'cantidad', e.target.value)}
+                                    value={fila.stock}
+                                    onChange={(e) => actualizarFila(index, 'stock', e.target.value)}
                                     style={{ flex: 1, padding: '8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', textAlign: 'center', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
                                 />
 
@@ -196,11 +202,9 @@ function ModalAgregarProducto({ cerrarModal, planilla, catalogoProductos, stockP
                 </div>
 
                 <div className="modal-footer">
-                    <button className="btn-global btn-secundario" onClick={cerrarModal} disabled={guardando}>
-                        Cancelar
-                    </button>
-                    <button className="btn-global btn-primario-green" onClick={handleGuardar} disabled={guardando || !hayProductoValido}>
-                        {guardando ? 'Guardando...' : 'Guardar Productos'}
+                    <button className="btn-global btn-secundario" onClick={cerrarModal} disabled={guardando}>Cancelar</button>
+                    <button className="btn-global btn-primario-green" onClick={handleGuardar} disabled={guardando}>
+                        {guardando ? 'Abriendo...' : 'Abrir Planilla'}
                     </button>
                 </div>
 
@@ -209,4 +213,4 @@ function ModalAgregarProducto({ cerrarModal, planilla, catalogoProductos, stockP
     );
 }
 
-export default ModalAgregarProducto;
+export default ModalAbrirPlanilla;

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { HiOutlineBuildingOffice2, HiOutlinePhoto, HiOutlineTrash } from 'react-icons/hi2';
+import MensajeError from '@/shared/ui/MensajeError';
 
 // Reduce cualquier imagen a un ancho máximo antes de convertirla a base64,
 // para no guardar logos de varios MB en la base de datos.
@@ -163,7 +164,7 @@ function TabEmpresa() {
                 </div>
             </div>
 
-            {error && <div style={{ color: 'var(--danger)', fontWeight: 'bold', fontSize: '0.9rem' }}>{error}</div>}
+            <MensajeError mensaje={error} />
             {mensaje && <div style={{ color: 'var(--success)', fontWeight: 'bold', fontSize: '0.9rem' }}>{mensaje}</div>}
 
             <div>

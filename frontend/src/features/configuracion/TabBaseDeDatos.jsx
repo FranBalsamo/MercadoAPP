@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { HiOutlineCircleStack, HiOutlineCheckCircle } from 'react-icons/hi2';
+import MensajeError from '@/shared/ui/MensajeError';
 
 function TabBaseDeDatos() {
     const [info, setInfo] = useState(null);
@@ -39,7 +40,7 @@ function TabBaseDeDatos() {
             </p>
 
             {cargando && <p style={{ color: 'var(--text-muted)' }}>Cargando...</p>}
-            {error && <div style={{ color: 'var(--danger)', fontWeight: 'bold', fontSize: '0.9rem' }}>{error}</div>}
+            <MensajeError mensaje={error} />
 
             {info && (
                 <div style={{ backgroundColor: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px 20px' }}>

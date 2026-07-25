@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { calcularRangoFechas } from '@/shared/utils/rangoFechas';
 import ToggleEscalaTiempo from './ToggleEscalaTiempo';
 import { HiOutlineCreditCard } from 'react-icons/hi2';
+import MensajeError from '@/shared/ui/MensajeError';
 
 const COLORES_FORMA_PAGO = {
     EFECTIVO: '#2ecc71',
@@ -64,7 +65,7 @@ function GraficoFormaPago({ diametroTorta = 150 }) {
                 <ToggleEscalaTiempo escala={escala} onCambiar={setEscala} />
             </div>
 
-            {error && <p style={{ color: 'var(--danger)', fontSize: '0.9rem' }}>{error}</p>}
+            <MensajeError mensaje={error} />
 
             {cargando ? (
                 <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Cargando...</p>

@@ -4,7 +4,7 @@ import Sidebar from "./Sidebar";
 import PantallaCarga from "./PantallaCarga";
 import ModalProducto from "@/features/productos/ModalProducto";
 import ModalCliente from "@/features/clientes/ModalCliente";
-import ModalPlanilla from "@/features/planillas/ModalPlanilla";
+import ModalAbrirPlanilla from "@/features/planillas/ModalAbrirPlanilla";
 import VistaInicio from "@/features/inicio/VistaInicio";
 import VistaPuntoVenta from "@/features/planillas/VistaPuntoVenta";
 import VistaClientes from "@/features/clientes/VistaClientes";
@@ -337,7 +337,7 @@ function App() {
           cerrarModal={cerrarModalCliente}
           onClienteAgregado={avisarRecargaClientes}
         />}
-        {mostrarModalPlanilla && <ModalPlanilla
+        {mostrarModalPlanilla && <ModalAbrirPlanilla
           cerrarModal={cerrarModalPlanilla}
           onPlanillaCreada={abrirPlanilla}
         />}

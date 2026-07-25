@@ -10,6 +10,7 @@ import AlertaEmergente from '@/shared/ui/AlertaEmergente';
 import { formatearFechaVisual } from '@/shared/utils/formatoFecha';
 import { HiOutlineBanknotes, HiOutlineDocumentArrowDown, HiOutlineTicket, HiOutlineCalendarDays } from 'react-icons/hi2';
 import '@/shared/styles/Botones.css';
+import MensajeError from '@/shared/ui/MensajeError';
 
 const capitalizar = (texto) => {
     if (!texto) return '';
@@ -398,7 +399,7 @@ function VistaClienteDeudas({ cliente, volver }) {
                 </div>
             </div>
 
-            {error && <p style={{ color: 'var(--danger)', fontWeight: 'bold', margin: 0 }}>{error}</p>}
+            <MensajeError mensaje={error} />
 
             {/* CAJITAS DE DEUDA / SALDO A FAVOR + ACCIÓN DE PAGO */}
             <div style={{ flexShrink: 0, display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'stretch' }}>

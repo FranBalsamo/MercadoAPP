@@ -10,6 +10,7 @@ import MenuAccionesInline from '@/shared/ui/MenuAccionesInline';
 import Paginador from '@/shared/ui/Paginador';
 import '@/shared/styles/Botones.css';
 import '@/shared/styles/Formularios.css';
+import MensajeError from '@/shared/ui/MensajeError';
 
 const TAMANIO_PAGINA = 50;
 
@@ -360,7 +361,7 @@ function VistaBuscarBoletas() {
                     </div>
                 )}
 
-                {error && <p style={{ color: 'var(--danger)', fontWeight: 'bold', margin: 0, fontSize: '0.9rem' }}>{error}</p>}
+                <MensajeError mensaje={error} />
             </div>
 
             {/* RESULTADOS */}

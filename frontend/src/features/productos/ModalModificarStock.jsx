@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { HiOutlinePencilSquare, HiOutlineCube, HiOutlineExclamationTriangle } from 'react-icons/hi2';
+import { HiOutlinePencilSquare, HiOutlineCube, HiOutlineExclamationTriangle, HiOutlineTrash } from 'react-icons/hi2';
 import '@/shared/styles/Modal.css';
 import './FormEditarStock.css';
 import AlertaConfirmacion from '@/shared/ui/AlertaConfirmacion';
@@ -184,22 +184,24 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos, onStock
 
                 <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlinePencilSquare /> Modificar Inventario</h3>
-                    <button className="btn-cerrar-modal" onClick={cerrarModal}>×</button>
+                    <button className="btn-cerrar-modal" onClick={cerrarModal}>X</button>
                 </div>
 
                 <div className="modal-body" style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '12px' }}>
 
                     <div style={{
-                        display: 'flex', alignItems: 'center', gap: '8px',
+                        display: 'flex', alignItems: 'flex-start', gap: '8px',
                         backgroundColor: 'var(--info-soft)', color: 'var(--info-soft-text)',
                         padding: '10px 15px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)',
                         fontSize: '0.9rem', fontWeight: 'bold'
                     }}>
-                        <HiOutlineCube />
-                        Planilla del {planilla?.fecha ? formatearFechaVisual(planilla.fecha) : '-'}
-                        <span style={{ fontWeight: 'normal', color: 'var(--text-secondary)' }}>
-                            — ajustá la cantidad disponible de cada producto
-                        </span>
+                        <HiOutlineCube style={{ marginTop: '2px', flexShrink: 0 }} />
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                            <span>Planilla del {planilla?.fecha ? formatearFechaVisual(planilla.fecha) : '-'}</span>
+                            <span style={{ fontWeight: 'normal', color: 'var(--text-secondary)' }}>
+                                Ajustá la cantidad disponible de cada producto
+                            </span>
+                        </div>
                     </div>
 
                     {(error || hayInputsVacios) && (
@@ -252,7 +254,11 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos, onStock
                                                     {item.stock_vendido}
                                                 </td>
                                                 <td style={{ padding: '10px' }}>
-                                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                                                    {/* El indicador de delta va posicionado absoluto (no en el flujo normal) para que no
+                                                        cuente en la altura del contenido de la celda: si contara, el grupo input+delta se
+                                                        centraria verticalmente como bloque y el input quedaria por encima del centro real
+                                                        de la fila (mas arriba que el texto de las demas columnas). */}
+                                                    <div style={{ position: 'relative', width: '100%' }}>
                                                         <InputNumero
                                                             min="0"
                                                             value={valorAVisualizar}
@@ -270,9 +276,14 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos, onStock
                                                             }}
                                                         />
                                                         <span style={{
-                                                            height: '14px',
+                                                            position: 'absolute',
+                                                            top: '100%',
+                                                            left: '50%',
+                                                            transform: 'translateX(-50%)',
+                                                            marginTop: '2px',
                                                             fontSize: '0.72rem',
                                                             fontWeight: 'bold',
+                                                            whiteSpace: 'nowrap',
                                                             color: delta > 0 ? 'var(--success)' : 'var(--danger)',
                                                             visibility: delta !== 0 ? 'visible' : 'hidden'
                                                         }}>
@@ -286,7 +297,7 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos, onStock
                                                         title='Eliminar producto del catalogo'
                                                         onClick={() => solicitarEliminacion(item)}
                                                     >
-                                                        X
+                                                        <HiOutlineTrash />
                                                     </button>
                                                 </td>
                                             </tr>
@@ -321,6 +332,7 @@ function ModalModificarStock({ cerrarModal, planilla, catalogoProductos, onStock
             {mostrarAlertaEliminar && (
                 <AlertaConfirmacion
                     mensaje={`¿Eliminar "${itemAEliminar?.nombre}" del inventario?\nEsta acción no se puede deshacer.`}
+                    textoConfirmar="Eliminar producto"
                     onConfirmar={confirmarEliminacionStock}
                     onCancelar={() => {
                         setMostrarAlertaEliminar(false);

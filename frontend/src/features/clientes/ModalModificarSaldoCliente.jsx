@@ -3,6 +3,7 @@ import AlertaConfirmacion from '@/shared/ui/AlertaConfirmacion';
 import { HiOutlinePencilSquare } from 'react-icons/hi2';
 import '@/shared/styles/Modal.css';
 import '@/shared/styles/Botones.css';
+import MensajeError from '@/shared/ui/MensajeError';
 
 function ModalModificarSaldoCliente({ cerrarModal, cliente, onSaldoModificado }) {
     const [saldoCentavos, setSaldoCentavos] = useState(Math.round((cliente?.saldo_a_favor || 0) * 100));
@@ -67,9 +68,7 @@ function ModalModificarSaldoCliente({ cerrarModal, cliente, onSaldoModificado })
                         Cliente: <strong style={{ textTransform: 'capitalize', color: 'var(--text-primary)' }}>{cliente?.nombre}</strong>
                     </p>
 
-                    {error && (
-                        <div style={{ color: 'var(--danger)', fontSize: '0.8rem' }}>{error}</div>
-                    )}
+                    <MensajeError mensaje={error} />
 
                     <div className="form-group">
                         <label>Saldo del cliente:</label>

@@ -3,6 +3,7 @@ import ModalModificarProducto from './ModalModificarProducto';
 import { HiOutlineCube } from 'react-icons/hi2';
 import Paginador from '@/shared/ui/Paginador';
 import '@/shared/styles/Botones.css';
+import MensajeError from '@/shared/ui/MensajeError';
 
 const TAMANIO_PAGINA = 50;
 
@@ -107,6 +108,10 @@ function VistaProductos({ senalRecarga, abrirModalNuevoProducto }) {
             gap: '15px',
         }}>
 
+            <div style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '15px 20px', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)' }}>
+                <h2 style={{ margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlineCube /> Productos</h2>
+            </div>
+
             {/* 1. HEADER Y FILTROS */}
             <div style={{
                 display: 'flex',
@@ -148,7 +153,7 @@ function VistaProductos({ senalRecarga, abrirModalNuevoProducto }) {
                 <h3 style={{ fontSize: '1.2rem', margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}><HiOutlineCube /> Lista Productos</h3>
             </div>
 
-            {error && <p style={{ color: 'var(--danger)', fontWeight: 'bold', margin: 0 }}>{error}</p>}
+            <MensajeError mensaje={error} />
 
             {/* 2. CONTENEDOR DE LA TABLA (Maneja el Scroll) */}
             <div style={{

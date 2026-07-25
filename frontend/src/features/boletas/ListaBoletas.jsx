@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, memo } from "react";
-import { HiOutlineTicket } from 'react-icons/hi2';
+import { HiOutlineTicket, HiOutlineMagnifyingGlass, HiOutlineXMark } from 'react-icons/hi2';
 import "@/shared/styles/Botones.css";
+import "@/shared/styles/Formularios.css";
 import AlertaEmergente from "@/shared/ui/AlertaEmergente";
 import ModalVerBoleta from "./ModalVerBoleta";
 import MenuAccionesInline from "@/shared/ui/MenuAccionesInline";
@@ -165,14 +166,27 @@ function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBol
     return (
         <div style={{ flex: 3, minHeight: 0, backgroundColor: 'var(--surface)', border: '1px solid var(--border)', padding: '20px', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', display: 'flex', flexDirection: 'column' }}>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', marginBottom: '10px' }}>
-                <input
-                    type="text"
-                    placeholder="Filtrar boletas por nombre..."
-                    value={busqueda}
-                    onChange={(e) => setBusqueda(e.target.value)}
-                    style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '5px 10px', width: '50%', outline: 'none', backgroundColor: 'var(--surface)', color: 'var(--text-primary)' }}
-                />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '15px', marginBottom: '10px' }}>
+                <div className="input-busqueda-contenedor" style={{ width: '50%' }}>
+                    <span className="input-busqueda-icono"><HiOutlineMagnifyingGlass /></span>
+                    <input
+                        type="text"
+                        placeholder="Filtrar boletas por nombre..."
+                        value={busqueda}
+                        onChange={(e) => setBusqueda(e.target.value)}
+                        className={`input-busqueda ${busqueda ? 'input-busqueda-con-limpiar' : ''}`}
+                    />
+                    {busqueda && (
+                        <button
+                            type="button"
+                            className="input-busqueda-limpiar"
+                            onClick={() => setBusqueda('')}
+                            title="Limpiar búsqueda"
+                        >
+                            <HiOutlineXMark />
+                        </button>
+                    )}
+                </div>
                 <h3 style={{ color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>Boletas Cargadas <HiOutlineTicket /></h3>
             </div>
 
@@ -239,7 +253,7 @@ function ListaBoletas({ abrirModalBoleta, abrirModalModificarBoleta, eliminarBol
 
             <div style={{ paddingTop: '20px', borderTop: '1px dashed var(--border)', display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end' }}>
                 <button
-                    className='btn-global btn-primario'
+                    className='btn-global btn-primario-green'
                     onClick={abrirModalBoleta}
                     style={{ padding: '10px 20px', fontSize: '1.1rem' }}
                 >

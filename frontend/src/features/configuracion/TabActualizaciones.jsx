@@ -3,8 +3,9 @@ import { getVersion } from '@tauri-apps/api/app';
 import { invoke } from '@tauri-apps/api/core';
 import { check } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
-import { HiOutlineArrowPath, HiOutlineCheckCircle, HiOutlineArrowDownTray } from 'react-icons/hi2';
+import { HiOutlineArrowPath, HiOutlineCheckCircle, HiOutlineArrowDownTray, HiOutlineDocumentText } from 'react-icons/hi2';
 import MensajeError from '@/shared/ui/MensajeError';
+import '@/shared/styles/Modal.css';
 
 const esTauriApp = () => typeof window !== 'undefined' && !!window.__TAURI_INTERNALS__;
 
@@ -16,6 +17,7 @@ function TabActualizaciones() {
     const [instalando, setInstalando] = useState(false);
     const [progreso, setProgreso] = useState(0);
     const [error, setError] = useState('');
+    const [mostrarNotas, setMostrarNotas] = useState(false);
 
     useEffect(() => {
         if (!esTauriApp()) return;
@@ -108,23 +110,52 @@ function TabActualizaciones() {
 
             {update && (
                 <div style={{ backgroundColor: 'var(--info-soft)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px' }}>
-                    <p style={{ margin: '0 0 10px 0', fontWeight: 'bold', color: 'var(--info-soft-text)' }}>
+                    <p style={{ margin: '0 0 15px 0', fontWeight: 'bold', color: 'var(--info-soft-text)' }}>
                         Hay una versión nueva disponible: {update.version}
                     </p>
-                    {update.body && (
-                        <p style={{ margin: '0 0 15px 0', color: 'var(--text-secondary)', whiteSpace: 'pre-wrap', fontSize: '0.9rem' }}>
-                            {update.body}
-                        </p>
-                    )}
-                    <button
-                        className="btn-global btn-primario-green"
-                        onClick={instalarActualizacion}
-                        disabled={instalando}
-                        style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                    >
-                        <HiOutlineArrowDownTray />
-                        {instalando ? `Instalando... ${progreso}%` : 'Instalar y reiniciar'}
-                    </button>
+                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                        {update.body && (
+                            <button
+                                type="button"
+                                className="btn-global btn-secundario"
+                                onClick={() => setMostrarNotas(true)}
+                                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                            >
+                                <HiOutlineDocumentText />
+                                Ver cambios
+                            </button>
+                        )}
+                        <button
+                            className="btn-global btn-primario-green"
+                            onClick={instalarActualizacion}
+                            disabled={instalando}
+                            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                        >
+                            <HiOutlineArrowDownTray />
+                            {instalando ? `Instalando... ${progreso}%` : 'Instalar y reiniciar'}
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {mostrarNotas && update?.body && (
+                <div className="modal-overlay">
+                    <div className="modal-contenido" style={{ width: '95%', maxWidth: '520px', maxHeight: '80vh' }}>
+                        <div className="modal-header">
+                            <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <HiOutlineDocumentText /> Novedades de la versión {update.version}
+                            </h3>
+                            <button className="btn-cerrar-modal" onClick={() => setMostrarNotas(false)}>X</button>
+                        </div>
+                        <div className="modal-body">
+                            <p style={{ margin: 0, color: 'var(--text-primary)', whiteSpace: 'pre-wrap', fontSize: '0.9rem' }}>
+                                {update.body}
+                            </p>
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn-global btn-primario" onClick={() => setMostrarNotas(false)}>Cerrar</button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

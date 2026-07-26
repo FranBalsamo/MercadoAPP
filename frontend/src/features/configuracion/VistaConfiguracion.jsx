@@ -13,7 +13,18 @@ const PESTANIAS = [
     { id: 'actualizaciones', etiqueta: 'Actualizaciones', icono: HiOutlineArrowPath },
 ];
 
-function VistaConfiguracion({ pestaniaInicial = 'empresa' }) {
+function VistaConfiguracion({
+    pestaniaInicial = 'empresa',
+    versionApp,
+    updateDisponible,
+    buscandoActualizacion,
+    yaSeRevisoActualizacion,
+    erroActualizacion,
+    buscarActualizaciones,
+    instalandoActualizacion,
+    progresoInstalacion,
+    instalarActualizacion,
+}) {
     const [pestaniaActiva, setPestaniaActiva] = useState(pestaniaInicial);
     const botonesRef = useRef({});
     const [indicador, setIndicador] = useState({ left: 0, width: 0, listo: false });
@@ -75,7 +86,17 @@ function VistaConfiguracion({ pestaniaInicial = 'empresa' }) {
                 {pestaniaActiva === 'empresa' && <TabEmpresa />}
                 {pestaniaActiva === 'baseDeDatos' && <TabBaseDeDatos />}
                 {pestaniaActiva === 'backup' && <TabBackup />}
-                {pestaniaActiva === 'actualizaciones' && <TabActualizaciones />}
+                {pestaniaActiva === 'actualizaciones' && <TabActualizaciones
+                    versionApp={versionApp}
+                    updateDisponible={updateDisponible}
+                    buscandoActualizacion={buscandoActualizacion}
+                    yaSeRevisoActualizacion={yaSeRevisoActualizacion}
+                    erroActualizacion={erroActualizacion}
+                    buscarActualizaciones={buscarActualizaciones}
+                    instalandoActualizacion={instalandoActualizacion}
+                    progresoInstalacion={progresoInstalacion}
+                    instalarActualizacion={instalarActualizacion}
+                />}
             </div>
 
         </main>

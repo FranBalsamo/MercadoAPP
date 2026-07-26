@@ -1,4 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { getVersion } from "@tauri-apps/api/app";
+import { invoke } from "@tauri-apps/api/core";
+import { check } from "@tauri-apps/plugin-updater";
+import { relaunch } from "@tauri-apps/plugin-process";
+import { esTauriApp } from "@/shared/utils/esTauriApp";
+import AlertaEmergente from "@/shared/ui/AlertaEmergente";
 import TitleBar from "./TitleBar";
 import Sidebar from "./Sidebar";
 import PantallaCarga from "./PantallaCarga";
@@ -57,6 +63,23 @@ function App() {
   // aviso quedaba adentro de Configuracion > Backup: nadie se enteraba salvo que entrara a
   // mirar esa pestania puntual. Ahora se revisa periodicamente y se avisa en toda la app.
   const [alertaBackupFallo, setAlertaBackupFallo] = useState(false);
+  // Se dispara solo la primera vez que se detecta un backup nuevo EXITOSO durante esta sesion
+  // (no en el primer chequeo al abrir la app, para no avisar de un backup de hace rato).
+  const [avisoBackupExitoso, setAvisoBackupExitoso] = useState(null);
+  const ultimaEjecucionBackupRef = useRef(null);
+  const primerChequeoBackupRef = useRef(true);
+
+  // Estado de actualizaciones: vive aca (no adentro de TabActualizaciones) para que sobreviva
+  // a la navegacion — antes, con el estado adentro del tab, si el usuario se iba de
+  // Configuracion mientras se instalaba una actualizacion (o simplemente volvia despues),
+  // perdia el progreso y la pestania volvia a "Empresa" por defecto.
+  const [versionApp, setVersionApp] = useState('');
+  const [updateDisponible, setUpdateDisponible] = useState(null);
+  const [buscandoActualizacion, setBuscandoActualizacion] = useState(false);
+  const [yaSeRevisoActualizacion, setYaSeRevisoActualizacion] = useState(false);
+  const [erroActualizacion, setErrorActualizacion] = useState('');
+  const [instalandoActualizacion, setInstalandoActualizacion] = useState(false);
+  const [progresoInstalacion, setProgresoInstalacion] = useState(0);
 
   useEffect(() => {
     let cancelado = false;
@@ -111,6 +134,19 @@ function App() {
           const config = await respuesta.json();
           const fallo = config.activo && (config.ultimoResultado || '').startsWith('ERROR');
           if (!cancelado) setAlertaBackupFallo(fallo);
+
+          // Si "ultimaEjecucion" cambio desde el chequeo anterior, se genero un backup nuevo
+          // recien. El primer chequeo (al abrir la app) solo sirve para "tomar la posta" del
+          // valor actual, sin avisar — si no, avisaria de un backup que capaz paso hace horas.
+          const ejecucionActual = config.ultimaEjecucion;
+          if (!cancelado && ejecucionActual && ejecucionActual !== ultimaEjecucionBackupRef.current) {
+            const esPrimerChequeo = primerChequeoBackupRef.current;
+            ultimaEjecucionBackupRef.current = ejecucionActual;
+            primerChequeoBackupRef.current = false;
+            if (!esPrimerChequeo && !fallo) {
+              setAvisoBackupExitoso('Backup automático completado.');
+            }
+          }
         }
       } catch (error) {
         // Sin conexion momentanea: no tiene sentido alarmar por esto puntualmente.
@@ -122,7 +158,85 @@ function App() {
     return () => { cancelado = true; clearInterval(intervalo); };
   }, [backendListo]);
 
+  // Version instalada, para mostrarla en Configuracion > Actualizaciones.
+  useEffect(() => {
+    if (!esTauriApp()) return;
+    getVersion().then(setVersionApp).catch((err) => console.error('No se pudo leer la versión actual:', err));
+  }, []);
+
+  const buscarActualizaciones = async () => {
+    if (!esTauriApp()) return;
+    setBuscandoActualizacion(true);
+    setErrorActualizacion('');
+    setYaSeRevisoActualizacion(false);
+    try {
+      const resultado = await check();
+      setUpdateDisponible(resultado || null);
+      setYaSeRevisoActualizacion(true);
+    } catch (err) {
+      console.error('Error al buscar actualizaciones:', err);
+      setErrorActualizacion('No se pudo conectar con el servidor de actualizaciones. Revisá tu conexión a internet.');
+    } finally {
+      setBuscandoActualizacion(false);
+    }
+  };
+
+  // Chequeo automatico en segundo plano (al abrir la app y despues cada 6hs), para poder
+  // avisar de una version nueva sin que el usuario tenga que entrar a buscarla el mismo.
+  useEffect(() => {
+    if (!backendListo || !esTauriApp()) return;
+    let cancelado = false;
+
+    const revisarSilencioso = async () => {
+      try {
+        const resultado = await check();
+        if (!cancelado && resultado) setUpdateDisponible(resultado);
+      } catch (error) {
+        // Sin conexion momentanea: no tiene sentido alarmar por esto puntualmente.
+      }
+    };
+
+    revisarSilencioso();
+    const intervalo = setInterval(revisarSilencioso, 6 * 60 * 60 * 1000);
+    return () => { cancelado = true; clearInterval(intervalo); };
+  }, [backendListo]);
+
+  const instalarActualizacion = async () => {
+    if (!updateDisponible) return;
+    setInstalandoActualizacion(true);
+    setErrorActualizacion('');
+    setProgresoInstalacion(0);
+    try {
+      // El instalador corre en modo pasivo mientras la app sigue viva, y necesita
+      // sobreescribir el .bin del backend y mysqld.exe: si siguen corriendo, Windows
+      // los tiene bloqueados y la instalacion falla con "Error opening file for writing".
+      // Los apagamos antes de descargar/instalar para liberar esos archivos a tiempo.
+      await invoke('detener_backend_para_actualizar').catch((err) =>
+        console.error('No se pudo detener el backend local antes de actualizar:', err)
+      );
+
+      let totalDescargado = 0;
+      let tamanioTotal = 0;
+      await updateDisponible.downloadAndInstall((evento) => {
+        if (evento.event === 'Started') {
+          tamanioTotal = evento.data.contentLength || 0;
+        } else if (evento.event === 'Progress') {
+          totalDescargado += evento.data.chunkLength;
+          if (tamanioTotal > 0) setProgresoInstalacion(Math.round((totalDescargado / tamanioTotal) * 100));
+        } else if (evento.event === 'Finished') {
+          setProgresoInstalacion(100);
+        }
+      });
+      await relaunch();
+    } catch (err) {
+      console.error('Error al instalar la actualización:', err);
+      setErrorActualizacion('Ocurrió un error al descargar o instalar la actualización.');
+      setInstalandoActualizacion(false);
+    }
+  };
+
   const irAConfiguracionBackup = () => abrirVistaConfiguracion('backup');
+  const irAConfiguracionActualizaciones = () => abrirVistaConfiguracion('actualizaciones');
 
   const avisarRecargaClientes = () => {
     setActualizarClientes(prev => prev + 1);
@@ -191,8 +305,12 @@ function App() {
     setVistaActiva('operaciones');
   }
 
-  const abrirVistaConfiguracion = (pestania = 'empresa') => {
-    setPestaniaConfigInicial(pestania);
+  const abrirVistaConfiguracion = (pestania) => {
+    // Si no se pide una pestania puntual (ej. desde el sidebar) y hay una actualizacion
+    // esperando (encontrada o instalandose), se entra directo ahi en vez de "Empresa" —
+    // asi no hace falta ir a buscarla de nuevo cada vez que se vuelve a Configuracion.
+    const pestaniaFinal = pestania || ((updateDisponible || instalandoActualizacion) ? 'actualizaciones' : 'empresa');
+    setPestaniaConfigInicial(pestaniaFinal);
     setVistaAnterior(vistaActiva);
     setVistaActiva('configuracion');
   }
@@ -266,7 +384,18 @@ function App() {
       return <VistaBuscarOperaciones />
     }
     else if (vistaActiva === 'configuracion') {
-      return <VistaConfiguracion pestaniaInicial={pestaniaConfigInicial} />
+      return <VistaConfiguracion
+        pestaniaInicial={pestaniaConfigInicial}
+        versionApp={versionApp}
+        updateDisponible={updateDisponible}
+        buscandoActualizacion={buscandoActualizacion}
+        yaSeRevisoActualizacion={yaSeRevisoActualizacion}
+        erroActualizacion={erroActualizacion}
+        buscarActualizaciones={buscarActualizaciones}
+        instalandoActualizacion={instalandoActualizacion}
+        progresoInstalacion={progresoInstalacion}
+        instalarActualizacion={instalarActualizacion}
+      />
     }
     return <VistaInicio
       abrirModalPlanilla={abrirModalPlanilla}
@@ -305,6 +434,26 @@ function App() {
           </button>
         </div>
       )}
+      {updateDisponible && (
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap',
+          backgroundColor: 'var(--info-soft)', color: 'var(--info-soft-text)',
+          borderBottom: '1px solid var(--border)',
+          padding: '8px 15px', flexShrink: 0
+        }}>
+          <span style={{ fontWeight: 'bold' }}>
+            🆕 Hay una versión nueva disponible: {updateDisponible.version}
+          </span>
+          <button className="btn-global btn-secundario" onClick={irAConfiguracionActualizaciones}>
+            {instalandoActualizacion ? `Instalando... ${progresoInstalacion}%` : 'Ver actualización'}
+          </button>
+        </div>
+      )}
+      <AlertaEmergente
+        mensaje={avisoBackupExitoso}
+        tipo="exito"
+        onClose={() => setAvisoBackupExitoso(null)}
+      />
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
         <Sidebar
           vistaActiva={vistaActiva}

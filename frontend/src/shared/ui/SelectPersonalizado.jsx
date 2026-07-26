@@ -118,6 +118,28 @@ function SelectPersonalizado({ value, onChange, opciones, placeholder = 'Selecci
         } else if (e.key === 'Enter' && abierto) {
             e.preventDefault();
             if (opcionesFiltradas[resaltado]) elegir(opcionesFiltradas[resaltado]);
+        } else if (e.key === 'Tab' && abierto) {
+            if (opcionesFiltradas.length === 1) {
+                // Una sola coincidencia posible: Tab la confirma y sigue de largo al siguiente
+                // campo (sin preventDefault, para no interrumpir la navegacion normal del
+                // formulario) — asi no hace falta un Enter aparte para confirmar.
+                elegir(opcionesFiltradas[0]);
+            } else if (opcionesFiltradas.length >= 2) {
+                // Todavia hay mas de una opcion posible (o no se escribio nada y se ven todas):
+                // Tab/Shift+Tab navegan el resaltado entre ellas, igual que las flechas, en vez
+                // de salir del campo — recien al llegar a una sola coincidencia (o con Enter)
+                // se confirma.
+                e.preventDefault();
+                if (e.shiftKey) {
+                    setResaltado((prev) => Math.max(0, prev - 1));
+                } else {
+                    setResaltado((prev) => Math.min(opcionesFiltradas.length - 1, prev + 1));
+                }
+            } else {
+                // "Sin resultados": no hay nada para elegir ni para navegar. Se cierra y se
+                // deja que Tab siga su curso normal para no dejar al usuario trabado ahi.
+                setAbierto(false);
+            }
         }
     };
 

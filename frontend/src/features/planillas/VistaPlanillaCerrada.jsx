@@ -6,8 +6,14 @@ import { writeFile } from '@tauri-apps/plugin-fs';
 import ModalModificarBoleta from '@/features/boletas/ModalModificarBoleta';
 import ModalVerBoleta from '@/features/boletas/ModalVerBoleta';
 import AlertaEmergente from '@/shared/ui/AlertaEmergente';
+import ModalVistaPreviaImpresion from '@/shared/ui/ModalVistaPreviaImpresion';
 import { formatearFechaVisual } from '@/shared/utils/formatoFecha';
-import { HiOutlineLockClosed, HiOutlineDocumentArrowDown, HiOutlineCube, HiOutlineTicket } from 'react-icons/hi2';
+import {
+    COLOR_TEXTO_PRIMARIO, COLOR_TEXTO_SECUNDARIO, COLOR_TEXTO_MUTED, COLOR_ACENTO,
+    COLOR_EXITO, COLOR_PELIGRO, COLOR_ADVERTENCIA, COLOR_INFO,
+    COLOR_SUPERFICIE_INVERSA, COLOR_TEXTO_SOBRE_INVERSA, COLOR_BORDE, COLOR_SUPERFICIE_2,
+} from '@/shared/utils/coloresImpresion';
+import { HiOutlineLockClosed, HiOutlineDocumentArrowDown, HiOutlineCube, HiOutlineTicket, HiOutlinePrinter } from 'react-icons/hi2';
 import SelectPersonalizado from '@/shared/ui/SelectPersonalizado';
 import MenuAccionesInline from '@/shared/ui/MenuAccionesInline';
 import '@/shared/styles/Formularios.css';
@@ -129,6 +135,8 @@ function VistaPlanillaCerrada({ planilla, volver }) {
     const [mensajeExport, setMensajeExport] = useState(null);
     const [tipoExport, setTipoExport] = useState('exito');
     const [empresa, setEmpresa] = useState(null);
+    const [mostrarVistaPrevia, setMostrarVistaPrevia] = useState(false);
+    const [docParaImprimir, setDocParaImprimir] = useState(null);
 
     useEffect(() => {
         const cargarDatos = async () => {
@@ -267,7 +275,9 @@ function VistaPlanillaCerrada({ planilla, volver }) {
         return configOrden.direccion === 'asc' ? ' ⬇️' : ' ⬆️';
     };
 
-    const exportarPDF = async () => {
+    // Arma el documento (usado tanto para "Exportar PDF" como para la vista previa de
+    // impresion) sin guardarlo ni mandarlo a ningun lado todavia.
+    const construirPDF = () => {
         const doc = new jsPDF();
         const anchoPagina = doc.internal.pageSize.getWidth();
 
@@ -289,48 +299,48 @@ function VistaPlanillaCerrada({ planilla, volver }) {
             .filter(Boolean).join(' — ');
 
         doc.setFontSize(16);
-        doc.setTextColor(44, 62, 80);
+        doc.setTextColor(...COLOR_TEXTO_PRIMARIO);
         doc.text(
             doc.splitTextToSize(empresa?.nombre ? capitalizar(empresa.nombre) : 'MercadoApp', anchoMaximoTextoEmpresa)[0],
             xTexto, 18
         );
         doc.setFontSize(10);
-        doc.setTextColor(127, 127, 127);
+        doc.setTextColor(...COLOR_TEXTO_SECUNDARIO);
         doc.text('Resumen de planilla cerrada', xTexto, 24);
 
         if (datosExtra) {
             doc.setFontSize(8);
-            doc.setTextColor(150, 150, 150);
+            doc.setTextColor(...COLOR_TEXTO_MUTED);
             doc.text(doc.splitTextToSize(datosExtra, anchoMaximoTextoEmpresa)[0], xTexto, 29);
         }
 
         doc.setFontSize(10);
-        doc.setTextColor(85, 85, 85);
+        doc.setTextColor(...COLOR_TEXTO_SECUNDARIO);
         doc.text(`Fecha planilla: ${formatearFechaVisual(planilla.fecha)}`, anchoPagina - 14, 15, { align: 'right' });
         doc.text('Estado: CERRADA', anchoPagina - 14, 20, { align: 'right' });
-        doc.setTextColor(150, 150, 150);
+        doc.setTextColor(...COLOR_TEXTO_MUTED);
         doc.text(`Generado: ${new Date().toLocaleString('es-AR', { hour12: false })}`, anchoPagina - 14, 25, { align: 'right' });
 
-        doc.setDrawColor(44, 62, 80);
+        doc.setDrawColor(...COLOR_ACENTO);
         doc.setLineWidth(0.5);
         doc.line(14, 34, anchoPagina - 14, 34);
 
         const anchoCaja = (anchoPagina - 28 - 10) / 3;
         const cajas = [
-            { titulo: 'Ingresos totales', valor: formatearMoneda(totalesPlanilla.ingresoTotal), color: [39, 174, 96] },
-            { titulo: 'Deuda pendiente', valor: formatearMoneda(totalesPlanilla.deudaTotal), color: [192, 57, 43] },
-            { titulo: 'Boletas emitidas', valor: String(boletasProcesadas.length), color: [44, 62, 80] },
+            { titulo: 'Ingresos totales', valor: formatearMoneda(totalesPlanilla.ingresoTotal), color: COLOR_EXITO },
+            { titulo: 'Deuda pendiente', valor: formatearMoneda(totalesPlanilla.deudaTotal), color: COLOR_PELIGRO },
+            { titulo: 'Boletas emitidas', valor: String(boletasProcesadas.length), color: COLOR_TEXTO_PRIMARIO },
         ];
 
         cajas.forEach((caja, i) => {
             const x = 14 + i * (anchoCaja + 5);
-            doc.setDrawColor(224, 224, 224);
+            doc.setDrawColor(...COLOR_BORDE);
             doc.setFillColor(...caja.color);
             doc.rect(x, 39, 1, 14, 'F');
-            doc.setDrawColor(224, 224, 224);
+            doc.setDrawColor(...COLOR_BORDE);
             doc.rect(x, 39, anchoCaja, 14);
             doc.setFontSize(8);
-            doc.setTextColor(127, 127, 127);
+            doc.setTextColor(...COLOR_TEXTO_SECUNDARIO);
             doc.text(caja.titulo, x + 4, 44);
             doc.setFontSize(11);
             doc.setTextColor(...caja.color);
@@ -345,10 +355,10 @@ function VistaPlanillaCerrada({ planilla, volver }) {
 
         if (stockSobrante) {
             doc.setFontSize(9);
-            doc.setTextColor(44, 62, 80);
+            doc.setTextColor(...COLOR_TEXTO_PRIMARIO);
             doc.text('Inventario sobrante al cierre:', 14, cursorY);
             doc.setFontSize(8);
-            doc.setTextColor(100, 100, 100);
+            doc.setTextColor(...COLOR_TEXTO_SECUNDARIO);
             const lineasStock = doc.splitTextToSize(stockSobrante, anchoPagina - 28);
             doc.text(lineasStock, 14, cursorY + 5);
             cursorY += 5 + lineasStock.length * 4 + 4;
@@ -384,8 +394,8 @@ function VistaPlanillaCerrada({ planilla, volver }) {
             head: [['Cliente', 'Pago', 'Entrega', 'Forma de Pago', 'Productos', 'Total']],
             body: filas,
             styles: { fontSize: 8, cellPadding: 3, valign: 'top' },
-            headStyles: { fillColor: [44, 62, 80], textColor: 255 },
-            alternateRowStyles: { fillColor: [250, 250, 250] },
+            headStyles: { fillColor: COLOR_SUPERFICIE_INVERSA, textColor: COLOR_TEXTO_SOBRE_INVERSA },
+            alternateRowStyles: { fillColor: COLOR_SUPERFICIE_2 },
             columnStyles: {
                 4: { cellWidth: 70 },
                 5: { halign: 'right' },
@@ -393,19 +403,19 @@ function VistaPlanillaCerrada({ planilla, volver }) {
             didParseCell: (data) => {
                 if (data.section === 'body' && data.column.index === 1) {
                     const esPagado = data.cell.raw === 'PAGADO';
-                    data.cell.styles.textColor = esPagado ? [39, 174, 96] : [192, 57, 43];
+                    data.cell.styles.textColor = esPagado ? COLOR_EXITO : COLOR_PELIGRO;
                     data.cell.styles.fontStyle = 'bold';
                 }
                 if (data.section === 'body' && data.column.index === 2) {
                     const valor = data.cell.raw;
-                    data.cell.styles.textColor = valor === 'ENTREGADO' ? [41, 128, 185] : valor === 'ENTREGA PARCIAL' ? [230, 126, 34] : [192, 57, 43];
+                    data.cell.styles.textColor = valor === 'ENTREGADO' ? COLOR_INFO : valor === 'ENTREGA PARCIAL' ? COLOR_ADVERTENCIA : COLOR_PELIGRO;
                     data.cell.styles.fontStyle = 'bold';
                 }
             },
             didDrawPage: () => {
                 const alturaPagina = doc.internal.pageSize.getHeight();
                 doc.setFontSize(8);
-                doc.setTextColor(180, 180, 180);
+                doc.setTextColor(...COLOR_TEXTO_MUTED);
                 doc.text('MercadoApp — reporte generado automáticamente', 14, alturaPagina - 10);
                 doc.text(`Página ${doc.internal.getNumberOfPages()}`, anchoPagina - 14, alturaPagina - 10, { align: 'right' });
             },
@@ -413,9 +423,14 @@ function VistaPlanillaCerrada({ planilla, volver }) {
 
         const totalPlanilla = boletasProcesadas.reduce((acumulado, b) => acumulado + (b.total || 0), 0);
         doc.setFontSize(11);
-        doc.setTextColor(44, 62, 80);
+        doc.setTextColor(...COLOR_TEXTO_PRIMARIO);
         doc.text(`Total planilla: ${formatearMoneda(totalPlanilla)}`, anchoPagina - 14, doc.lastAutoTable.finalY + 8, { align: 'right' });
 
+        return doc;
+    };
+
+    const exportarPDF = async () => {
+        const doc = construirPDF();
         const nombreArchivo = `planilla_${planilla.fecha}.pdf`;
         const esTauri = typeof window !== 'undefined' && window.__TAURI_INTERNALS__;
 
@@ -445,6 +460,11 @@ function VistaPlanillaCerrada({ planilla, volver }) {
         }
     };
 
+    const abrirVistaPreviaImpresion = () => {
+        setDocParaImprimir(construirPDF());
+        setMostrarVistaPrevia(true);
+    };
+
     return (
         <main style={{ padding: '20px', backgroundColor: 'var(--bg)', height: '100%', display: 'flex', flexDirection: 'column', gap: '20px', overflow: 'hidden' }}>
 
@@ -457,6 +477,9 @@ function VistaPlanillaCerrada({ planilla, volver }) {
                     </p>
                 </div>
                 <div style={{ display: 'flex', gap: '10px' }}>
+                    <button className="btn-global btn-secundario" onClick={abrirVistaPreviaImpresion} style={{ fontSize: '1rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        <HiOutlinePrinter /> Imprimir
+                    </button>
                     <button className="btn-global btn-primario" onClick={exportarPDF} style={{ fontSize: '1rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                         <HiOutlineDocumentArrowDown /> Exportar PDF
                     </button>
@@ -623,6 +646,17 @@ function VistaPlanillaCerrada({ planilla, volver }) {
                     formatearMoneda={formatearMoneda}
                     fecha={formatearFechaVisual(planilla.fecha)}
                     cerrarModal={() => setBoletaAVer(null)}
+                />
+            )}
+
+            {mostrarVistaPrevia && (
+                <ModalVistaPreviaImpresion
+                    doc={docParaImprimir}
+                    titulo="Resumen de Planilla Cerrada"
+                    cerrarModal={() => {
+                        setMostrarVistaPrevia(false);
+                        setDocParaImprimir(null);
+                    }}
                 />
             )}
 

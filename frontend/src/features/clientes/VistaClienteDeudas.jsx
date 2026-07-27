@@ -7,8 +7,14 @@ import ModalResumenCobro from '@/features/cobros/ModalResumenCobro';
 import ModalPagoACuenta from '@/features/cobros/ModalPagoACuenta';
 import ModalVerBoleta from '@/features/boletas/ModalVerBoleta';
 import AlertaEmergente from '@/shared/ui/AlertaEmergente';
+import ModalVistaPreviaImpresion from '@/shared/ui/ModalVistaPreviaImpresion';
 import { formatearFechaVisual } from '@/shared/utils/formatoFecha';
-import { HiOutlineBanknotes, HiOutlineDocumentArrowDown, HiOutlineTicket, HiOutlineCalendarDays } from 'react-icons/hi2';
+import {
+    COLOR_TEXTO_PRIMARIO, COLOR_TEXTO_SECUNDARIO, COLOR_TEXTO_MUTED,
+    COLOR_ACENTO, COLOR_EXITO, COLOR_PELIGRO,
+    COLOR_SUPERFICIE_INVERSA, COLOR_TEXTO_SOBRE_INVERSA, COLOR_BORDE, COLOR_SUPERFICIE_2,
+} from '@/shared/utils/coloresImpresion';
+import { HiOutlineBanknotes, HiOutlineDocumentArrowDown, HiOutlineTicket, HiOutlineCalendarDays, HiOutlinePrinter } from 'react-icons/hi2';
 import '@/shared/styles/Botones.css';
 import MensajeError from '@/shared/ui/MensajeError';
 
@@ -121,6 +127,8 @@ function VistaClienteDeudas({ cliente, volver }) {
     const [tipoExport, setTipoExport] = useState('exito');
     const [boletaAVer, setBoletaAVer] = useState(null);
     const [empresa, setEmpresa] = useState(null);
+    const [mostrarVistaPrevia, setMostrarVistaPrevia] = useState(false);
+    const [docParaImprimir, setDocParaImprimir] = useState(null);
 
     useEffect(() => {
         const cargarEmpresa = async () => {
@@ -243,7 +251,9 @@ function VistaClienteDeudas({ cliente, volver }) {
         await Promise.all([cargarDeudas(), refrescarCliente()]);
     };
 
-    const exportarPDF = async () => {
+    // Arma el documento (usado tanto para "Exportar PDF" como para la vista previa de
+    // impresion) sin guardarlo ni mandarlo a ningun lado todavia.
+    const construirPDF = () => {
         const doc = new jsPDF();
         const anchoPagina = doc.internal.pageSize.getWidth();
 
@@ -265,46 +275,46 @@ function VistaClienteDeudas({ cliente, volver }) {
             .filter(Boolean).join(' — ');
 
         doc.setFontSize(16);
-        doc.setTextColor(44, 62, 80);
+        doc.setTextColor(...COLOR_TEXTO_PRIMARIO);
         doc.text(
             doc.splitTextToSize(empresa?.nombre ? capitalizar(empresa.nombre) : 'MercadoApp', anchoMaximoTextoEmpresa)[0],
             xTexto, 18
         );
         doc.setFontSize(10);
-        doc.setTextColor(127, 127, 127);
+        doc.setTextColor(...COLOR_TEXTO_SECUNDARIO);
         doc.text('Deudas del cliente', xTexto, 24);
 
         if (datosExtra) {
             doc.setFontSize(8);
-            doc.setTextColor(150, 150, 150);
+            doc.setTextColor(...COLOR_TEXTO_MUTED);
             doc.text(doc.splitTextToSize(datosExtra, anchoMaximoTextoEmpresa)[0], xTexto, 29);
         }
 
         doc.setFontSize(10);
-        doc.setTextColor(85, 85, 85);
+        doc.setTextColor(...COLOR_TEXTO_SECUNDARIO);
         doc.text(capitalizar(clienteActual.nombre), anchoPagina - 14, 15, { align: 'right' });
         doc.text(`${clienteActual.tipoDocumento === 'CUIT_L' ? 'CUIT/L' : 'DNI'}: ${clienteActual.documento}`, anchoPagina - 14, 20, { align: 'right' });
-        doc.setTextColor(150, 150, 150);
+        doc.setTextColor(...COLOR_TEXTO_MUTED);
         doc.text(`Generado: ${new Date().toLocaleString('es-AR', { hour12: false })}`, anchoPagina - 14, 25, { align: 'right' });
 
-        doc.setDrawColor(44, 62, 80);
+        doc.setDrawColor(...COLOR_ACENTO);
         doc.setLineWidth(0.5);
         doc.line(14, 34, anchoPagina - 14, 34);
 
         const anchoCaja = (anchoPagina - 28 - 5) / 2;
         const cajas = [
-            { titulo: 'Deuda actual', valor: formatearMoneda(deudaActual), color: [192, 57, 43] },
-            { titulo: 'Saldo del Cliente', valor: formatearMoneda(clienteActual.saldo_a_favor), color: [39, 174, 96] },
+            { titulo: 'Deuda actual', valor: formatearMoneda(deudaActual), color: COLOR_PELIGRO },
+            { titulo: 'Saldo del Cliente', valor: formatearMoneda(clienteActual.saldo_a_favor), color: COLOR_EXITO },
         ];
 
         cajas.forEach((caja, i) => {
             const x = 14 + i * (anchoCaja + 5);
             doc.setFillColor(...caja.color);
             doc.rect(x, 39, 1, 14, 'F');
-            doc.setDrawColor(224, 224, 224);
+            doc.setDrawColor(...COLOR_BORDE);
             doc.rect(x, 39, anchoCaja, 14);
             doc.setFontSize(8);
-            doc.setTextColor(127, 127, 127);
+            doc.setTextColor(...COLOR_TEXTO_SECUNDARIO);
             doc.text(caja.titulo, x + 4, 44);
             doc.setFontSize(11);
             doc.setTextColor(...caja.color);
@@ -328,8 +338,8 @@ function VistaClienteDeudas({ cliente, volver }) {
             head: [['Fecha Planilla', 'Productos', 'Total']],
             body: filas,
             styles: { fontSize: 8, cellPadding: 3, valign: 'top' },
-            headStyles: { fillColor: [44, 62, 80], textColor: 255 },
-            alternateRowStyles: { fillColor: [250, 250, 250] },
+            headStyles: { fillColor: COLOR_SUPERFICIE_INVERSA, textColor: COLOR_TEXTO_SOBRE_INVERSA },
+            alternateRowStyles: { fillColor: COLOR_SUPERFICIE_2 },
             columnStyles: {
                 1: { cellWidth: 110 },
                 2: { halign: 'right' },
@@ -337,16 +347,21 @@ function VistaClienteDeudas({ cliente, volver }) {
             didDrawPage: () => {
                 const alturaPagina = doc.internal.pageSize.getHeight();
                 doc.setFontSize(8);
-                doc.setTextColor(180, 180, 180);
+                doc.setTextColor(...COLOR_TEXTO_MUTED);
                 doc.text(`${empresa?.nombre ? capitalizar(empresa.nombre) : 'MercadoApp'} — reporte generado automáticamente`, 14, alturaPagina - 10);
                 doc.text(`Página ${doc.internal.getNumberOfPages()}`, anchoPagina - 14, alturaPagina - 10, { align: 'right' });
             },
         });
 
         doc.setFontSize(11);
-        doc.setTextColor(44, 62, 80);
+        doc.setTextColor(...COLOR_TEXTO_PRIMARIO);
         doc.text(`Deuda actual: ${formatearMoneda(deudaActual)}`, anchoPagina - 14, doc.lastAutoTable.finalY + 8, { align: 'right' });
 
+        return doc;
+    };
+
+    const exportarPDF = async () => {
+        const doc = construirPDF();
         const nombreArchivo = `deudas_${(clienteActual.nombre || 'cliente').replace(/\s+/g, '_')}.pdf`;
         const esTauri = typeof window !== 'undefined' && window.__TAURI_INTERNALS__;
 
@@ -376,6 +391,11 @@ function VistaClienteDeudas({ cliente, volver }) {
         }
     };
 
+    const abrirVistaPreviaImpresion = () => {
+        setDocParaImprimir(construirPDF());
+        setMostrarVistaPrevia(true);
+    };
+
     return (
         <main style={{ padding: '20px', backgroundColor: 'var(--bg)', height: '100%', display: 'flex', flexDirection: 'column', gap: '20px', overflow: 'hidden' }}>
 
@@ -390,6 +410,9 @@ function VistaClienteDeudas({ cliente, volver }) {
                     </p>
                 </div>
                 <div style={{ display: 'flex', gap: '10px' }}>
+                    <button className="btn-global btn-secundario" onClick={abrirVistaPreviaImpresion} style={{ fontSize: '1rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        <HiOutlinePrinter /> Imprimir
+                    </button>
                     <button className="btn-global btn-primario" onClick={exportarPDF} style={{ fontSize: '1rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                         <HiOutlineDocumentArrowDown /> Exportar PDF
                     </button>
@@ -573,6 +596,17 @@ function VistaClienteDeudas({ cliente, volver }) {
                     formatearMoneda={formatearMoneda}
                     fecha={formatearFechaVisual(fechaPlanilla(boletaAVer.id_planilla))}
                     cerrarModal={() => setBoletaAVer(null)}
+                />
+            )}
+
+            {mostrarVistaPrevia && (
+                <ModalVistaPreviaImpresion
+                    doc={docParaImprimir}
+                    titulo={`Deudas de ${capitalizar(clienteActual.nombre)}`}
+                    cerrarModal={() => {
+                        setMostrarVistaPrevia(false);
+                        setDocParaImprimir(null);
+                    }}
                 />
             )}
 
